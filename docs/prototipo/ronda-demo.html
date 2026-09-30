@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ronda — demo de gestión para centros de salud</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -9,53 +10,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F5F6F4; --surface:#FFFFFF; --sunk:#ECEEEA; --line:#DADDD6; --ink:#1C2320; --ink-2:#56605A; --ink-3:#8A928C;
-  --primary:#1F5C57; --primary-ink:#FFFFFF; --primary-soft:#DDEBE8;
-  --warn:#B7791F; --warn-soft:#F7EBD3; --danger:#A8412F; --danger-soft:#F5DFD9; --ok:#2E7550; --ok-soft:#DCEEE2;
-  --d-psi:#3B6EA8; --d-psq:#7A4FA0; --d-ts:#B0612E; --d-enf:#2E7C74; --d-nut:#6E8A2B; --d-gru:#9A5A7A;
-  --radius-s:6px; --radius-m:10px;
+  --bg:#F6F7F9; --surface:#FFFFFF; --sunk:#F0F1F4; --line:#E5E7EB; --ink:#1F2328; --ink-2:#4B5563; --ink-3:#6B7280;
+  --primary:#B8520A; --primary-ink:#FFFFFF; --primary-soft:#FFF1E6; --brand:#F07D00;
+  --warn:#8A6100; --warn-soft:#FEF6D8; --danger:#B42318; --danger-soft:#FDECEA; --ok:#1E7A4C; --ok-soft:#E3F4EA;
+  --d-psi:#2563EB; --d-psq:#7C3AED; --d-ts:#0891B2; --d-enf:#059669; --d-nut:#65A30D; --d-gru:#DB2777;
+  --radius-s:8px; --radius-m:12px;
   --sans:"Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --serif:"Newsreader", Georgia, "Times New Roman", serif;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#141816; --surface:#1C211F; --sunk:#232926; --line:#323A36; --ink:#E7ECE9; --ink-2:#AAB4AE; --ink-3:#7C8781;
-    --primary:#6FB3AB; --primary-ink:#0F1614; --primary-soft:#1E3533;
-    --warn:#E0A94A; --warn-soft:#3A2F1A; --danger:#E08770; --danger-soft:#3D2520; --ok:#72C096; --ok-soft:#1D3327;
-    --d-psi:#7FA8DA; --d-psq:#B394D2; --d-ts:#DE9A6A; --d-enf:#6CC2B8; --d-nut:#A8C46A; --d-gru:#D39AB6;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#141816; --surface:#1C211F; --sunk:#232926; --line:#323A36; --ink:#E7ECE9; --ink-2:#AAB4AE; --ink-3:#7C8781;
-  --primary:#6FB3AB; --primary-ink:#0F1614; --primary-soft:#1E3533;
-  --warn:#E0A94A; --warn-soft:#3A2F1A; --danger:#E08770; --danger-soft:#3D2520; --ok:#72C096; --ok-soft:#1D3327;
-  --d-psi:#7FA8DA; --d-psq:#B394D2; --d-ts:#DE9A6A; --d-enf:#6CC2B8; --d-nut:#A8C46A; --d-gru:#D39AB6;
-  color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{height:100%}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 h1,h2,h3{margin:0;font-weight:600;letter-spacing:-0.01em}
 h1{font-size:1.6rem} h2{font-size:1.15rem} h3{font-size:1rem}
 p{margin:0}
 .app{display:grid;grid-template-columns:232px minmax(0,1fr);height:100%}
 /* Sidebar */
 .side{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.brand{padding:20px 20px 14px;display:flex;align-items:baseline;gap:8px}
-.brand b{font-family:var(--serif);font-size:1.7rem;font-weight:500;letter-spacing:-0.02em}
+.brand{padding:22px 20px 14px;display:flex;align-items:flex-end;gap:8px}
+.brand svg{display:block;height:30px;width:auto}
+.brand b{font-size:1.45rem;font-weight:700;letter-spacing:-0.03em;display:flex;align-items:center;gap:8px}
+
 .brand span{font-size:.8rem;color:var(--ink-3)}
 .tenant{margin:0 12px 12px;padding:10px 12px;border-radius:var(--radius-m);background:var(--sunk);font-size:.85rem}
 .tenant small{display:block;color:var(--ink-3);font-size:.75rem}
 .nav{display:flex;flex-direction:column;padding:4px 8px;gap:2px;overflow:auto;flex:1}
 .nav button{all:unset;cursor:pointer;padding:9px 12px;border-radius:var(--radius-s);color:var(--ink-2);display:flex;justify-content:space-between;align-items:center}
 .nav button:hover{background:var(--sunk);color:var(--ink)}
-.nav button[aria-current="page"]{background:var(--primary-soft);color:var(--ink);font-weight:600}
+.nav button[aria-current="page"]{background:var(--primary-soft);color:var(--primary);font-weight:600;box-shadow:inset 3px 0 0 var(--brand)}
 .nav button:focus-visible{outline:2px solid var(--primary)}
 .nav .count{font-size:.75rem;background:var(--warn-soft);color:var(--warn);padding:1px 7px;border-radius:20px;font-weight:600}
 .nav .sep{height:1px;background:var(--line);margin:8px 12px}
@@ -82,7 +69,7 @@ p{margin:0}
 .btn.sm{padding:4px 9px;font-size:.8rem}
 .btn.ghost{border-color:transparent;background:transparent;color:var(--primary)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .panel-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
 .panel-b{padding:14px 18px}
 .muted{color:var(--ink-2)} .faint{color:var(--ink-3)} .small{font-size:.83rem}
@@ -103,7 +90,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{cursor:pointer;border:1px solid var(--line);background:var(--surface);padding:4px 11px;border-radius:20px;font-size:.82rem;color:var(--ink-2)}
-.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--primary-soft);color:var(--primary);border-color:var(--primary)}
 .bar{height:6px;border-radius:4px;background:var(--sunk);overflow:hidden;min-width:60px}
 .bar i{display:block;height:100%;background:var(--primary)}
 .bar.warn i{background:var(--warn)} .bar.danger i{background:var(--danger)}
@@ -139,11 +126,11 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--
 .slot small{display:block;color:var(--ink-2)}
 /* HC timeline */
 .ptop{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px}
-.ptop h1{font-family:var(--serif);font-weight:500;font-size:2rem;letter-spacing:-0.015em}
+.ptop h1{font-weight:600;font-size:1.8rem;letter-spacing:-0.02em}
 .facts{display:flex;gap:18px;flex-wrap:wrap;color:var(--ink-2);font-size:.88rem;margin-top:6px}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
 .tabs button{all:unset;cursor:pointer;padding:10px 14px;color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tabs button[aria-selected="true"]{color:var(--primary);border-bottom-color:var(--brand);font-weight:600}
 .tabs button:focus-visible{outline:2px solid var(--primary)}
 .tl-day{margin:22px 0 8px;font-size:.84rem;color:var(--ink-3);font-weight:500}
 .tl-day:first-child{margin-top:0}
@@ -187,6 +174,139 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--
 .rule{display:grid;grid-template-columns:28px 1fr auto;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);align-items:center}
 .rule:last-child{border-bottom:none}
 .rule .n{font-variant-numeric:tabular-nums;color:var(--ink-3)}
+
+/* Panel del día */
+.counters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.counter{cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;color:inherit}
+.counter:hover{border-color:var(--ink-3)}
+.counter[aria-pressed="true"]{border:2px solid var(--brand);padding:13px 17px}
+.counter b{font-size:1.65rem;letter-spacing:-.02em;font-weight:700}
+.counter.warn b{color:var(--warn)}
+.counter span{font-size:.84rem;color:var(--ink-2)}
+.panelgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+.lhead{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lhead select{width:auto;margin-left:auto}
+.trow{display:grid;grid-template-columns:52px minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,1.1fr) 118px 156px;gap:14px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line)}
+.thead{font-size:.78rem;color:var(--ink-3);font-weight:500;padding-top:9px;padding-bottom:9px}
+.tgroup{padding:8px 18px;background:var(--sunk);border-bottom:1px solid var(--line);font-size:.74rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+.tgroup span{color:var(--ink-3);margin-left:6px}
+.c-hora{font-weight:600;font-variant-numeric:tabular-nums}
+.c-pac b{display:block;font-weight:600}
+.c-pac small,.c-cob small{color:var(--ink-3);font-size:.8rem}
+.c-cob{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:.88rem}
+.c-cob .tag{white-space:normal}
+.c-pro{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--ink-2);white-space:nowrap;overflow:hidden}
+.c-act{display:flex;justify-content:flex-end;gap:6px}
+.hmob{display:none}
+.btn.soft{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary);font-weight:600}
+.btn.soft:hover{border-color:var(--primary)}
+.btn.icon{padding:7px 9px;line-height:1}
+.lfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;background:var(--sunk);font-size:.86rem;color:var(--ink-2);flex-wrap:wrap}
+.proh{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.proh:last-child{border-bottom:none}
+.todo{display:flex;gap:12px;padding:12px 18px;border:0;border-bottom:1px solid var(--line);cursor:pointer;width:100%;text-align:left;background:none;font:inherit;color:inherit}
+.todo:last-child{border-bottom:none}
+.todo:hover{background:var(--sunk)}
+.todo .ic{color:var(--warn);flex:none;margin-top:2px}
+.nowcard{padding:18px;display:flex;flex-direction:column;gap:12px}
+.nowcard .lab{font-size:.76rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--primary)}
+.nowcard .lab.muted{color:var(--ink-3)}
+.nowcard h2{font-size:1.45rem;letter-spacing:-.02em}
+.twobtn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.twobtn .btn{min-height:44px}
+@media (max-width: 900px){
+  .counters{grid-template-columns:1fr 1fr;gap:10px}
+  .panelgrid{grid-template-columns:minmax(0,1fr)}
+  .thead{display:none}
+  .trow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"pac est" "cob cob" "pro pro" "act act";gap:8px 10px}
+  .c-hora{display:none}.hmob{display:inline;font-weight:600;font-variant-numeric:tabular-nums;margin-right:6px}
+  .c-pac{grid-area:pac}.c-est{grid-area:est}.c-cob{grid-area:cob;flex-direction:row;flex-wrap:wrap;align-items:center}.c-pro{grid-area:pro}.c-act{grid-area:act;justify-content:stretch}
+  .c-act .btn{flex:1;min-height:44px}.c-act .btn.icon{flex:none;width:44px}
+  .lhead select{width:100%;margin-left:0}
+  .twobtn{grid-template-columns:1fr 1fr}
+}
+
+/* Shell según diseño aprobado */
+body{display:flex;flex-direction:column}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.demobar{height:40px;flex:none;background:#1F2328;color:#E5E7EB;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:.82rem;overflow-x:auto;white-space:nowrap}
+.demobar .dm-l{background:var(--brand);color:#1F2328;font-weight:700;border-radius:6px;padding:2px 8px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase}
+.demobar .dm-t{color:#9CA3AF}
+.demobar>*{flex:none}
+.demobar .rolepick{background:#2D3238;padding:3px;border-radius:8px}
+.demobar .rolepick button{color:#C9CDD3;padding:4px 10px;font-size:.8rem}
+.demobar .rolepick button[aria-pressed="true"]{background:#FFFFFF;color:#1F2328;box-shadow:none}
+.dm-r{margin-left:auto;display:flex;gap:6px}
+.dm-r button{all:unset;cursor:pointer;padding:4px 10px;border-radius:6px;color:#E5E7EB;border:1px solid #3A3F46}
+.dm-r button:hover{border-color:#9CA3AF}
+.app{flex:1;min-height:0;height:auto;grid-template-columns:248px minmax(0,1fr)}
+.side{padding:22px 14px 18px;gap:18px}
+.brand{padding:0 10px}
+.tenant-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:var(--sunk);border:1px solid var(--sunk);border-radius:8px;padding:9px 12px;text-align:left;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.tenant-btn small{display:block;font-size:11px;color:var(--ink-3)}
+.tenant-btn>span:first-child{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav{padding:0;gap:18px;display:flex;flex-direction:column;flex:1;overflow:auto}
+.nav .grp{display:flex;flex-direction:column;gap:2px}
+.nav .glabel{font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;padding:0 12px 6px}
+.nav button{display:flex;align-items:center;justify-content:flex-start;gap:11px;padding:9px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--ink-2)}
+.nav button .count{margin-left:auto;background:#FEF6D8;color:#8A6100}
+.nav button[aria-current="page"]{background:var(--primary-soft);color:var(--primary);font-weight:600;box-shadow:none}
+.nav .bottom{margin-top:auto}
+.top{height:64px;padding:0 32px;gap:16px;flex-wrap:nowrap}
+.search{display:flex;align-items:center;gap:9px;width:420px;max-width:100%;height:40px;border:1px solid var(--line);border-radius:8px;padding:0 12px;color:var(--ink-3);position:relative}
+.search input{border:none;outline:none;padding:0;background:transparent;font-size:14px}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:14px}
+.iconbtn{all:unset;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;border-radius:8px;color:var(--ink-2)}
+.iconbtn:hover{background:var(--sunk)}.iconbtn:focus-visible{outline:2px solid var(--brand)}
+.who{display:flex;align-items:center;gap:10px}
+.who .avatar{width:34px;height:34px;background:var(--ink);color:#fff;font-size:12px}
+.who b{display:block;font-size:14px;font-weight:600;line-height:1.2}.who small{display:block;font-size:12px;color:var(--ink-3)}
+.content{padding:28px 32px}
+.inner{max-width:1240px}
+.head h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.btn{display:inline-flex;align-items:center;gap:7px}
+/* Panel del día — idéntico al diseño */
+.counter{padding:14px 18px;border-radius:12px}
+.counter b{font-size:26px}
+.counter span{font-size:13px;font-weight:500}
+.lhead{flex-wrap:nowrap;padding:14px 20px;gap:8px}
+.fchip{cursor:pointer;height:32px;padding:0 11px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font:inherit;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
+.fchip[aria-pressed="true"]{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+.fsel{height:32px;width:auto;margin-left:auto;font-size:13px;padding:0 10px;border-radius:8px}
+.trow{grid-template-columns:52px minmax(0,1.3fr) minmax(0,1.25fr) minmax(0,1.1fr) 112px 118px;padding:12px 20px}
+.thead{font-size:12px;padding-top:10px;padding-bottom:10px}
+.tgroup{padding:9px 20px;font-size:12px}
+.c-hora{font-size:14px}
+.pname{all:unset;cursor:pointer;display:block;font-size:14px;font-weight:600}
+.pname:hover{color:var(--primary)}.pname:focus-visible{outline:2px solid var(--brand)}
+.c-pac small{font-size:12px}
+.c-cob{font-size:13px}
+.c-pro{font-size:13px}
+.tag{font-size:12px;padding:3px 9px;display:inline-flex;align-items:center;gap:5px}
+.lfoot{padding:12px 20px;font-size:13px}
+.aside-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.aside-h h2{font-size:16px}
+.proh{padding:14px 18px}
+.proh b{font-size:14px}
+.todo{padding:13px 18px}
+.todo .ic{color:#8A6100}
+@media (max-width: 900px){
+  .app{grid-template-rows:auto minmax(0,1fr)}
+  .side{padding:12px 12px 6px;gap:8px}
+  .tenant-btn{display:none}
+  .nav{flex-direction:row;overflow-x:auto;gap:2px;flex:none}
+  .nav .grp{flex-direction:row}
+  .nav .glabel{display:none}
+  .nav .bottom{margin-top:0}
+  .nav button{white-space:nowrap}
+  .top{height:56px;padding:0 16px}
+  .search{width:auto;flex:1}
+  .who b,.who small{display:none}
+  .content{padding:18px 16px}
+  .lhead{flex-wrap:wrap}
+  .fsel{width:100%;margin-left:0}
+}
+
 #print{display:none}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 @media (max-width: 900px){
@@ -222,18 +342,17 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--
 </style>
 </head>
 <body>
+<div class="demobar" role="region" aria-label="Controles de la demo"><span class="dm-l">Demo</span><span class="dm-t">Ver como</span><div class="rolepick" id="rolepick" role="group" aria-label="Rol"></div><div class="dm-r"><button data-a="guia">Guía de la demo</button><button data-a="reset">Restablecer</button></div></div>
 <div class="app">
   <aside class="side">
-    <div class="brand"><b>Ronda</b><span>demo</span></div>
-    <div class="tenant"><small>Institución</small>Centro Demo de Salud Mental</div>
+    <div class="brand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="40 -20 2620 770" height="30" width="102" aria-label="Ronda" role="img"><title>Ronda</title><path d="M60 720V210H207V330H210V720ZM210 454 197 333Q215 268 256.0 234.0Q297 200 358 200Q377 200 386 204V344Q381 342 372.0 341.5Q363 341 350 341Q278 341 244.0 366.5Q210 392 210 454Z" fill="#1F2328"/><g transform="translate(324.83 141.83) scale(6.4634)"><g transform="rotate(40 50 50)"><path d="M70.94 23.21A34 34 0 1 1 29.06 23.21" fill="none" stroke="#1F2328" stroke-width="15" stroke-linecap="round"/><circle cx="50" cy="16" r="9" fill="#F07D00"/></g></g><path d="M992 720V210H1139V330H1142V720ZM1347 720V404Q1347 362 1325.5 341.0Q1304 320 1263 320Q1228 320 1200.5 336.0Q1173 352 1157.5 380.0Q1142 408 1142 446L1129 323Q1154 267 1202.5 233.5Q1251 200 1322 200Q1407 200 1452.0 247.5Q1497 295 1497 375V720Z" fill="#1F2328"/><path d="M1937 720V607L1947 609Q1937 664 1887.5 697.0Q1838 730 1769 730Q1699 730 1647.5 697.5Q1596 665 1568.0 606.0Q1540 547 1540 467Q1540 386 1569.0 326.0Q1598 266 1650.5 233.0Q1703 200 1773 200Q1846 200 1891.5 234.0Q1937 268 1945 327L1934 328V0H2084V720ZM1817 610Q1870 610 1903.0 572.5Q1936 535 1936 465Q1936 395 1902.5 357.5Q1869 320 1815 320Q1763 320 1729.5 358.0Q1696 396 1696 466Q1696 536 1729.5 573.0Q1763 610 1817 610Z" fill="#1F2328"/><path d="M2490 720Q2484 698 2481.5 673.0Q2479 648 2479 615H2475V374Q2475 343 2454.5 325.5Q2434 308 2394 308Q2356 308 2333.5 321.0Q2311 334 2304 359H2161Q2171 290 2232.0 245.0Q2293 200 2399 200Q2509 200 2567.0 249.0Q2625 298 2625 390V615Q2625 640 2628.5 665.5Q2632 691 2640 720ZM2312 730Q2236 730 2191.0 691.5Q2146 653 2146 589Q2146 518 2199.5 474.5Q2253 431 2349 418L2498 397V484L2374 503Q2334 509 2315.0 525.0Q2296 541 2296 569Q2296 594 2314.0 607.0Q2332 620 2362 620Q2409 620 2442.0 594.5Q2475 569 2475 535L2489 615Q2467 672 2422.0 701.0Q2377 730 2312 730Z" fill="#1F2328"/></svg></div>
+    <button class="tenant-btn" data-a="soon" data-m="Si trabajás en varias instituciones o sedes, desde acá cambiás entre ellas."><span><small>Institución</small>Centro Demo · Sede Centro</span><span id="chev"></span></button>
     <nav class="nav" id="nav" aria-label="Secciones"></nav>
-    <div class="side-foot">Datos ficticios. Tus cambios quedan en este navegador. <button data-a="reset">Restablecer demo</button></div>
   </aside>
   <div class="main">
     <header class="top">
-      <span class="small muted">Ver como</span>
-      <div class="rolepick" id="rolepick" role="group" aria-label="Rol"></div>
-      <div class="who" id="who"></div>
+      <label class="search"><span id="sico"></span><span class="sr">Buscar</span><input type="search" id="gsearch" placeholder="Buscar paciente, DNI o profesional"></label>
+      <div class="top-r"><button class="iconbtn" id="bellbtn" data-a="soon" data-m="Acá llegan los avisos: pacientes que llegaron, autorizaciones por vencer y evoluciones pendientes." aria-label="Avisos"></button><div class="who" id="who"></div></div>
     </header>
     <main class="content"><div class="inner" id="view"></div></main>
   </div>
@@ -268,7 +387,7 @@ const ROLES={
   direccion:{label:'Dirección',user:'Dra. Inés Carrizo',views:['hoy','agenda','pacientes','grupos','internacion','medicacion','autorizaciones','facturacion','config','auditoria'],hc:'read'},
   profesional:{label:'Psicóloga',user:'Lic. Laura Méndez',proId:'p1',views:['hoy','agenda','pacientes','grupos'],hc:'write'},
   enfermeria:{label:'Enfermería',user:'Enf. Carla Funes',proId:'p5',views:['hoy','internacion','medicacion','pacientes'],hc:'nursing'},
-  administracion:{label:'Administración',user:'Marcela Ortiz',views:['hoy','agenda','pacientes','autorizaciones','facturacion'],hc:'none'}
+  administracion:{label:'Recepción',user:'Marcela Ortiz',views:['hoy','agenda','pacientes','autorizaciones','facturacion'],hc:'none'}
 };
 const VIEWS={hoy:'Hoy',agenda:'Agenda',pacientes:'Pacientes',grupos:'Grupos y talleres',internacion:'Internación',medicacion:'Medicación',autorizaciones:'Autorizaciones',facturacion:'Prefacturación',config:'Configuración',auditoria:'Auditoría'};
 const ESTADOS=['Preadmisión','Admisión','En tratamiento','Alta','Baja'];
@@ -295,7 +414,7 @@ function seed(){
     const equipo=[psi,'p2'];if(i%3===0)equipo.push('p3');if(intern)equipo.push('p6');
     return {id:'pa'+(i+1),nombre:n[0],apellido:n[1],dni:String(30000000+Math.floor(rnd()*14000000)),nac:(1968+Math.floor(rnd()*38))+'-0'+(1+Math.floor(rnd()*9))+'-1'+Math.floor(rnd()*9),
       ooss:i===17?'Sancor Salud':ooss[i%ooss.length],afiliado:String(100000+Math.floor(rnd()*899999)),estado,modalidad:intern?'Internación':'Ambulatorio',
-      frecuencia:intern?5:(i%4===0?3:1),equipo:estado==='Preadmisión'?[]:equipo,tel:'261 '+(4000000+Math.floor(rnd()*999999)),referente:pick(['Madre','Padre','Pareja','Hermana','Hijo'])+': '+pick(['Ana','Luis','Carolina','Pedro','Silvia'])+' '+n[1],
+      frecuencia:intern?5:(i%4===0?3:1),equipo:estado==='Preadmisión'?[]:equipo,tel:'261 '+(4000000+Math.floor(rnd()*999999)),deuda:(i%2===1),referente:pick(['Madre','Padre','Pareja','Hermana','Hijo'])+': '+pick(['Ana','Luis','Carolina','Pedro','Silvia'])+' '+n[1],
       historial:[{fecha:iso(day(-120+i*3)),de:'Preadmisión',a:'Admisión',por:'Marcela Ortiz'},{fecha:iso(day(-100+i*3)),de:'Admisión',a:'En tratamiento',por:'Dra. Inés Carrizo'}].slice(0,estado==='Preadmisión'?0:estado==='Admisión'?1:2)};
   });
   // camas
@@ -312,7 +431,7 @@ function seed(){
   const pmap={};pats.forEach(p=>pmap[p.id]=p);
   const agendaPros=['p1','p2','p4','p3'];
   for(let d=-21;d<=7;d++){
-    const dt=day(d);const wd=dt.getDay();if(wd===0||wd===6)continue;
+    const dt=day(d);const wd=dt.getDay();if(d===0||wd===0||wd===6)continue;
     agendaPros.forEach(pro=>{
       const mine=pats.filter(p=>p.equipo.includes(pro)&&p.estado!=='Preadmisión'&&(p.estado!=='Alta'||d<-5));
       const hours=pro==='p2'?['14:00','14:30','15:00','15:30','16:00']:pro==='p3'?['10:00','11:00']:['09:00','09:30','10:30','11:00','11:30','12:00'];
@@ -329,6 +448,29 @@ function seed(){
       });
     });
   }
+  // agenda de hoy con flujo de sala de espera (siempre día hábil para la demo)
+  const NOW=Date.now(),MIN=60000,USED=new Map();
+  const PLAN={
+    p1:[['09:00','at'],['09:30','at'],['10:30','au'],['11:00','atx'],['11:30','es',18],['12:00','pl'],['15:00','pls']],
+    p2:[['09:00','at'],['09:30','at'],['10:00','at'],['10:30','co',4],['11:00','es',2],['14:00','pl'],['14:30','pls'],['15:00','pl'],['16:00','pl']],
+    p3:[['09:30','at'],['11:00','es',6],['12:00','pl'],['15:30','pls']],
+    p4:[['09:30','atx'],['10:30','co',22],['12:00','pls']]
+  };
+  const PRI={co:0,es:1,atx:2,at:3,au:4,pl:5,pls:5};
+  const flat=[];Object.entries(PLAN).forEach(([pro,plan])=>plan.forEach(e=>flat.push([pro,...e])));
+  flat.sort((a,b)=>PRI[a[2]]-PRI[b[2]]);
+  flat.forEach(([pro,h,f,mins])=>{
+      const pool=pats.filter(p=>p.equipo.includes(pro)&&p.modalidad==='Ambulatorio'&&!['Preadmisión','Alta'].includes(p.estado));
+      const p=pool.slice().sort((x,y)=>((USED.get(x.id+pro)||0)-(USED.get(y.id+pro)||0))||(USED.get(x.id)||0)-(USED.get(y.id)||0))[0];USED.set(p.id,(USED.get(p.id)||0)+1);USED.set(p.id+pro,(USED.get(p.id+pro)||0)+1);
+      const flujo={at:'atendido',atx:'atendido',au:'ausente',es:'espera',co:'consulta',pl:'porllegar',pls:'porllegar'}[f];
+      const t={id:uid('t'),pid:p.id,pro,fecha:iso(T0),hora:h,tipo:pro==='p2'?'Control psiquiátrico':pro==='p3'?'Entrevista social':'Sesión individual',
+        estado:flujo==='ausente'?'ausente':flujo==='porllegar'?'programado':'presente',flujo,conf:f!=='pls'};
+      if(f==='es')t.arr=NOW-mins*MIN;
+      if(f==='co'){t.arr=NOW-(mins+9)*MIN;t.ini=NOW-mins*MIN}
+      if(f==='at'||f==='atx'){t.arr=NOW-200*MIN;t.ini=NOW-190*MIN;t.fin=NOW-150*MIN}
+      turnos.push(t);
+      if(f==='at'){const disc=pros.find(x=>x.id===pro).disc;evols.push({id:uid('e'),pid:p.id,pro,fecha:t.fecha,hora:h,tipo:t.tipo,disc,texto:pick(disc==='Psiquiatría'?TXT_PSQ:disc==='Trabajo social'?TXT_TS:TXT_PSI),firmada:true,turnoId:t.id,addenda:[]})}
+  });
   // enfermería para internados
   internados.forEach(pi=>{for(let d=-6;d<=-1;d++){evols.push({id:uid('e'),pid:'pa'+(pi+1),pro:'p5',fecha:iso(day(d)),hora:'07:30',tipo:'Control de enfermería',disc:'Enfermería',texto:pick(TXT_ENF),vitals:{ta:pick(['120/80','110/70','130/85']),t:pick(['36,4','36,7','36,5']),fc:String(68+Math.floor(rnd()*20)),spo2:String(95+Math.floor(rnd()*4))},firmada:true,addenda:[]})}});
   // grupos
@@ -365,7 +507,7 @@ function seed(){
     st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:prevM,autorizadas:p.modalidad==='Internación'?30:8,estado:i%3===0?'Presentada':'Cobrada',vence:iso(day(-diff(TODAY,prevM+'-28')))});
     if(p.estado==='Alta')return;
     const s=i%5===0?'Solicitada':i%7===0?'Presentada':'Autorizada';
-    st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:curM,autorizadas:p.modalidad==='Internación'?30:(p.frecuencia>=3?24:14),estado:s,vence:iso(day(i%4===0?6+i%5:20+i)),via:pick(['Portal OS','Correo','Presencial'])});
+    st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:curM,autorizadas:p.modalidad==='Internación'?30:(p.frecuencia>=3?30:20),estado:s,vence:iso(day(i%4===0?6+i%5:20+i)),via:pick(['Portal OS','Correo','Presencial'])});
   });
   const A=(d,h,u,r,acc,ent)=>st.audit.push({ts:iso(day(d))+' '+h,user:u,rol:r,acc,ent});
   A(-2,'08:14','Enf. Carla Funes','Enfermería','Registró administración','Clonazepam — Joaquín Barrera');
@@ -388,9 +530,9 @@ function modulo(st,p){
 }
 
 /* ---------- estado ---------- */
-const KEY='ronda-demo-v1';let S;
-try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):null;if(S&&S.day!==TODAY)S=null}catch(e){S=null}
-if(!S){S=seed();S.day=TODAY}
+const KEY='ronda-demo-v2';let S;
+try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):null;if(S&&(S.day!==TODAY||Date.now()-(S.seededAt||0)>4*36e5))S=null}catch(e){S=null}
+if(!S){S=seed();S.day=TODAY;S.seededAt=Date.now()}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const R=()=>ROLES[S.role];
 const pro=id=>S.pros.find(p=>p.id===id)||{nombre:'—',disc:''};
@@ -415,7 +557,7 @@ function metrics(){
   const hoy=S.turnos.filter(t=>t.fecha===TODAY&&mine(t));
   const d30=iso(day(-30));const pas=S.turnos.filter(t=>t.fecha>=d30&&t.fecha<=TODAY&&t.estado!=='programado'&&mine(t));
   const asis=pas.length?Math.round(pas.filter(t=>t.estado==='presente').length/pas.length*100):0;
-  const pend=S.turnos.filter(t=>t.estado==='presente'&&mine(t)&&!S.evols.some(e=>e.turnoId===t.id));
+  const pend=S.turnos.filter(t=>t.estado==='presente'&&(!t.flujo||t.flujo==='atendido')&&mine(t)&&!S.evols.some(e=>e.turnoId===t.id));
   const vencen=S.auths.filter(a=>a.estado==='Autorizada'&&diff(a.vence,TODAY)<=15&&diff(a.vence,TODAY)>=0);
   const solicitadas=S.auths.filter(a=>a.estado==='Solicitada');
   const hN=new Date().getHours();
@@ -429,10 +571,13 @@ function metrics(){
 function render(){
   const r=R();if(!r.views.includes(S.view)&&S.view!=='paciente')S.view='hoy';
   const m=metrics();
-  const counts={hoy:0,autorizaciones:m.vencen.length+m.solicitadas.length,medicacion:m.medPend.length,agenda:S.role==='profesional'?m.pend.length:0};
-  $('#nav').innerHTML=r.views.map((v,i)=>(v==='config'?'<div class="sep"></div>':'')+`<button data-a="go" data-v="${v}" ${S.view===v||(S.view==='paciente'&&v==='pacientes')?'aria-current="page"':''}>${VIEWS[v]}${counts[v]?`<span class="count">${counts[v]}</span>`:''}</button>`).join('');
+  const counts={hoy:S.role==='administracion'?S.turnos.filter(t=>t.fecha===TODAY&&t.flujo==='espera').length:0,autorizaciones:m.vencen.length+m.solicitadas.length,medicacion:m.medPend.length,agenda:S.role==='profesional'?m.pend.length:0};
+  const nb=v=>`<button data-a="go" data-v="${v}" ${S.view===v||(S.view==='paciente'&&v==='pacientes')?'aria-current="page"':''}>${ico(v)}<span>${navLabel(v)}</span>${counts[v]?`<span class="count">${counts[v]}</span>`:''}</button>`;
+  $('#nav').innerHTML=NAVG.map(([g,vs])=>{const it=vs.filter(v=>r.views.includes(v));return it.length?`<div class="grp"><span class="glabel">${g}</span>${it.map(nb).join('')}</div>`:''}).join('')
+    +`<div class="grp bottom">${r.views.includes('config')?nb('config'):''}<button data-a="guia">${ico('ayuda')}<span>Ayuda</span></button></div>`;
+  $('#chev').innerHTML=ico('cd',16);$('#sico').innerHTML=ico('search');$('#bellbtn').innerHTML=ico('bell',20);
   $('#rolepick').innerHTML=Object.entries(ROLES).map(([k,v])=>`<button data-a="role" data-r="${k}" aria-pressed="${S.role===k}">${v.label}</button>`).join('');
-  $('#who').innerHTML=`<span class="avatar" aria-hidden="true">${initials(r.user)}</span><span>${esc(r.user)}</span>`;
+  $('#who').innerHTML=`<span class="avatar" aria-hidden="true">${initials(r.user)}</span><span><b>${esc(r.user)}</b><small>${r.label}</small></span>`;
   const V={hoy:vHoy,agenda:vAgenda,pacientes:vPacientes,paciente:vPaciente,grupos:vGrupos,internacion:vInternacion,medicacion:vMedicacion,autorizaciones:vAuth,facturacion:vFact,config:vConfig,auditoria:vAudit};
   $('#view').innerHTML=V[S.view](m);
   save();
@@ -440,6 +585,8 @@ function render(){
 
 /* ---------- Hoy ---------- */
 function vHoy(m){
+  if(S.role==='administracion')return vPanel(m);
+  if(S.role==='profesional')return vMiDia(m);
   const r=R();
   const strips={
     direccion:[[m.hoy.length,'turnos hoy'],[m.asis+'%','asistencia últimos 30 días'],[m.pend.length,'evoluciones pendientes'],[occ().length+' / '+S.rooms.flatMap(x=>x.camas).length,'camas ocupadas']],
@@ -711,6 +858,122 @@ function vAudit(){
   </tbody></table></div></div>`;
 }
 
+
+
+const IC={hoy:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',agenda:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',pacientes:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.8.7 3 2.5 3.5 5.2"/>',grupos:'<circle cx="12" cy="7" r="3"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><path d="M7 20c0-3 2-5 5-5s5 2 5 5M1.5 18c0-2 1.4-3.5 3.5-3.5M22.5 18c0-2-1.4-3.5-3.5-3.5"/>',internacion:'<path d="M3 18V7M3 13h18v5M21 13a3 3 0 0 0-3-3h-8v3"/><circle cx="6.5" cy="10.5" r="1.8"/>',medicacion:'<path d="M10.5 20.5l-7-7a4.95 4.95 0 0 1 7-7l7 7a4.95 4.95 0 0 1-7 7zM7 10l7 7"/>',autorizaciones:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 11h6M9 15h4"/>',facturacion:'<path d="M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6"/>',auditoria:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',config:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',ayuda:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17h.01"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',bell:'<path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/>',cd:'<path d="M6 9l6 6 6-6"/>',cl:'<path d="M15 6l-6 6 6 6"/>',cr:'<path d="M9 6l6 6-6 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',pen:'<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>'};
+const ico=(n,sz=18,sw=1.8)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const NAVG=[['Operación',['hoy','agenda','pacientes','grupos','internacion','medicacion']],['Administración',['autorizaciones','facturacion','auditoria']]];
+/* ---------- Panel del día (recepción) y Mi día (profesional) ---------- */
+function navLabel(v){if(v==='hoy'&&S.role==='administracion')return 'Panel del día';if(v==='hoy'&&S.role==='profesional')return 'Mi día';return VIEWS[v]}
+const minsSince=ts=>Math.max(0,Math.round((Date.now()-ts)/60000));
+const todayT=()=>S.turnos.filter(t=>t.fecha===TODAY&&t.flujo).sort((a,b)=>a.hora.localeCompare(b.hora));
+const noDow=s=>s.split(' ').slice(1).join(' ');
+function curAuth(pid){return S.auths.find(a=>a.pid===pid&&a.periodo===TODAY.slice(0,7))}
+function cobLabel(t){
+  const p=pat(t.pid);
+  if(p.modalidad==='Internación')return {o:p.ooss,tag:'<span class="tag pri">Internado</span>'};
+  if(p.ooss==='Particular')return {o:'Particular',tag:p.deuda?'<span class="tag warn">Copago pendiente</span>':''};
+  const a=curAuth(p.id);
+  if(!a)return {o:p.ooss,tag:'<span class="tag danger">Sin autorización</span>'};
+  if(a.estado==='Solicitada')return {o:p.ooss,tag:'<span class="tag warn">En trámite</span>'};
+  const dv=diff(a.vence,TODAY);
+  if(a.estado==='Autorizada'&&dv<0)return {o:p.ooss,tag:'<span class="tag danger">Autorización vencida</span>'};
+  if(a.estado==='Autorizada'&&dv<=15)return {o:p.ooss,tag:`<span class="tag warn">Vence ${noDow(fd(a.vence))}</span>`};
+  const n=S.turnos.filter(x=>x.pid===p.id&&x.fecha.slice(0,7)===TODAY.slice(0,7)&&x.fecha<=t.fecha&&(x.estado==='presente'||x.id===t.id)).length;
+  return {o:p.ooss,tag:`<span class="tag">Sesión ${Math.min(n,a.autorizadas)} de ${a.autorizadas}</span>`};
+}
+function estTagF(t){
+  if(t.flujo==='porllegar')return t.conf?'<span class="tag ok">Confirmó</span>':'<span class="tag warn">Sin confirmar</span>';
+  if(t.flujo==='espera'){const m=minsSince(t.arr);return `<span class="tag ${m>=15?'warn':''}">Espera ${m} min</span>`}
+  if(t.flujo==='consulta')return `<span class="tag pri">${ico('clock',13)}${minsSince(t.ini)} min</span>`;
+  if(t.flujo==='ausente')return '<span class="tag danger">Ausente</span>';
+  return S.evols.some(e=>e.turnoId===t.id)?'<span class="tag ok">Atendido</span>':'<span class="tag warn">Sin evolución</span>';
+}
+function actBtn(t){
+  if(t.flujo==='porllegar')return `<button class="btn sm" data-a="llegada" data-t="${t.id}">Marcar llegada</button>`;
+  if(t.flujo==='espera')return `<button class="btn sm soft" data-a="pasar" data-t="${t.id}">Hacer pasar</button>`;
+  if(t.flujo==='consulta')return `<button class="btn sm" data-a="finalizar" data-t="${t.id}">Finalizar</button>`;
+  return '';
+}
+function trow(t){
+  const p=pat(t.pid),pr=pro(t.pro),c=cobLabel(t);
+  return `<div class="trow"><span class="c-hora">${t.hora}</span>
+  <span class="c-pac"><button class="pname" data-a="tacc" data-t="${t.id}"><span class="hmob">${t.hora}</span>${esc(p.nombre+' '+p.apellido)}</button><small>${esc(t.tipo)}</small></span>
+  <span class="c-cob"><span>${esc(c.o)}</span>${c.tag}</span>
+  <span class="c-pro"><span class="dot" style="background:var(${DISC[pr.disc]})"></span>${esc(pr.nombre.replace(/^(Dra?\.|Lic\.)\s*/,''))}</span>
+  <span class="c-est">${estTagF(t)}</span><span class="c-act">${actBtn(t)}</span></div>`;
+}
+function vPanel(m){
+  const all=todayT();const f=S.pnf||'todos';const fp=S.pnpro||'';
+  const L=all.filter(t=>!fp||t.pro===fp);
+  const G={consulta:L.filter(t=>t.flujo==='consulta'),espera:L.filter(t=>t.flujo==='espera'),porllegar:L.filter(t=>t.flujo==='porllegar'),atendidos:L.filter(t=>t.flujo==='atendido'||t.flujo==='ausente')};
+  const esp=all.filter(t=>t.flujo==='espera');
+  const esp15=esp.filter(t=>minsSince(t.arr)>=15);
+  const sinconf=all.filter(t=>t.flujo==='porllegar'&&!t.conf);
+  const venc=S.auths.filter(a=>a.estado==='Autorizada'&&diff(a.vence,TODAY)<=15&&diff(a.vence,TODAY)>=0);
+  const sinEv=all.filter(t=>t.flujo==='atendido'&&!S.evols.some(e=>e.turnoId===t.id));
+  const grp=(title,rows)=>rows.length?`<div class="tgroup">${title}<span>${rows.length}</span></div>${rows.map(trow).join('')}`:'';
+  let body='';
+  if(f==='todos')body=grp('En consulta',G.consulta)+grp('En sala de espera',G.espera)+grp('Por llegar',G.porllegar);
+  if(f==='espera')body=grp('En sala de espera',G.espera);
+  if(f==='espera15')body=grp('Esperan más de 15 minutos',G.espera.filter(t=>minsSince(t.arr)>=15));
+  if(f==='porllegar')body=grp('Por llegar',G.porllegar);
+  if(f==='sinconf')body=grp('Sin confirmar',G.porllegar.filter(t=>!t.conf));
+  if(f==='consulta')body=grp('En consulta',G.consulta);
+  if(f==='atendidos')body=grp('Atendidos y ausentes',G.atendidos);
+  if(!body)body='<div class="empty">No hay turnos en este grupo.</div>';
+  const chip=(k,l,n)=>`<button class="fchip" data-a="pnf" data-v="${k}" aria-pressed="${f===k}">${l} · ${n}</button>`;
+  const cnt=(k,n,l,w)=>`<button class="counter ${w&&n?'warn':''}" data-a="pnf" data-v="${k}" aria-pressed="${f===k||(k==='espera'&&f==='todos')}"><b>${n}</b><span>${l}</span></button>`;
+  const ids=['p2','p1','p4','p3'].filter(id=>all.some(t=>t.pro===id));
+  const profs=ids.map(id=>{const ts=all.filter(t=>t.pro===id);const P=pro(id);
+    const done=ts.filter(t=>['atendido','ausente','consulta'].includes(t.flujo)).length;
+    let st;if(ts.some(t=>t.flujo==='consulta'))st='<span class="tag pri">En consulta</span>';else if(ts.some(t=>t.flujo==='espera'))st='<span class="tag warn">Le esperan</span>';else{const nx=ts.find(t=>t.flujo==='porllegar');st=nx?`<span class="tag">Libre hasta ${nx.hora}</span>`:'<span class="tag ok">Terminó</span>'}
+    return `<div class="proh"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;gap:8px"><div class="row" style="gap:9px;flex-wrap:nowrap"><span class="dot" style="background:var(${DISC[P.disc]})"></span><div><b>${esc(P.nombre)}</b><div class="small faint" style="font-size:12px">${P.disc}</div></div></div>${st}</div>
+    <div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${Math.round(done/ts.length*100)}%"></i></div><span class="faint" style="white-space:nowrap;font-size:12px">${done} de ${ts.length} turnos</span></div></div>`}).join('');
+  const todos=[];
+  venc.slice(0,2).forEach(a=>todos.push(`<button class="todo" data-a="go" data-v="autorizaciones"><span class="ic">${ico('autorizaciones')}</span><span><span style="display:block;font-size:14px">Pedir renovación a ${esc(a.ooss)}</span><span class="faint" style="font-size:12px">${esc(pat(a.pid).nombre+' '+pat(a.pid).apellido)} · vence el ${noDow(fd(a.vence))}</span></span></button>`));
+  if(sinconf.length)todos.push(`<button class="todo" data-a="recordar"><span class="ic">${ico('bell')}</span><span><span style="display:block;font-size:14px">${sinconf.length} turno${sinconf.length>1?'s':''} sin confirmar</span><span class="faint" style="font-size:12px">Reenviar recordatorio por WhatsApp</span></span></button>`);
+  if(sinEv.length)todos.push(`<button class="todo" data-a="pnf" data-v="atendidos"><span class="ic" style="color:var(--ink-2)">${ico('pen')}</span><span><span style="display:block;font-size:14px">${sinEv.length} evolución${sinEv.length>1?'es':''} sin escribir</span><span class="faint" style="font-size:12px">De turnos atendidos hoy</span></span></button>`);
+  return `<div class="head" style="align-items:flex-end"><div><h1>Panel del día</h1><p>${fdl(TODAY)} · Sede central · ${all.length} turnos</p></div>
+    <div class="row"><div class="row" style="gap:4px"><button class="btn icon" data-a="soon" data-m="En la demo se muestra solo el día de hoy." aria-label="Día anterior">${ico('cl',17)}</button><button class="btn">Hoy</button><button class="btn icon" data-a="soon" data-m="En la demo se muestra solo el día de hoy." aria-label="Día siguiente">${ico('cr',17)}</button></div>
+    <button class="btn" data-a="soon" data-m="Bloqueá un horario de un profesional o consultorio: los turnos de esa franja quedan fuera de la agenda.">${ico('lock',17)}Bloquear horario</button><button class="btn pri" data-a="go" data-v="agenda">${ico('plus',17,2)}Nuevo turno</button></div></div>
+  <div class="counters">${cnt('espera',esp.length,'en sala de espera',false)}${cnt('espera15',esp15.length,'espera más de 15 minutos',true)}${cnt('sinconf',sinconf.length,'turnos sin confirmar',true)}<button class="counter ${venc.length?'warn':''}" data-a="go" data-v="autorizaciones"><b>${venc.length}</b><span>autorizaciones por vencer</span></button></div>
+  <div class="panelgrid"><section class="panel" style="overflow:hidden">
+    <div class="lhead">${chip('todos','Todos',all.length)}${chip('espera','Esperando',G.espera.length)}${chip('porllegar','Por llegar',G.porllegar.length)}${chip('consulta','En consulta',G.consulta.length)}${chip('atendidos','Atendidos',G.atendidos.length)}
+    <select class="fsel" data-c="pnpro" aria-label="Filtrar por profesional"><option value="">Profesionales</option>${['p1','p2','p3','p4'].map(id=>`<option value="${id}" ${fp===id?'selected':''}>${esc(pro(id).nombre)}</option>`).join('')}</select></div>
+    <div class="trow thead"><span>Hora</span><span>Paciente</span><span>Cobertura</span><span>Profesional</span><span>Estado</span><span></span></div>
+    ${body}
+    ${f==='todos'?`<div class="lfoot"><span>Atendidos · ${G.atendidos.length}${sinEv.length?` · <span style="color:#8A6100;font-weight:500">${sinEv.length} sin evolución escrita</span>`:''}</span><button class="btn sm ghost" data-a="pnf" data-v="atendidos" style="font-weight:600">Ver atendidos</button></div>`:''}
+  </section>
+  <aside class="stack">
+    <section class="panel" style="overflow:hidden"><div class="aside-h"><h2>Profesionales hoy</h2><span class="faint" style="font-size:12px">${ids.length} atienden</span></div>${profs}</section>
+    <section class="panel" style="overflow:hidden"><div class="aside-h"><h2>Para resolver hoy</h2></div>${todos.join('')||'<div class="empty">Nada pendiente.</div>'}</section>
+  </aside></div>`;
+}
+function vMiDia(m){
+  const me=R().proId;const mine=todayT().filter(t=>t.pro===me);
+  const cur=mine.find(t=>t.flujo==='consulta');
+  const next=mine.find(t=>t.flujo==='espera')||mine.find(t=>t.flujo==='porllegar');
+  const later=mine.filter(t=>t.flujo==='porllegar'&&t!==next);
+  const done=mine.filter(t=>t.flujo==='atendido'||t.flujo==='ausente');
+  const pend=m.pend;
+  const pn=t=>esc(pname(pat(t.pid)));
+  const curCard=cur?`<section class="panel nowcard"><div class="row" style="justify-content:space-between"><span class="lab">En consulta · ${cur.hora}</span><span class="tag pri">${minsSince(cur.ini)} min</span></div>
+      <div><h2>${esc(pat(cur.pid).nombre+' '+pat(cur.pid).apellido)}</h2><p class="small muted">${esc(cur.tipo)} · ${esc(cobLabel(cur).o)}</p></div>
+      <div class="twobtn"><button class="btn pri" data-a="newev" data-p="${cur.pid}" data-t="${cur.id}">Evolución</button><button class="btn" data-a="finalizar" data-t="${cur.id}">Finalizar</button><button class="btn" data-a="openp" data-p="${cur.pid}">Ver historia</button></div></section>`
+    :`<section class="panel nowcard"><span class="lab muted">En consulta</span><p class="muted">No tenés a nadie en consulta ahora.</p></section>`;
+  const nextCard=next?`<section class="panel nowcard"><span class="lab muted">Siguiente · ${next.hora}</span>
+      <div class="row" style="justify-content:space-between"><div><h2 style="font-size:1.2rem">${esc(pat(next.pid).nombre+' '+pat(next.pid).apellido)}</h2><p class="small muted">${esc(next.tipo)} · ${esc(cobLabel(next).o)}</p></div>${estTagF(next)}</div>
+      ${next.flujo==='espera'?`<button class="btn soft" style="min-height:44px" data-a="pasar" data-t="${next.id}" ${cur?'disabled title="Finalizá la consulta actual primero"':''}>Hacer pasar</button>`:''}</section>`:'';
+  const li=(t,extra)=>`<div class="agenda-row"><time>${t.hora}</time><div><div>${pn(t)}</div><div class="small muted">${esc(t.tipo)}</div></div>${extra}</div>`;
+  return `<div class="head"><div><h1>Mi día</h1><p>${fdl(TODAY)} · ${mine.length} turnos</p></div></div>
+  ${pend.length?`<div class="banner" style="background:var(--warn-soft);color:var(--warn)"><span>${pend.length} evolución${pend.length>1?'es':''} sin escribir</span><button class="btn sm" data-a="newev" data-p="${pend[0].pid}" data-t="${pend[0].id}">Escribir la primera</button></div>`:''}
+  <div class="grid2"><div class="stack">${curCard}${nextCard}</div>
+  <div class="stack"><section class="panel"><div class="panel-h"><h2>Más tarde</h2></div>${later.map(t=>li(t,estTagF(t))).join('')||'<div class="empty">No quedan más turnos hoy.</div>'}</section>
+  <section class="panel"><div class="panel-h"><h2>Atendidos hoy</h2></div>${done.map(t=>li(t,t.flujo==='ausente'?'<span class="tag danger">Ausente</span>':S.evols.some(e=>e.turnoId===t.id)?'<span class="tag ok">Con evolución</span>':`<button class="btn sm" data-a="newev" data-p="${t.pid}" data-t="${t.id}">Escribir evolución</button>`)).join('')||'<div class="empty">Todavía no atendiste pacientes hoy.</div>'}</section></div></div>`;
+}
+const GUIA=[['Dirección','Mirá la pantalla Hoy: alertas de toda la institución en un solo lugar.'],['Recepción','En el Panel del día, marcá la llegada de un paciente, hacelo pasar y finalizá la consulta. Mirá cómo se mueve entre grupos y cómo corre el tiempo de espera.'],['Psicóloga','En Mi día, hacé pasar al paciente que espera, escribí la evolución y firmala. Después intentá editarla: solo se puede agregar una adenda.'],['Enfermería','En Medicación, registrá una toma. Probalo desde el celular.'],['Recepción','Abrí un paciente e intentá ver su historia clínica: está restringida y el intento queda registrado.'],['Dirección','Entrá a Auditoría: está todo lo que hiciste, con usuario y hora.']];
+
 /* ---------- modales ---------- */
 function modal(title,body,foot){$('#modal').innerHTML=`<div class="mh"><h2>${title}</h2><button class="btn sm ghost" data-a="close" aria-label="Cerrar">Cerrar</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#scrim').classList.add('open');const f=$('#modal').querySelector('input,textarea,select');if(f)f.focus()}
 const close=()=>$('#scrim').classList.remove('open');
@@ -718,10 +981,25 @@ const close=()=>$('#scrim').classList.remove('open');
 /* ---------- acciones ---------- */
 const A={
   go:d=>{S.view=d.v;S.sesSel=null;render();$('.content').scrollTop=0},
+  pnf:d=>{S.pnf=d.v;render()},
+  llegada:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='espera';t.estado='presente';t.arr=Date.now();audit('Registró llegada',pname(pat(t.pid)));render();toast(pname(pat(t.pid))+' está en sala de espera')},
+  pasar:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='consulta';t.ini=Date.now();audit('Hizo pasar a consultorio',pname(pat(t.pid))+' — '+pro(t.pro).nombre);render();toast('En consulta con '+pro(t.pro).nombre)},
+  finalizar:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='atendido';t.fin=Date.now();audit('Finalizó consulta',pname(pat(t.pid)));close();render();toast(S.evols.some(e=>e.turnoId===t.id)?'Consulta finalizada':'Consulta finalizada. Queda pendiente la evolución.')},
+  recordar:()=>{const n=S.turnos.filter(t=>t.fecha===TODAY&&t.flujo==='porllegar'&&!t.conf);audit('Reenvió recordatorios por WhatsApp',n.length+' pacientes');toast('Recordatorio enviado por WhatsApp a '+n.length+' paciente'+(n.length>1?'s':''))},
+  tacc:d=>{const t=S.turnos.find(x=>x.id===d.t);const p=pat(t.pid);
+    modal(esc(pname(p)),`<p class="muted">${t.hora} hs · ${esc(t.tipo)} · ${esc(pro(t.pro).nombre)}</p><div>${estTagF(t)} ${cobLabel(t).tag}</div>`,
+    `${t.flujo==='porllegar'?`<button class="btn" data-a="ausenteT" data-t="${t.id}">Marcar ausente</button>${t.conf?'':`<button class="btn" data-a="confT" data-t="${t.id}">Marcar confirmado</button>`}`:''}
+     <button class="btn" data-a="soon" data-m="Reprogramar abre la agenda del profesional con los horarios libres.">Reprogramar</button>
+     ${p.deuda?`<button class="btn" data-a="cobrar" data-p="${p.id}">Registrar cobro</button>`:''}
+     ${canSee(p.id)?`<button class="btn pri" data-a="openp" data-p="${p.id}" data-tab="datos">Ver ficha</button>`:''}`)},
+  ausenteT:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='ausente';t.estado='ausente';audit('Marcó ausente',pname(pat(t.pid)));close();render();toast('Turno marcado como ausente')},
+  confT:d=>{const t=S.turnos.find(x=>x.id===d.t);t.conf=true;audit('Confirmó turno',pname(pat(t.pid)));close();render();toast('Turno confirmado')},
+  cobrar:d=>{const p=pat(d.p);p.deuda=false;audit('Registró cobro de copago',pname(p));close();render();toast('Cobro registrado')},
+  guia:()=>modal('Guía de la demo',`<p class="muted">Un recorrido de 5 minutos. Cambiá de rol con el selector "Ver como" de arriba.</p>${GUIA.map((g,i)=>`<div class="row" style="align-items:flex-start;flex-wrap:nowrap;gap:12px"><span class="tag pri">${i+1}</span><div><b>${g[0]}</b><div class="small muted">${g[1]}</div></div></div>`).join('')}`,`<button class="btn pri" data-a="close">Empezar</button>`),
   gocfg:d=>{S.view='config';S.cfgTab=d.t;render()},
   role:d=>{S.role=d.r;S.pf=null;S.hcf='';if(S.view==='paciente'&&!canSee(S.pid))S.view='pacientes';render();toast('Ahora ves la app como '+R().label)},
   banner:()=>{S.bannerOff=true;render()},
-  reset:()=>{S=seed();S.day=TODAY;render();toast('Demo restablecida')},
+  reset:()=>{S=seed();S.day=TODAY;S.seededAt=Date.now();render();toast('Demo restablecida')},
   close,
   openp:d=>{S.pid=d.p;S.view='paciente';S.ptab=d.tab||(R().hc==='none'?'datos':'hc');S.hcf='';render();$('.content').scrollTop=0},
   ptab:d=>{S.ptab=d.t;if(d.t==='hc'&&R().hc==='none'){audit('Intento de acceso denegado','Historia clínica — '+pname(pat(S.pid)))}render()},
@@ -747,7 +1025,7 @@ const A={
     `${canMark&&t.estado==='programado'?`<button class="btn" data-a="mark" data-t="${t.id}" data-v="ausente">Ausente</button><button class="btn" data-a="mark" data-t="${t.id}" data-v="presente">Presente</button>`:''}
      ${canEv&&t.estado==='presente'&&!ev?`<button class="btn pri" data-a="newev" data-p="${p.id}" data-t="${t.id}">Escribir evolución</button>`:''}
      ${canSee(p.id)?`<button class="btn" data-a="openp" data-p="${p.id}">Abrir ficha</button>`:''}`)},
-  mark:d=>{const t=S.turnos.find(x=>x.id===d.t);t.estado=d.v;audit('Registró asistencia ('+d.v+')',pname(pat(t.pid)));close();render();toast('Asistencia registrada')},
+  mark:d=>{const t=S.turnos.find(x=>x.id===d.t);t.estado=d.v;if(t.fecha===TODAY){if(d.v==='presente'){t.flujo='espera';t.arr=Date.now()}else t.flujo='ausente'}audit('Registró asistencia ('+d.v+')',pname(pat(t.pid)));close();render();toast('Asistencia registrada')},
   newev:d=>{const p=pat(d.p);const t=d.t?S.turnos.find(x=>x.id===d.t):null;
     modal('Evolución — '+esc(pname(p)),`<p class="small muted">${t?esc(t.tipo)+' del '+fd(t.fecha)+' · '+t.hora+' hs':'Registro sin turno asociado · hoy'}</p>
       <label class="f">Evolución<textarea id="mE" placeholder="Qué se trabajó, cómo se presentó el paciente, acuerdos y próximos pasos."></textarea></label>
@@ -756,7 +1034,7 @@ const A={
   saveev:d=>{const txt=$('#mE').value.trim();if(!txt){toast('Escribí la evolución antes de guardar');return}
     const t=d.t?S.turnos.find(x=>x.id===d.t):null;const me=pro(R().proId);
     S.evols.push({id:uid('e'),pid:d.p,pro:me.id,fecha:t?t.fecha:TODAY,hora:t?t.hora:nowHM(),tipo:t?t.tipo:'Evolución',disc:me.disc,texto:txt,firmada:d.s==='1',turnoId:t?t.id:null,addenda:[]});
-    audit(d.s==='1'?'Firmó evolución':'Guardó borrador de evolución',pname(pat(d.p)));close();S.view='paciente';S.pid=d.p;S.ptab='hc';render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
+    audit(d.s==='1'?'Firmó evolución':'Guardó borrador de evolución',pname(pat(d.p)));close();if(S.view!=='hoy'){S.view='paciente';S.pid=d.p;S.ptab='hc'}render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
   editev:d=>{const e=S.evols.find(x=>x.id===d.e);modal('Continuar borrador',`<label class="f">Evolución<textarea id="mE">${esc(e.texto)}</textarea></label>`,`<button class="btn" data-a="upev" data-e="${e.id}" data-s="0">Guardar</button><button class="btn pri" data-a="upev" data-e="${e.id}" data-s="1">Firmar evolución</button>`)},
   upev:d=>{const e=S.evols.find(x=>x.id===d.e);e.texto=$('#mE').value;if(d.s==='1'){e.firmada=true;audit('Firmó evolución',pname(pat(e.pid)))}close();render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
   addenda:d=>{modal('Agregar adenda',`<p class="small muted">La evolución original no se modifica. La adenda queda debajo, con tu firma, fecha y hora.</p><label class="f">Adenda<textarea id="mE"></textarea></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveadd" data-e="${d.e}">Firmar adenda</button>`)},
@@ -807,9 +1085,11 @@ const A={
 document.addEventListener('click',ev=>{const el=ev.target.closest('[data-a]');if(!el)return;const f=A[el.dataset.a];if(f){if(el.dataset.a==='vitals')ev.stopPropagation();f(el.dataset,el,ev)}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')close();if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches('[role=button],tr.click')){ev.preventDefault();ev.target.click()}});
 document.addEventListener('input',ev=>{const c=ev.target.dataset.c;if(c==='pq'){S.pf.q=ev.target.value;const pos=ev.target.selectionStart;render();const i=$('[data-c=pq]');i.focus();i.setSelectionRange(pos,pos)}});
-document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPro=ev.target.value;render()}});
+document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPro=ev.target.value;render()}if(ev.target.dataset.c==='pnpro'){S.pnpro=ev.target.value;render()}});
+document.addEventListener('keydown',ev=>{if(ev.target.id==='gsearch'&&ev.key==='Enter'){const q=ev.target.value.trim();if(!R().views.includes('pacientes')){toast('Tu rol no tiene acceso a la lista de pacientes');return}S.pf={q,estado:'',mod:''};S.view='pacientes';ev.target.value='';render()}});
 $('#scrim').addEventListener('click',ev=>{if(ev.target.id==='scrim')close()});
 render();
+setInterval(()=>{if(S.view==='hoy'&&['administracion','profesional'].includes(S.role)&&!$('#scrim').classList.contains('open')&&!(document.activeElement&&document.activeElement.matches('input,select,textarea')))render()},30000);
 </script>
 </body>
 </html>
