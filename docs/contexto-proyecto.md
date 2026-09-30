@@ -89,16 +89,23 @@ Medicación va en 2ª etapa por riesgo clínico: se diseña con cuidado, no ráp
 
 `docs/prototipo/ronda-demo.html` es una demo navegable con datos ficticios y sin backend, para mostrar a clientes. Incluye:
 
-- Selector de rol (Dirección, Psicóloga, Enfermería, Administración), que muestra RBAC en vivo.
-- Pantalla "Hoy" con alertas.
-- Agenda semanal por profesional.
-- Pacientes y ficha con HC: evoluciones firmadas, adendas, exportación PDF.
+- Selector de rol (Dirección, Psicóloga, **Psiquiatría**, Enfermería, Recepción), que muestra RBAC en vivo.
+- Menú en tres bloques: uso diario (Panel de turnos, Agenda, Pacientes, **Profesionales**), Administración, y Configuración y Ayuda al pie.
+- Panel de turnos con alertas, y "Mi día" en celular para quien atiende.
+- Agenda semanal armada **desde los horarios cargados en la ficha del profesional**: al cambiarlos, la grilla cambia.
+- **Profesionales:** disciplina, matrícula, firma y horarios de atención, todo editable.
+- Pacientes: alta con **número de afiliado**, y ficha con datos personales, referentes, diagnóstico, cobertura y equipo tratante **editables**. Cambiar el equipo cambia en vivo quién ve la HC.
+- Historia clínica: evoluciones firmadas, adendas, exportación PDF.
 - Grupos con asistencia que generan evoluciones.
 - Camas con días autorizados y prórrogas.
-- Medicación por horario.
+- **Medicación en dos pestañas:** los esquemas los indica y cambia psiquiatría (cambiar versiona, no pisa); enfermería registra las tomas, incluidas las de a demanda.
 - Autorizaciones en tablero.
 - Prefacturación que bloquea el cierre si hay pacientes "No definido".
+- **Métricas:** asistencia, ocupación, turnos por disciplina y estado de las autorizaciones.
 - Configuración (reglas de cobertura, tarifario, permisos) y auditoría en vivo.
+- Las funciones que todavía no existen (WhatsApp, videollamada, IA, recetas, portal del paciente, link de pago) se muestran con etiqueta **"Próximamente"** y la etapa en que llegan. **No se presenta como disponible nada que no esté construido.**
+
+Los procesos que la demo recorre están diagramados en `docs/flujos/` (23 diagramas en Mermaid, con roles, puntos de auditoría y caminos bloqueados). Ante una diferencia entre la demo y un flujo, gana el flujo: es la especificación.
 
 Sirve como **especificación visual**: al construir una pantalla real, tomar de la demo el flujo, los textos y la jerarquía. Su código no se reutiliza.
 
@@ -223,7 +230,7 @@ Modelo de datos: prever desde las etapas 3 y 4 los campos que estas integracione
 
 ### Referencia: Menta (competidor, Buenos Aires)
 
-Relevado en septiembre 2026 en su sitio. Planes para independientes con 20% de descuento pagando anual: Start USD 8/mes (hasta 5 pacientes), Plus USD 15,20 (hasta 10 pacientes), Pro USD 20,80 (pacientes ilimitados + funciones de IA y videollamadas). Para centros: plan Clinic "a consultar". Fuerte en IA, videollamadas, recetas e integraciones con financiadoras; foco en profesionales independientes.
+Relevado en septiembre 2026 en su sitio. **Pendiente de reconfirmar:** en la sesión del 29 de septiembre de 2026 no se pudo acceder al sitio para verificarlo, así que los datos de abajo son los del relevamiento original. Hay que reconfirmarlos antes de publicar cualquier comparación pública. Planes para independientes con 20% de descuento pagando anual: Start USD 8/mes (hasta 5 pacientes), Plus USD 15,20 (hasta 10 pacientes), Pro USD 20,80 (pacientes ilimitados + funciones de IA y videollamadas). Para centros: plan Clinic "a consultar". Fuerte en IA, videollamadas, recetas e integraciones con financiadoras; foco en profesionales independientes.
 
 ### Propuesta de precios para Ronda (a validar)
 

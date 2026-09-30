@@ -16,9 +16,9 @@ Es la pantalla de inicio de Recepción y Administración. Responde tres pregunta
 
 ### Estructura
 
-1. **Menú lateral** (248 px, blanco): logo, selector de institución y sede, grupos "Operación" (Panel del día, Agenda, Pacientes, Grupos y talleres, Internación) y "Administración" (Autorizaciones con contador, Prefacturación, Métricas). Abajo: Configuración y Ayuda. Solo muestra las secciones que el rol puede ver.
+1. **Menú lateral** (248 px, blanco): logo, selector de institución y sede, y las secciones en tres bloques: uso diario sin encabezado (Panel de turnos, Agenda, Pacientes, Profesionales), "Administración" (Grupos y talleres, Internación, Medicación, Autorizaciones con contador, Prefacturación, Métricas, Auditoría) y, al pie, Configuración y Ayuda. Solo muestra las secciones que el rol puede ver. La agrupación completa está en `docs/diseno.md`.
 2. **Barra superior** (64 px): buscador global (paciente, DNI o profesional), avisos y usuario con su rol.
-3. **Encabezado**: título "Panel del día", subtítulo con fecha, sede y cantidad de turnos. A la derecha: navegación de día (‹ Hoy ›), "Bloquear horario" (secundario) y "Nuevo turno" (único botón principal).
+3. **Encabezado**: título "Panel de turnos", subtítulo con fecha, sede y cantidad de turnos. A la derecha: navegación de día (‹ Hoy ›), "Bloquear horario" (secundario) y "Nuevo turno" (único botón principal).
 4. **Cuatro contadores** que funcionan como filtros al tocarlos: en sala de espera, espera de más de 15 minutos, turnos sin confirmar y autorizaciones por vencer. El activo lleva borde naranja de marca. Los que requieren atención muestran el número en color "Atención".
 5. **Lista de turnos** (columna principal):
    - Filtros por estado con cantidad: Todos, Esperando, Por llegar, En consulta, Atendidos. Filtro por profesional a la derecha.

@@ -75,7 +75,14 @@ Ronda se usa **únicamente en modo claro**, aunque el sistema operativo o el nav
 
 ## Estructura de la aplicación
 
-- **Menú lateral blanco** a la izquierda (232 px) con el logo, la institución activa y las secciones que el rol puede ver. El ítem activo lleva fondo `--primary-soft`, texto `--primary` y una franja `--brand` a la izquierda. Los contadores de pendientes van en píldora de "Atención".
+- **Menú lateral blanco** a la izquierda (232–248 px) con el logo, la institución y sede activas, y las secciones que el rol puede ver. El ítem activo lleva fondo `--primary-soft`, texto `--primary` y una franja `--brand` a la izquierda. Los contadores de pendientes van en píldora de "Atención".
+- **El menú va en tres bloques**, en este orden:
+  1. **Uso diario, sin título:** Panel de turnos, Agenda, Pacientes, Profesionales.
+  2. **Administración** (con encabezado): Grupos y talleres, Internación, Medicación, Autorizaciones, Prefacturación, Métricas, Auditoría.
+  3. **Al pie**, separado del resto: Configuración y Ayuda.
+
+  El primer bloque no lleva encabezado a propósito: es lo que se usa todos los días y no necesita que lo expliquen. El encabezado de grupo va en 11 px, 600, `--ink-3`, mayúsculas, con `letter-spacing` de .04em.
+- **Íconos del menú:** trazo, nunca rellenos. SVG de 24 × 24 dibujados a 18 px, `stroke-width` 1.8, `stroke="currentColor"`, extremos y uniones redondeados. El ícono toma el color del texto del ítem, así que el activo se pone naranja solo. En celular el menú se vuelve una barra horizontal y los encabezados de grupo se ocultan.
 - **Barra superior blanca** con la persona usuaria, su rol y, si pertenece a varias instituciones, el selector de institución.
 - **En celular** (menos de 900 px) el menú lateral pasa a una barra horizontal desplazable arriba, y todo el contenido va en una columna.
 
@@ -93,6 +100,9 @@ Ronda se usa **únicamente en modo claro**, aunque el sistema operativo o el nav
 - **Modales:** para crear o confirmar algo corto. Máximo ~560 px de ancho. Si el formulario es largo, usar una pantalla completa.
 - **Avisos breves (toast):** abajo al centro, fondo `--ink`, desaparecen solos.
 - **Estados vacíos:** una frase útil que diga qué hacer, nunca solo "Sin datos".
+- **Panel editable:** los datos que se pueden cambiar van en un panel con su título y un botón secundario *Editar* a la derecha del encabezado, que abre un modal. Un panel, un modal: no se edita media pantalla de una vez.
+- **Etiqueta "Próximamente":** para lo que se muestra pero todavía no existe. Píldora con fondo `--sunk`, texto `--ink-3` y borde punteado `--line`; al tocarla explica en qué etapa llega. El borde punteado es la señal de que no es una función disponible. **Nunca se presenta como disponible algo que no está construido.**
+- **Registro cerrado:** una evolución firmada, un esquema suspendido o un período cerrado se muestran atenuados (opacidad .65) pero **no se ocultan**: son historial, no ruido.
 
 ## Textos
 

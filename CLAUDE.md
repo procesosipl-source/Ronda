@@ -110,8 +110,14 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
   seed.sql      datos ficticios
 /docs
   /decisiones   una nota por decisión de arquitectura (ADR)
+  /flujos       un diagrama por proceso de la clínica (Mermaid)
+  /marca        archivos del logo
+  /pantallas    pantallas diseñadas en detalle: captura, maqueta y especificación
   /prototipo    demo navegable de referencia
+  /web          borrador de la web pública del producto
 ```
+
+Los procesos de la clínica están diagramados en `docs/flujos/` (índice en su `README.md`). Antes de modelar una tabla con ciclo de vida o de escribir un trigger, mirá el flujo correspondiente: de ahí salen los estados, las transiciones válidas y los bloqueos.
 
 ## Cómo trabajamos
 
