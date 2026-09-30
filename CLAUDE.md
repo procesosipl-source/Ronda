@@ -23,7 +23,9 @@ Etapa 0 — Fundaciones. Todavía no hay módulos de negocio. El orden previsto 
 7. Indicadores y reportes.
 8. Productización (alta de nuevas instituciones, importador, configuración).
 
-El prototipo visual de referencia está en `docs/prototipo/ronda-demo.html`. Usalo como guía de pantallas, textos y flujos; su código **no** se reutiliza.
+El contexto completo del proyecto (origen, decisiones, alcance del MVP, riesgos, aspectos legales y pendientes) está en `docs/contexto-proyecto.md`. Leelo cuando una tarea toque alcance, arquitectura o prioridades.
+
+El prototipo visual de referencia está en `docs/prototipo/ronda-demo.html`. Las pantallas diseñadas en detalle (captura, maqueta y especificación) están en `docs/pantallas/` y tienen prioridad sobre el prototipo. Usalo como guía de pantallas, textos y flujos; su código **no** se reutiliza.
 
 ## Stack
 
@@ -56,6 +58,7 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 - **Identificadores:** `uuid` como clave primaria. Nada de claves armadas con texto.
 - **Columnas comunes** en tablas de negocio: `id`, `institution_id`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted_at`, `deleted_by`.
 - **Catálogos cerrados:** nada de texto libre donde debería haber una lista (estados, obras sociales, prestaciones, disciplinas).
+- **Diseño visual:** toda pantalla respeta `docs/diseno.md` (paleta blanco, naranja y gris de IPL, tipografía, componentes y textos). No inventes colores ni estilos fuera de esa guía.
 - **Estados:** cada entidad con ciclo de vida (paciente, autorización, internación, período) guarda su historial de cambios con fecha, usuario y motivo.
 
 ## Glosario del dominio
