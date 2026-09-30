@@ -90,6 +90,8 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{cursor:pointer;border:1px solid var(--line);background:var(--surface);padding:4px 11px;border-radius:20px;font-size:.82rem;color:var(--ink-2)}
+label.chip{display:inline-flex;align-items:center;min-height:32px}
+label.chip:has(input:checked){background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
 .chip[aria-pressed="true"]{background:var(--primary-soft);color:var(--primary);border-color:var(--primary)}
 .bar{height:6px;border-radius:4px;background:var(--sunk);overflow:hidden;min-width:60px}
 .bar i{display:block;height:100%;background:var(--primary)}
@@ -388,6 +390,7 @@ const DISC={Psicología:'--d-psi',Psiquiatría:'--d-psq','Trabajo social':'--d-t
 const ROLES={
   direccion:{label:'Dirección',user:'Dra. Inés Carrizo',views:['hoy','agenda','pacientes','profesionales','grupos','internacion','medicacion','autorizaciones','facturacion','config','auditoria'],hc:'read'},
   profesional:{label:'Psicóloga',user:'Lic. Laura Méndez',proId:'p1',views:['hoy','agenda','pacientes','grupos'],hc:'write'},
+  psiquiatria:{label:'Psiquiatría',user:'Dr. Martín Aguirre',proId:'p2',views:['hoy','agenda','pacientes','grupos','internacion','medicacion'],hc:'write'},
   enfermeria:{label:'Enfermería',user:'Enf. Carla Funes',proId:'p5',views:['hoy','internacion','medicacion','pacientes'],hc:'nursing'},
   administracion:{label:'Recepción',user:'Marcela Ortiz',views:['hoy','agenda','pacientes','profesionales','autorizaciones','facturacion'],hc:'none'}
 };
@@ -396,6 +399,13 @@ const ESTADOS=['Preadmisión','Admisión','En tratamiento','Alta','Baja'];
 const SEDES=['Sede central','Hospital de día'];
 const PARENTESCOS=['Madre','Padre','Pareja','Hermano/a','Hijo/a','Tutor/a','Otro'];
 const ROLES_EQ=['Referente','Tratante','Interconsulta'];
+const VIAS=['VO','IM','EV','SC','SL'];
+const HORAS_MED=['08','12','16','20','22'];
+// Catálogo de medicamentos de la institución. Ficticio.
+const MEDS=[['Sertralina','50 mg','VO',['08']],['Quetiapina','25 mg','VO',['22']],['Clonazepam','0,5 mg','VO',['08','20']],
+  ['Carbonato de litio','300 mg','VO',['08','20']],['Olanzapina','5 mg','VO',['22']],['Ácido valproico','500 mg','VO',['08','16']],
+  ['Risperidona','2 mg','VO',['08','20']],['Lorazepam','1 mg','VO',['22']],['Haloperidol','5 mg','IM',['08']],
+  ['Escitalopram','10 mg','VO',['08']],['Lamotrigina','100 mg','VO',['08']],['Difenhidramina','50 mg','VO',['22']]];
 // Catálogo de diagnósticos: ficticio y configurable por institución, listo para CIE-10
 const DIAGS=[['F32','Episodio depresivo'],['F33','Trastorno depresivo recurrente'],['F31','Trastorno afectivo bipolar'],
   ['F41.1','Trastorno de ansiedad generalizada'],['F41.0','Trastorno de pánico'],['F20','Esquizofrenia'],
@@ -511,10 +521,17 @@ function seed(){
     const s={id:uid('s'),gid:g.id,fecha:iso(dt),tema:past?pick(['Regulación emocional','Comunicación en la familia','Tolerancia al malestar','Proyecto personal','Expresión a través del dibujo']):'',obs:past?'Participación activa del grupo. Se sostiene el encuadre.':'',asis,firmada:past};sesiones.push(s);
     if(past)g.inscriptos.forEach(pid=>{if(asis[pid])evols.push({id:uid('e'),pid,pro:g.pro,fecha:s.fecha,hora:g.hora,tipo:g.nombre,disc:'Grupal',texto:'Tema: '+s.tema+'. '+s.obs,firmada:true,sesionId:s.id,addenda:[]})});}});
   // medicación
-  const MEDS=[['Sertralina','50 mg','VO',['08']],['Quetiapina','25 mg','VO',['22']],['Clonazepam','0,5 mg','VO',['08','20']],['Carbonato de litio','300 mg','VO',['08','20']],['Olanzapina','5 mg','VO',['22']],['Ácido valproico','500 mg','VO',['08','16']]];
-  const esquemas=[];internados.forEach((pi,k)=>{[MEDS[k%6],MEDS[(k+2)%6]].forEach(m=>esquemas.push({id:uid('m'),pid:'pa'+(pi+1),med:m[0],dosis:m[1],via:m[2],horas:m[3],indica:'p2',desde:iso(day(-10))}))});
+  const esquemas=[];internados.forEach((pi,k)=>{[MEDS[k%6],MEDS[(k+2)%6]].forEach(m=>esquemas.push(
+    {id:uid('m'),pid:'pa'+(pi+1),med:m[0],dosis:m[1],via:m[2],horas:m[3],prn:false,indicaciones:'',
+     indica:'p2',desde:iso(day(-10)),hasta:null,motivoFin:'',version:1}))});
+  // Un esquema suspendido, para que se vea que el historial no desaparece
+  esquemas.push({id:uid('m'),pid:'pa'+(internados[0]+1),med:'Lorazepam',dosis:'1 mg',via:'VO',horas:['22'],prn:false,indicaciones:'',
+    indica:'p2',desde:iso(day(-30)),hasta:iso(day(-12)),motivoFin:'Buena respuesta al esquema de base',version:1});
+  // Una indicación a demanda
+  esquemas.push({id:uid('m'),pid:'pa'+(internados[1]+1),med:'Difenhidramina',dosis:'50 mg',via:'VO',horas:[],prn:true,
+    indicaciones:'Ante insomnio. Máximo una vez por noche.',indica:'p2',desde:iso(day(-8)),hasta:null,motivoFin:'',version:1});
   const hNow=new Date().getHours();const admins=[];
-  esquemas.forEach(e=>e.horas.forEach(h=>{if(+h<hNow)admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:h,estado:rnd()<0.93?'Administrada':'No administrada',motivo:'',por:'Enf. Carla Funes',ts:h+':1'+Math.floor(rnd()*9)})}));
+  esquemas.filter(e=>!e.hasta&&!e.prn).forEach(e=>e.horas.forEach(h=>{if(+h<hNow)admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:h,estado:rnd()<0.93?'Administrada':'No administrada',motivo:'',por:'Enf. Carla Funes',ts:h+':1'+Math.floor(rnd()*9)})}));
   // prestaciones, tarifario, reglas
   const prest=['Consulta psicológica','Control psiquiátrico','Módulo ambulatorio intensivo','Módulo ambulatorio simple','Día de internación','Admisión','Preadmisión'];
   const base={'Consulta psicológica':18000,'Control psiquiátrico':26000,'Módulo ambulatorio intensivo':410000,'Módulo ambulatorio simple':190000,'Día de internación':98000,'Admisión':45000,'Preadmisión':30000};
@@ -578,6 +595,14 @@ const pro=id=>S.pros.find(p=>p.id===id)||{nombre:'—',disc:''};
 const pat=id=>S.pats.find(p=>p.id===id);
 // Ids del equipo tratante vigente hoy. Acepta la forma vieja (lista de ids) y la nueva (con rol y vigencia).
 // `hasta` es la fecha en que dejó de integrar el equipo: ese mismo día ya no ve la historia clínica.
+// Un esquema rige hoy si ya empezó y todavía no se cerró
+// Roles que atienden pacientes: ven su agenda, sus pacientes y escriben evoluciones.
+const esPro=()=>['profesional','psiquiatria'].includes(S.role);
+const vigente=e=>e.desde<=TODAY&&(!e.hasta||e.hasta>TODAY);
+// Quién puede indicar y cambiar esquemas: psiquiatría y dirección. Enfermería los ve, no los toca.
+const puedeIndicar=()=>S.role==='direccion'||(!!R().proId&&pro(R().proId).disc==='Psiquiatría');
+const esqPac=pid=>S.esquemas.filter(e=>e.pid===pid).sort((a,b)=>(b.hasta?0:1)-(a.hasta?0:1)||b.desde.localeCompare(a.desde));
+const medLinea=e=>esc(e.med)+' '+esc(e.dosis)+' · '+esc(e.via)+(e.prn?' · a demanda':' · '+(e.horas||[]).map(h=>h+':00').join(', '));
 const equipoIds=p=>(p.equipo||[]).map(e=>typeof e==='string'?e:(!e.hasta||e.hasta>TODAY?e.proId:null)).filter(Boolean);
 const pname=p=>p?p.apellido+', '+p.nombre:'—';
 const audit=(acc,ent)=>{S.audit.push({ts:TODAY+' '+nowHM(),user:R().user,rol:R().label,acc,ent});};
@@ -586,7 +611,7 @@ const initials=n=>n.replace(/^(Dra?\.|Lic\.|Enf\.)\s*/,'').split(' ').map(x=>x[0
 const age=nac=>Math.floor(diff(TODAY,nac)/365.25);
 function visiblePats(){
   const r=R();
-  if(S.role==='profesional')return S.pats.filter(p=>equipoIds(p).includes(r.proId));
+  if(esPro())return S.pats.filter(p=>equipoIds(p).includes(r.proId));
   if(S.role==='enfermeria')return S.pats.filter(p=>p.modalidad==='Internación'&&p.estado==='En tratamiento');
   return S.pats;
 }
@@ -595,7 +620,7 @@ const occ=()=>Object.entries(S.beds).filter(([,b])=>b);
 
 /* ---------- métricas ---------- */
 function metrics(){
-  const r=R();const mine=t=>S.role!=='profesional'||t.pro===r.proId;
+  const r=R();const mine=t=>!esPro()||t.pro===r.proId;
   const hoy=S.turnos.filter(t=>t.fecha===TODAY&&mine(t));
   const d30=iso(day(-30));const pas=S.turnos.filter(t=>t.fecha>=d30&&t.fecha<=TODAY&&t.estado!=='programado'&&mine(t));
   const asis=pas.length?Math.round(pas.filter(t=>t.estado==='presente').length/pas.length*100):0;
@@ -603,7 +628,7 @@ function metrics(){
   const vencen=S.auths.filter(a=>a.estado==='Autorizada'&&diff(a.vence,TODAY)<=15&&diff(a.vence,TODAY)>=0);
   const solicitadas=S.auths.filter(a=>a.estado==='Solicitada');
   const hN=new Date().getHours();
-  const medPend=[];S.esquemas.forEach(e=>e.horas.forEach(h=>{if(+h<=hN&&!S.admins.some(a=>a.eid===e.id&&a.fecha===TODAY&&a.hora===h))medPend.push({e,h})}));
+  const medPend=[];S.esquemas.filter(vigente).forEach(e=>e.horas.forEach(h=>{if(+h<=hN&&!S.admins.some(a=>a.eid===e.id&&a.fecha===TODAY&&a.hora===h))medPend.push({e,h})}));
   const cortos=occ().filter(([,b])=>b.autorizados-diff(TODAY,b.ingreso)<=5);
   const nodef=S.pats.filter(p=>['En tratamiento','Admisión','Preadmisión','Alta'].includes(p.estado)&&S.turnos.some(t=>t.pid===p.id&&t.fecha.slice(0,7)===TODAY.slice(0,7)&&t.estado==='presente')&&modulo(S,p)==='No definido');
   return {hoy,asis,pend,vencen,solicitadas,medPend,cortos,nodef};
@@ -613,7 +638,7 @@ function metrics(){
 function render(){
   const r=R();if(!r.views.includes(S.view)&&!['paciente','profesional'].includes(S.view))S.view='hoy';
   const m=metrics();
-  const counts={hoy:S.role==='administracion'?S.turnos.filter(t=>t.fecha===TODAY&&t.flujo==='espera').length:0,autorizaciones:m.vencen.length+m.solicitadas.length,medicacion:m.medPend.length,agenda:S.role==='profesional'?m.pend.length:0};
+  const counts={hoy:S.role==='administracion'?S.turnos.filter(t=>t.fecha===TODAY&&t.flujo==='espera').length:0,autorizaciones:m.vencen.length+m.solicitadas.length,medicacion:m.medPend.length,agenda:esPro()?m.pend.length:0};
   const nb=v=>`<button data-a="go" data-v="${v}" ${S.view===v||(S.view==='paciente'&&v==='pacientes')||(S.view==='profesional'&&v==='profesionales')?'aria-current="page"':''}>${ico(v)}<span>${navLabel(v)}</span>${counts[v]?`<span class="count">${counts[v]}</span>`:''}</button>`;
   $('#nav').innerHTML=NAVG.map(([g,vs])=>{const it=vs.filter(v=>r.views.includes(v));return it.length?`<div class="grp">${g?`<span class="glabel">${g}</span>`:''}${it.map(nb).join('')}</div>`:''}).join('')
     +`<div class="grp bottom">${r.views.includes('config')?nb('config'):''}<button data-a="guia">${ico('ayuda')}<span>Ayuda</span></button></div>`;
@@ -628,7 +653,7 @@ function render(){
 /* ---------- Hoy ---------- */
 function vHoy(m){
   if(S.role==='administracion')return vPanel(m);
-  if(S.role==='profesional')return vMiDia(m);
+  if(esPro())return vMiDia(m);
   const r=R();
   const strips={
     direccion:[[m.hoy.length,'turnos hoy'],[m.asis+'%','asistencia últimos 30 días'],[m.pend.length,'evoluciones pendientes'],[occ().length+' / '+S.rooms.flatMap(x=>x.camas).length,'camas ocupadas']],
@@ -638,7 +663,7 @@ function vHoy(m){
   }[S.role];
   const alerts=[];
   if(S.role!=='administracion'&&S.role!=='enfermeria')m.pend.slice(0,6).forEach(t=>alerts.push({k:'',t:'Falta la evolución de '+pname(pat(t.pid)),s:t.tipo+' del '+fd(t.fecha)+' · '+pro(t.pro).nombre,a:`data-a="openp" data-p="${t.pid}" data-tab="hc"`}));
-  if(S.role!=='profesional')m.cortos.forEach(([c,b])=>alerts.push({k:'danger',t:'Internación de '+pname(pat(b.pid))+' por vencer',s:'Día '+diff(TODAY,b.ingreso)+' de '+b.autorizados+' autorizados · cama '+c,a:'data-a="go" data-v="internacion"'}));
+  if(!esPro())m.cortos.forEach(([c,b])=>alerts.push({k:'danger',t:'Internación de '+pname(pat(b.pid))+' por vencer',s:'Día '+diff(TODAY,b.ingreso)+' de '+b.autorizados+' autorizados · cama '+c,a:'data-a="go" data-v="internacion"'}));
   if(S.role==='enfermeria')m.medPend.slice(0,6).forEach(x=>alerts.push({k:'danger',t:x.e.med+' '+x.e.dosis+' de las '+x.h+' hs sin registrar',s:pname(pat(x.e.pid)),a:'data-a="go" data-v="medicacion"'}));
   if(['direccion','administracion'].includes(S.role)){m.vencen.forEach(a=>alerts.push({k:'',t:'Autorización de '+pname(pat(a.pid))+' vence el '+fd(a.vence),s:a.ooss+' · '+a.prest,a:'data-a="go" data-v="autorizaciones"'}));
     m.nodef.forEach(p=>alerts.push({k:'info',t:pname(p)+' no tiene regla de facturación',s:p.ooss+' · estado '+p.estado+' · revisá las reglas de cobertura',a:'data-a="gocfg" data-t="reglas"'}));}
@@ -653,8 +678,8 @@ function vHoy(m){
     <section class="panel"><div class="panel-h"><h2>Requiere atención</h2><span class="tag ${alerts.length?'warn':'ok'}">${alerts.length||'Todo al día'}</span></div>
       ${alerts.length?alerts.slice(0,10).map(a=>`<div class="alert" role="button" tabindex="0" ${a.a}><span class="k ${a.k}"></span><div><div>${esc(a.t)}</div><div class="small muted">${esc(a.s)}</div></div></div>`).join(''):'<div class="empty">No hay pendientes. Buen trabajo.</div>'}
     </section>
-    ${showAgenda?`<section class="panel"><div class="panel-h"><h2>${S.role==='profesional'?'Tus turnos de hoy':'Turnos de hoy'}</h2><button class="btn sm ghost" data-a="go" data-v="agenda">Ver agenda</button></div>
-      ${ag.length?ag.map(t=>`<div class="agenda-row"><time>${t.hora}</time><div><div>${esc(pname(pat(t.pid)))}</div><div class="small muted">${esc(t.tipo)}${S.role!=='profesional'?' · '+esc(pro(t.pro).nombre):''}</div></div>${stTag(t.estado)}</div>`).join(''):'<div class="empty">Sin turnos para hoy.</div>'}
+    ${showAgenda?`<section class="panel"><div class="panel-h"><h2>${esPro()?'Tus turnos de hoy':'Turnos de hoy'}</h2><button class="btn sm ghost" data-a="go" data-v="agenda">Ver agenda</button></div>
+      ${ag.length?ag.map(t=>`<div class="agenda-row"><time>${t.hora}</time><div><div>${esc(pname(pat(t.pid)))}</div><div class="small muted">${esc(t.tipo)}${!esPro()?' · '+esc(pro(t.pro).nombre):''}</div></div>${stTag(t.estado)}</div>`).join(''):'<div class="empty">Sin turnos para hoy.</div>'}
     </section>`:`<section class="panel"><div class="panel-h"><h2>Pacientes internados</h2><button class="btn sm ghost" data-a="go" data-v="internacion">Ver camas</button></div>
       ${intern.map(x=>`<div class="agenda-row" role="button" tabindex="0" data-a="openp" data-p="${x.p.id}" style="cursor:pointer"><time>${x.c}</time><div><div>${esc(pname(x.p))}</div><div class="small muted">Día ${diff(TODAY,x.b.ingreso)} de internación</div></div><button class="btn sm" data-a="vitals" data-p="${x.p.id}">Control</button></div>`).join('')}
     </section>`}
@@ -664,7 +689,7 @@ const stTag=s=>s==='presente'?'<span class="tag ok">Presente</span>':s==='ausent
 
 /* ---------- Agenda ---------- */
 function vAgenda(){
-  const r=R();const fixed=S.role==='profesional';
+  const r=R();const fixed=esPro();
   const agPros=S.pros.filter(x=>x.activo!==false&&x.disc!=='Enfermería'&&(x.horarios||[]).length);
   S.agPro=fixed?r.proId:(S.agPro||'p1');
   if(!fixed&&!agPros.some(x=>x.id===S.agPro))S.agPro=(agPros[0]||{id:'p1'}).id;
@@ -716,11 +741,14 @@ const estTag=e=>`<span class="tag ${e==='En tratamiento'?'ok':e==='Alta'||e==='B
 function vPaciente(){
   const p=pat(S.pid);if(!p||!canSee(p.id)){S.view='pacientes';return vPacientes()}
   const bed=occ().find(([,b])=>b.pid===p.id);
-  const tabs=[['hc','Historia clínica'],['datos','Datos y cobertura'],['docs','Documentos'],['estados','Estados']];
+  const verMed=['direccion','enfermeria'].includes(S.role)||(esPro()&&equipoIds(p).includes(R().proId));
+  const tabs=[['hc','Historia clínica'],['datos','Datos y cobertura']]
+    .concat(verMed?[['med','Medicación']]:[]).concat([['docs','Documentos'],['estados','Estados']]);
   const canState=['direccion','administracion'].includes(S.role);
   let body='';
   if(S.ptab==='hc')body=hcTab(p);
   if(S.ptab==='datos')body=datosTab(p);
+  if(S.ptab==='med')body=verMed?medTab(p):datosTab(p);
   if(S.ptab==='docs')body=docsTab(p);
   if(S.ptab==='estados')body=`<div class="panel"><div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Cambio</th><th>Registrado por</th></tr></thead><tbody>${p.historial.slice().reverse().map(h=>`<tr><td>${fd(h.fecha)}</td><td>${h.de} → <b>${h.a}</b></td><td>${esc(h.por)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Sin cambios de estado todavía.</td></tr>'}</tbody></table></div></div>`;
   return `<button class="btn ghost" data-a="go" data-v="pacientes" style="padding-left:0;margin-bottom:10px">‹ Pacientes</button>
@@ -807,6 +835,22 @@ function datosTab(p){
     ${au.map(a=>`<tr><td>${a.periodo}</td><td>${esc(a.prest)}<div class="small faint">${a.autorizadas} autorizadas</div></td><td>${authTag(a.estado)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Paciente particular, sin autorizaciones.</td></tr>'}
     </tbody></table></div></section></div></div>`;
 }
+function medTab(p){
+  const es=esqPac(p.id);const puede=puedeIndicar();
+  const hoy=S.admins.filter(a=>a.fecha===TODAY&&es.some(e=>e.id===a.eid)).sort((a,b)=>(a.ts||'').localeCompare(b.ts||''));
+  return `<div class="row" style="justify-content:space-between;margin-bottom:12px">
+    <p class="small faint" style="max-width:72ch">Cambiar un esquema no borra el anterior: se suspende y queda a la vista con su fecha y motivo. Las tomas ya registradas siguen apuntando al esquema que se administró.</p>
+    ${puede?`<button class="btn pri" data-a="newesq" data-p="${p.id}">Indicar medicación</button>`:''}</div>
+  <section class="panel"><div class="panel-h"><h2>Esquemas</h2><span class="small faint">${es.filter(vigente).length} vigentes</span></div>
+    ${es.map(e=>esqFila(e,puede)).join('')||'<div class="empty">Sin medicación indicada.</div>'}</section>
+  <section class="panel" style="margin-top:20px"><div class="panel-h"><h2>Tomas de hoy</h2></div>
+    ${hoy.length?`<div class="tablewrap"><table><thead><tr><th>Hora</th><th>Medicamento</th><th>Registro</th><th>Quién</th></tr></thead><tbody>
+      ${hoy.map(a=>{const e=S.esquemas.find(x=>x.id===a.eid);return `<tr><td style="font-variant-numeric:tabular-nums">${esc(a.ts||a.hora+':00')}</td>
+        <td>${esc(e.med)} ${esc(e.dosis)}</td>
+        <td><span class="tag ${a.estado==='Administrada'?'ok':'danger'}">${a.estado}</span>${a.motivo?`<div class="small faint">${esc(a.motivo)}</div>`:''}</td>
+        <td class="small">${esc(a.por)}</td></tr>`}).join('')}</tbody></table></div>`
+      :'<div class="empty">Todavía no se registraron tomas hoy.</div>'}</section>`;
+}
 function docsTab(p){
   const docs=[['Consentimiento informado','Firmado',-60],['Informe de admisión','Generado',-58],['Solicitud de autorización','Enviado',-30]];
   if(p.modalidad==='Internación')docs.push(['Solicitud de prórroga','Borrador',-1]);
@@ -884,7 +928,7 @@ function vProfesional(){
 
 /* ---------- Grupos ---------- */
 function vGrupos(){
-  let gs=S.grupos;if(S.role==='profesional')gs=gs.filter(g=>g.pro===R().proId||g.inscriptos.some(canSee));
+  let gs=S.grupos;if(esPro())gs=gs.filter(g=>g.pro===R().proId||g.inscriptos.some(canSee));
   const sel=S.sesSel&&S.sesiones.find(s=>s.id===S.sesSel);
   if(sel)return sesionView(sel);
   return `<div class="head"><div><h1>Grupos y talleres</h1><p>Cada encuentro registra la asistencia individual y genera la evolución grupal en la historia de cada paciente presente.</p></div></div>
@@ -927,16 +971,64 @@ function vInternacion(){
 
 /* ---------- Medicación ---------- */
 function vMedicacion(){
-  const hN=new Date().getHours();const hrs=['08','12','16','20','22'];
-  const cur=hrs.filter(h=>+h<=hN).pop()||'08';
+  const t=S.medTab||'hoy';
+  const tabs=[['hoy','Administración de hoy'],['esquemas','Esquemas vigentes']];
+  return `<div class="head"><div><h1>Medicación</h1><p>${t==='hoy'
+    ?'Registrá cada toma en el momento. Lo que registres queda con tu nombre y la hora real.'
+    :'Los esquemas los indica psiquiatría. Cambiar uno no borra el anterior: se cierra y queda a la vista.'}</p></div></div>
+  <div class="tabs" role="tablist">${tabs.map(x=>`<button role="tab" aria-selected="${t===x[0]}" data-a="medtab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>
+  ${t==='hoy'?medHoy():medEsquemas()}`;
+}
+
+function medHoy(){
+  const hN=new Date().getHours();
+  const cur=HORAS_MED.filter(h=>+h<=hN).pop()||HORAS_MED[0];
   const canReg=['enfermeria','direccion'].includes(S.role);
-  return `<div class="head"><div><h1>Medicación de hoy</h1><p>Esquemas indicados por psiquiatría · registrá cada toma en el momento</p></div></div>
-  ${hrs.map(h=>{const rows=S.esquemas.filter(e=>e.horas.includes(h)&&S.beds&&occ().some(([,b])=>b.pid===e.pid));if(!rows.length)return '';
+  const internados=e=>occ().some(([,b])=>b.pid===e.pid);
+  const prn=S.esquemas.filter(e=>vigente(e)&&e.prn&&internados(e));
+  const bloques=HORAS_MED.map(h=>{
+    const rows=S.esquemas.filter(e=>vigente(e)&&!e.prn&&e.horas.includes(h)&&internados(e));
+    if(!rows.length)return '';
     return `<div class="hourblock ${h===cur?'now':''}"><section class="panel"><div class="panel-h"><h2>${h}:00 hs</h2>${h===cur?'<span class="tag pri">Horario actual</span>':+h>hN?'<span class="small faint">Más tarde</span>':''}</div>
     ${rows.map(e=>{const a=S.admins.find(x=>x.eid===e.id&&x.fecha===TODAY&&x.hora===h);
-      return `<div class="medrow"><div><b>${esc(pname(pat(e.pid)))}</b></div><div>${esc(e.med)} ${e.dosis} · ${e.via}<div class="small faint">Indicó ${esc(pro(e.indica).nombre)}</div></div>
-      <div>${a?`<span class="tag ${a.estado==='Administrada'?'ok':'danger'}">${a.estado} ${a.ts||''}</span>${a.motivo?`<div class="small faint">${esc(a.motivo)}</div>`:''}`:canReg&&+h<=hN+1?`<div class="row"><button class="btn sm pri" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="1">Administrada</button><button class="btn sm" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="0">No administrada</button></div>`:'<span class="tag">Pendiente</span>'}</div></div>`}).join('')}
-    </section></div>`}).join('')}`;
+      return `<div class="medrow"><div><b>${esc(pname(pat(e.pid)))}</b></div>
+      <div>${esc(e.med)} ${esc(e.dosis)} · ${esc(e.via)}<div class="small faint">Indicó ${esc(pro(e.indica).nombre)}${e.indicaciones?' · '+esc(e.indicaciones):''}</div></div>
+      <div>${a?`<span class="tag ${a.estado==='Administrada'?'ok':'danger'}">${a.estado} ${a.ts||''}</span>${a.motivo?`<div class="small faint">${esc(a.motivo)}</div>`:''}`
+        :canReg&&+h<=hN+1?`<div class="row"><button class="btn sm pri" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="1">Administrada</button><button class="btn sm" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="0">No administrada</button></div>`
+        :'<span class="tag">Pendiente</span>'}</div></div>`}).join('')}
+    </section></div>`}).join('');
+  const bloquePrn=prn.length?`<section class="panel" style="margin-top:20px"><div class="panel-h"><h2>A demanda</h2><span class="small faint">Se registran cuando hacen falta, sin horario fijo</span></div>
+    ${prn.map(e=>{const hoy=S.admins.filter(x=>x.eid===e.id&&x.fecha===TODAY);
+      return `<div class="medrow"><div><b>${esc(pname(pat(e.pid)))}</b></div>
+      <div>${esc(e.med)} ${esc(e.dosis)} · ${esc(e.via)}<div class="small faint">${esc(e.indicaciones||'Sin indicaciones adicionales')}</div></div>
+      <div>${hoy.length?`<span class="tag ok">${hoy.length} toma${hoy.length>1?'s':''} hoy</span><div class="small faint">${hoy.map(a=>a.ts).join(' · ')}</div>`:'<span class="small faint">Sin tomas hoy</span>'}
+        ${canReg?`<button class="btn sm" data-a="admprn" data-e="${e.id}">Registrar toma</button>`:''}</div></div>`}).join('')}
+    </section>`:'';
+  return (bloques||'<div class="empty">No hay esquemas vigentes para los pacientes internados.</div>')+bloquePrn;
+}
+
+function medEsquemas(){
+  const internados=occ().map(([c,b])=>({cama:c,p:pat(b.pid)})).filter(x=>x.p);
+  const puede=puedeIndicar();
+  if(!internados.length)return '<div class="empty">No hay pacientes internados.</div>';
+  return internados.map(({cama,p})=>{
+    const es=esqPac(p.id);const act=es.filter(vigente);
+    return `<section class="panel" style="margin-bottom:20px"><div class="panel-h">
+      <div><h2 style="cursor:pointer" data-a="openp" data-p="${p.id}">${esc(pname(p))}</h2><span class="small faint">Cama ${cama} · ${act.length} esquema${act.length===1?'':'s'} vigente${act.length===1?'':'s'}</span></div>
+      ${puede?`<button class="btn sm" data-a="newesq" data-p="${p.id}">Indicar medicación</button>`:''}</div>
+      ${es.map(e=>esqFila(e,puede)).join('')||'<div class="empty">Sin medicación indicada.</div>'}</section>`;
+  }).join('');
+}
+
+// Una fila de esquema, vigente o cerrado. Los cerrados no se ocultan: quedan como historial.
+function esqFila(e,puede){
+  const v=vigente(e);
+  return `<div class="agenda-row" style="grid-template-columns:1fr auto auto;${v?'':'opacity:.65'}">
+    <div><b>${medLinea(e)}</b>
+      <div class="small faint">Indicó ${esc(pro(e.indica).nombre)} · desde ${fd(e.desde)}${e.version>1?' · versión '+e.version:''}${e.hasta?' · suspendido el '+fd(e.hasta)+(e.motivoFin?': '+esc(e.motivoFin):''):''}</div>
+      ${e.indicaciones?`<div class="small muted">${esc(e.indicaciones)}</div>`:''}</div>
+    <span class="tag ${v?'ok':''}">${v?'Vigente':'Suspendido'}</span>
+    <div class="row">${v&&puede?`<button class="btn sm" data-a="editesq" data-e="${e.id}">Cambiar</button><button class="btn sm ghost" data-a="finesq" data-e="${e.id}">Suspender</button>`:''}</div></div>`;
 }
 
 /* ---------- Autorizaciones ---------- */
@@ -1016,7 +1108,7 @@ const ico=(n,sz=18,sw=1.8)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 2
 const NAVG=[['',['hoy','agenda','pacientes','profesionales']],
   ['Administración',['grupos','internacion','medicacion','autorizaciones','facturacion','auditoria']]];
 /* ---------- Panel del día (recepción) y Mi día (profesional) ---------- */
-function navLabel(v){if(v==='hoy'&&S.role==='profesional')return 'Mi día';return VIEWS[v]}
+function navLabel(v){if(v==='hoy'&&esPro())return 'Mi día';return VIEWS[v]}
 const minsSince=ts=>Math.max(0,Math.round((Date.now()-ts)/60000));
 const todayT=()=>S.turnos.filter(t=>t.fecha===TODAY&&t.flujo).sort((a,b)=>a.hora.localeCompare(b.hora));
 const noDow=s=>s.split(' ').slice(1).join(' ');
@@ -1127,11 +1219,70 @@ function vMiDia(m){
 const GUIA=[['Dirección','Mirá la pantalla Hoy: alertas de toda la institución en un solo lugar.'],['Recepción','En el Panel del día, marcá la llegada de un paciente, hacelo pasar y finalizá la consulta. Mirá cómo se mueve entre grupos y cómo corre el tiempo de espera.'],['Psicóloga','En Mi día, hacé pasar al paciente que espera, escribí la evolución y firmala. Después intentá editarla: solo se puede agregar una adenda.'],['Enfermería','En Medicación, registrá una toma. Probalo desde el celular.'],['Recepción','Abrí un paciente e intentá ver su historia clínica: está restringida y el intento queda registrado.'],['Dirección','Entrá a Auditoría: está todo lo que hiciste, con usuario y hora.']];
 
 /* ---------- modales ---------- */
+// Un mismo formulario para indicar medicación y para cambiar un esquema vigente.
+function esqModal(e,pid){
+  const meds=[...new Set(MEDS.map(m=>m[0]))].sort();
+  const sel=e?e.med:'';
+  modal(e?'Cambiar medicación':'Indicar medicación',`<p class="small muted">${esc(pname(pat(pid)))}</p>
+    ${e?'<p class="small faint">Al guardar, el esquema actual queda suspendido y se registra esta indicación como versión nueva. Las tomas ya registradas no se modifican.</p>':''}
+    <div class="fgrid">
+      <label class="f">Medicamento<select id="mMed"><option value="">— Elegir —</option>${meds.map(m=>`<option ${m===sel?'selected':''}>${m}</option>`).join('')}</select></label>
+      <label class="f">Dosis<input type="text" id="mDos" value="${e?esc(e.dosis):''}" placeholder="50 mg"></label>
+      <label class="f">Vía<select id="mVia">${VIAS.map(v=>`<option ${e&&e.via===v?'selected':''}>${v}</option>`).join('')}</select></label></div>
+    <label class="f" style="margin-top:12px">Horarios
+      <div class="chips">${HORAS_MED.map(h=>`<label class="chip" style="cursor:pointer"><input type="checkbox" id="mH${h}" ${e&&e.horas.includes(h)?'checked':''} style="margin-right:6px">${h}:00</label>`).join('')}</div></label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:8px;margin-top:10px">
+      <input type="checkbox" id="mPrn" ${e&&e.prn?'checked':''}>A demanda: se da cuando hace falta, sin horario fijo</label>
+    <label class="f">Indicaciones<input type="text" id="mInd" value="${e?esc(e.indicaciones||''):''}" placeholder="Opcional: cómo o cuándo darla"></label>`,
+    `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveesq" data-p="${pid}" ${e?`data-e="${e.id}"`:''}>${e?'Guardar cambio':'Indicar'}</button>`)
+}
+
 function modal(title,body,foot){$('#modal').innerHTML=`<div class="mh"><h2>${title}</h2><button class="btn sm ghost" data-a="close" aria-label="Cerrar">Cerrar</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#scrim').classList.add('open');const f=$('#modal').querySelector('input,textarea,select');if(f)f.focus()}
 const close=()=>$('#scrim').classList.remove('open');
 
 /* ---------- acciones ---------- */
 const A={
+  /* ----- Medicación: esquemas ----- */
+  medtab:d=>{S.medTab=d.t;render()},
+  newesq:d=>{esqModal(null,d.p)},
+  editesq:d=>{const e=S.esquemas.find(x=>x.id===d.e);esqModal(e,e.pid)},
+  saveesq:d=>{const orig=d.e?S.esquemas.find(x=>x.id===d.e):null;
+    const med=$('#mMed').value,dosis=$('#mDos').value.trim(),via=$('#mVia').value;
+    const prn=$('#mPrn').checked;
+    const horas=prn?[]:HORAS_MED.filter(h=>$('#mH'+h).checked);
+    if(!med){toast('Elegí el medicamento');return}
+    if(!dosis){toast('Cargá la dosis');return}
+    if(!prn&&!horas.length){toast('Elegí al menos un horario, o marcala como a demanda');return}
+    const nuevo={id:uid('m'),pid:d.p,med,dosis,via,horas,prn,indicaciones:$('#mInd').value.trim(),
+      indica:R().proId||'p2',desde:TODAY,hasta:null,motivoFin:'',version:orig?(orig.version||1)+1:1};
+    if(orig){
+      // Cambiar un esquema no pisa el registro: se cierra el vigente y se crea una versión nueva.
+      // Las tomas ya registradas siguen apuntando al esquema que realmente se administró.
+      orig.hasta=TODAY;orig.motivoFin='Reemplazado por una indicación nueva';
+      audit('Cambió un esquema de medicación',pname(pat(d.p))+' — '+orig.med+' '+orig.dosis+' → '+med+' '+dosis);
+    }else audit('Indicó medicación',pname(pat(d.p))+' — '+med+' '+dosis+' '+via);
+    S.esquemas.push(nuevo);close();render();
+    toast(orig?'Esquema actualizado. El anterior queda suspendido y a la vista.':'Medicación indicada')},
+  finesq:d=>{const e=S.esquemas.find(x=>x.id===d.e);
+    modal('Suspender medicación',`<p class="small muted">${medLinea(e)} — ${esc(pname(pat(e.pid)))}</p>
+      <p class="small faint">El esquema no se borra: queda suspendido, con la fecha y el motivo. Las tomas ya registradas no se tocan.</p>
+      <label class="f">Motivo<input type="text" id="mFin" placeholder="Por qué se suspende"></label>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savefin" data-e="${e.id}">Suspender</button>`)},
+  savefin:d=>{const e=S.esquemas.find(x=>x.id===d.e);const m=$('#mFin').value.trim();
+    if(!m){toast('Cargá el motivo de la suspensión');return}
+    e.hasta=TODAY;e.motivoFin=m;
+    audit('Suspendió un esquema de medicación',pname(pat(e.pid))+' — '+e.med+' '+e.dosis+': '+m);
+    close();render();toast('Esquema suspendido')},
+  admprn:d=>{const e=S.esquemas.find(x=>x.id===d.e);
+    modal('Registrar toma a demanda',`<p class="small muted">${medLinea(e)} — ${esc(pname(pat(e.pid)))}</p>
+      ${e.indicaciones?`<p class="small faint">${esc(e.indicaciones)}</p>`:''}
+      <label class="f">Observación<input type="text" id="mObs" placeholder="Opcional"></label>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveprn" data-e="${e.id}">Registrar toma</button>`)},
+  saveprn:d=>{const e=S.esquemas.find(x=>x.id===d.e);
+    S.admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:String(new Date().getHours()).padStart(2,'0'),
+      estado:'Administrada',motivo:$('#mObs').value.trim(),por:R().user,ts:nowHM()});
+    audit('Registró una toma a demanda',pname(pat(e.pid))+' — '+e.med+' '+e.dosis);
+    close();render();toast('Toma registrada')},
   /* ----- Ficha del paciente: edición ----- */
   editdatos:d=>{const p=pat(d.p);
     modal('Editar datos personales',`<div class="fgrid">
@@ -1403,7 +1554,7 @@ document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPr
 document.addEventListener('keydown',ev=>{if(ev.target.id==='gsearch'&&ev.key==='Enter'){const q=ev.target.value.trim();if(!R().views.includes('pacientes')){toast('Tu rol no tiene acceso a la lista de pacientes');return}S.pf={q,estado:'',mod:''};S.view='pacientes';ev.target.value='';render()}});
 $('#scrim').addEventListener('click',ev=>{if(ev.target.id==='scrim')close()});
 render();
-setInterval(()=>{if(S.view==='hoy'&&['administracion','profesional'].includes(S.role)&&!$('#scrim').classList.contains('open')&&!(document.activeElement&&document.activeElement.matches('input,select,textarea')))render()},30000);
+setInterval(()=>{if(S.view==='hoy'&&['administracion','profesional','psiquiatria'].includes(S.role)&&!$('#scrim').classList.contains('open')&&!(document.activeElement&&document.activeElement.matches('input,select,textarea')))render()},30000);
 </script>
 </body>
 </html>
