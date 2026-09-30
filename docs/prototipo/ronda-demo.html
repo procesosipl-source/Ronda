@@ -394,6 +394,13 @@ const ROLES={
 const VIEWS={hoy:'Panel de turnos',agenda:'Agenda',pacientes:'Pacientes',profesionales:'Profesionales',grupos:'Grupos y talleres',internacion:'Internación',medicacion:'Medicación',autorizaciones:'Autorizaciones',facturacion:'Prefacturación',config:'Configuración',auditoria:'Auditoría'};
 const ESTADOS=['Preadmisión','Admisión','En tratamiento','Alta','Baja'];
 const SEDES=['Sede central','Hospital de día'];
+const PARENTESCOS=['Madre','Padre','Pareja','Hermano/a','Hijo/a','Tutor/a','Otro'];
+const ROLES_EQ=['Referente','Tratante','Interconsulta'];
+// Catálogo de diagnósticos: ficticio y configurable por institución, listo para CIE-10
+const DIAGS=[['F32','Episodio depresivo'],['F33','Trastorno depresivo recurrente'],['F31','Trastorno afectivo bipolar'],
+  ['F41.1','Trastorno de ansiedad generalizada'],['F41.0','Trastorno de pánico'],['F20','Esquizofrenia'],
+  ['F60.3','Trastorno límite de la personalidad'],['F50.0','Anorexia nerviosa'],['F50.2','Bulimia nerviosa'],
+  ['F10.2','Dependencia de alcohol'],['F19.2','Dependencia de múltiples sustancias'],['F43.1','Trastorno de estrés postraumático']];
 const DIAS_L=['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const DIAS_C=['','Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const AUTH_ST=['Solicitada','Autorizada','Presentada','Cobrada'];
@@ -423,10 +430,18 @@ function seed(){
     const intern=internados.includes(i);
     const estado=i===16?'Admisión':i===17?'Preadmisión':i===15?'Alta':'En tratamiento';
     const psi=i%2?'p4':'p1';
-    const equipo=[psi,'p2'];if(i%3===0)equipo.push('p3');if(intern)equipo.push('p6');
+    const equipo=[[psi,'Referente'],['p2','Tratante']];if(i%3===0)equipo.push(['p3','Interconsulta']);if(intern)equipo.push(['p6','Interconsulta']);
+    const desdeEq=iso(day(-100+i*3));
+    const dg=DIAGS[i%DIAGS.length];
     return {id:'pa'+(i+1),nombre:n[0],apellido:n[1],dni:String(30000000+Math.floor(rnd()*14000000)),nac:(1968+Math.floor(rnd()*38))+'-0'+(1+Math.floor(rnd()*9))+'-1'+Math.floor(rnd()*9),
       ooss:i===17?'Sancor Salud':ooss[i%ooss.length],afiliado:String(100000+Math.floor(rnd()*899999)),estado,modalidad:intern?'Internación':'Ambulatorio',
-      frecuencia:intern?5:(i%4===0?3:1),equipo:estado==='Preadmisión'?[]:equipo,tel:'261 '+(4000000+Math.floor(rnd()*999999)),deuda:(i%2===1),referente:pick(['Madre','Padre','Pareja','Hermana','Hijo'])+': '+pick(['Ana','Luis','Carolina','Pedro','Silvia'])+' '+n[1],
+      frecuencia:intern?5:(i%4===0?3:1),
+      equipo:estado==='Preadmisión'?[]:equipo.map(e=>({proId:e[0],rol:e[1],desde:desdeEq,hasta:null})),
+      tel:'261 '+(4000000+Math.floor(rnd()*999999)),email:n[0].toLowerCase()+'.'+n[1].toLowerCase()+'@correo.ar',
+      domicilio:pick(['San Martín','Belgrano','Las Heras','Sarmiento','Rivadavia'])+' '+(100+Math.floor(rnd()*2900))+', Mendoza',
+      deuda:(i%2===1),
+      contactos:[{nombre:pick(['Ana','Luis','Carolina','Pedro','Silvia'])+' '+n[1],parentesco:pick(PARENTESCOS.slice(0,5)),tel:'261 '+(4000000+Math.floor(rnd()*999999)),principal:true}],
+      diagnostico:estado==='Preadmisión'?null:{codigo:dg[0],texto:dg[1],desde:desdeEq,por:'Dr. Martín Aguirre'},
       historial:[{fecha:iso(day(-120+i*3)),de:'Preadmisión',a:'Admisión',por:'Marcela Ortiz'},{fecha:iso(day(-100+i*3)),de:'Admisión',a:'En tratamiento',por:'Dra. Inés Carrizo'}].slice(0,estado==='Preadmisión'?0:estado==='Admisión'?1:2)};
   });
   // camas
@@ -445,7 +460,7 @@ function seed(){
   for(let d=-21;d<=7;d++){
     const dt=day(d);const wd=dt.getDay();if(d===0||wd===0||wd===6)continue;
     agendaPros.forEach(pro=>{
-      const mine=pats.filter(p=>p.equipo.includes(pro)&&p.estado!=='Preadmisión'&&(p.estado!=='Alta'||d<-5));
+      const mine=pats.filter(p=>p.equipo.some(e=>e.proId===pro)&&p.estado!=='Preadmisión'&&(p.estado!=='Alta'||d<-5));
       const hours=pro==='p2'?['14:00','14:30','15:00','15:30','16:00']:pro==='p3'?['10:00','11:00']:['09:00','09:30','10:30','11:00','11:30','12:00'];
       hours.forEach(h=>{
         if(rnd()<0.28||!mine.length)return;
@@ -472,7 +487,7 @@ function seed(){
   const flat=[];Object.entries(PLAN).forEach(([pro,plan])=>plan.forEach(e=>flat.push([pro,...e])));
   flat.sort((a,b)=>PRI[a[2]]-PRI[b[2]]);
   flat.forEach(([pro,h,f,mins])=>{
-      const pool=pats.filter(p=>p.equipo.includes(pro)&&p.modalidad==='Ambulatorio'&&!['Preadmisión','Alta'].includes(p.estado));
+      const pool=pats.filter(p=>p.equipo.some(e=>e.proId===pro)&&p.modalidad==='Ambulatorio'&&!['Preadmisión','Alta'].includes(p.estado));
       const p=pool.slice().sort((x,y)=>((USED.get(x.id+pro)||0)-(USED.get(y.id+pro)||0))||(USED.get(x.id)||0)-(USED.get(y.id)||0))[0];USED.set(p.id,(USED.get(p.id)||0)+1);USED.set(p.id+pro,(USED.get(p.id+pro)||0)+1);
       const flujo={at:'atendido',atx:'atendido',au:'ausente',es:'espera',co:'consulta',pl:'porllegar',pls:'porllegar'}[f];
       const t={id:uid('t'),pid:p.id,pro,fecha:iso(T0),hora:h,tipo:pro==='p2'?'Control psiquiátrico':pro==='p3'?'Entrevista social':'Sesión individual',
@@ -529,16 +544,28 @@ function seed(){
   A(-1,'17:05','Marcela Ortiz','Administración','Intento de acceso denegado','Historia clínica — Lucía Ferreyra');
   return st;
 }
-function modulo(st,p){
+// Devuelve qué prestación se presenta, si viene de una excepción y por qué.
+// La regla es la fuente; la excepción es un caso puntual con motivo, y queda a la vista.
+function moduloPac(p){
+  const reg=modulo(S,p,true);
+  if(p.moduloExc)return {valor:p.moduloExc.prest,excepcion:true,
+    motivo:'Excepción cargada por '+p.moduloExc.por+' el '+fd(p.moduloExc.fecha)+': '+p.moduloExc.motivo+'. Por reglas correspondería '+reg.valor+'.'};
+  return {valor:reg.valor,excepcion:false,motivo:reg.motivo};
+}
+function modulo(st,p,detalle){
+  if(!detalle&&p.moduloExc)return p.moduloExc.prest;
+  let i=0;
   for(const r of st.reglas){
+    i++;
     if(r.ooss.op==='igual'&&p.ooss!==r.ooss.v)continue;
     if(r.ooss.op==='distinta'&&p.ooss===r.ooss.v)continue;
     if(r.estados.length&&!r.estados.includes(p.estado))continue;
     if(r.modalidad&&p.modalidad!==r.modalidad)continue;
     if(r.minFrec&&p.frecuencia<r.minFrec)continue;
-    return r.res==='=estado'?p.estado:r.res;
+    const v=r.res==='=estado'?p.estado:r.res;
+    return detalle?{valor:v,motivo:'Según la regla '+i+' de cobertura.'}:v;
   }
-  return 'No definido';
+  return detalle?{valor:'No definido',motivo:'Ninguna regla de cobertura coincide. Hay que resolverlo antes de cerrar el período.'}:'No definido';
 }
 
 /* ---------- estado ---------- */
@@ -550,7 +577,8 @@ const R=()=>ROLES[S.role];
 const pro=id=>S.pros.find(p=>p.id===id)||{nombre:'—',disc:''};
 const pat=id=>S.pats.find(p=>p.id===id);
 // Ids del equipo tratante vigente hoy. Acepta la forma vieja (lista de ids) y la nueva (con rol y vigencia).
-const equipoIds=p=>(p.equipo||[]).map(e=>typeof e==='string'?e:(!e.hasta||e.hasta>=TODAY?e.proId:null)).filter(Boolean);
+// `hasta` es la fecha en que dejó de integrar el equipo: ese mismo día ya no ve la historia clínica.
+const equipoIds=p=>(p.equipo||[]).map(e=>typeof e==='string'?e:(!e.hasta||e.hasta>TODAY?e.proId:null)).filter(Boolean);
 const pname=p=>p?p.apellido+', '+p.nombre:'—';
 const audit=(acc,ent)=>{S.audit.push({ts:TODAY+' '+nowHM(),user:R().user,rol:R().label,acc,ent});};
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600)};
@@ -558,7 +586,7 @@ const initials=n=>n.replace(/^(Dra?\.|Lic\.|Enf\.)\s*/,'').split(' ').map(x=>x[0
 const age=nac=>Math.floor(diff(TODAY,nac)/365.25);
 function visiblePats(){
   const r=R();
-  if(S.role==='profesional')return S.pats.filter(p=>p.equipo.includes(r.proId));
+  if(S.role==='profesional')return S.pats.filter(p=>equipoIds(p).includes(r.proId));
   if(S.role==='enfermeria')return S.pats.filter(p=>p.modalidad==='Internación'&&p.estado==='En tratamiento');
   return S.pats;
 }
@@ -679,7 +707,7 @@ function vPacientes(){
     <span class="faint">|</span>${['','Ambulatorio','Internación'].map(e=>`<button class="chip" data-a="pf" data-k="mod" data-v="${e}" aria-pressed="${f.mod===e}">${e||'Ambas'}</button>`).join('')}</div></div>
   <div class="tablewrap"><table><thead><tr><th>Paciente</th><th>DNI</th><th>Cobertura</th><th>Modalidad</th><th>Estado</th><th>Equipo</th></tr></thead><tbody id="ptbody">
   ${list.map(p=>`<tr class="click" data-a="openp" data-p="${p.id}" tabindex="0"><td><b>${esc(pname(p))}</b><div class="small faint">${age(p.nac)} años</div></td><td>${p.dni}</td><td>${esc(p.ooss)}</td><td>${p.modalidad}</td><td>${estTag(p.estado)}</td>
-  <td><div class="row" style="gap:4px">${p.equipo.map(id=>`<span class="dot" title="${esc(pro(id).nombre)}" style="background:var(${DISC[pro(id).disc]})"></span>`).join('')||'<span class="small faint">Sin asignar</span>'}</div></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Ningún paciente coincide con los filtros.</td></tr>'}
+  <td><div class="row" style="gap:4px">${equipoIds(p).map(id=>`<span class="dot" title="${esc(pro(id).nombre)}" style="background:var(${DISC[pro(id).disc]})"></span>`).join('')||'<span class="small faint">Sin asignar</span>'}</div></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Ningún paciente coincide con los filtros.</td></tr>'}
   </tbody></table></div></div>`;
 }
 const estTag=e=>`<span class="tag ${e==='En tratamiento'?'ok':e==='Alta'||e==='Baja'?'':'warn'}">${e}</span>`;
@@ -728,17 +756,56 @@ function hcTab(p){
 }
 function datosTab(p){
   const au=S.auths.filter(a=>a.pid===p.id).sort((a,b)=>b.periodo.localeCompare(a.periodo));
+  const puede=['direccion','administracion'].includes(S.role)||equipoIds(p).includes(R().proId);
+  const ed=(a,t)=>puede?`<button class="btn sm" data-a="${a}" data-p="${p.id}">${t}</button>`:'';
+  const cts=p.contactos||[];
+  const eq=(p.equipo||[]).filter(e=>typeof e!=='string'&&!e.hasta);
+  const mod=moduloPac(p);
   return `<div class="grid2"><div class="stack">
-    <section class="panel"><div class="panel-h"><h2>Datos personales</h2></div><div class="panel-b fgrid small">
-      <div><div class="faint">Nacimiento</div>${fd(p.nac)} ${p.nac.slice(0,4)}</div><div><div class="faint">Teléfono</div>${p.tel}</div>
-      <div><div class="faint">Referente</div>${esc(p.referente)}</div><div><div class="faint">Frecuencia</div>${p.frecuencia} encuentro${p.frecuencia>1?'s':''} por semana</div></div></section>
-    <section class="panel"><div class="panel-h"><h2>Equipo tratante</h2></div>${p.equipo.map(id=>`<div class="agenda-row" style="grid-template-columns:12px 1fr auto"><span class="dot" style="background:var(${DISC[pro(id).disc]})"></span><div>${esc(pro(id).nombre)}</div><span class="small muted">${pro(id).disc}</span></div>`).join('')||'<div class="empty">Se asigna al pasar a admisión.</div>'}</section>
+    <section class="panel"><div class="panel-h"><h2>Datos personales</h2>${ed('editdatos','Editar')}</div>
+      <div class="panel-b fgrid small">
+        <div><div class="faint">Nombre y apellido</div>${esc(p.nombre+' '+p.apellido)}</div>
+        <div><div class="faint">DNI</div>${esc(p.dni)}</div>
+        <div><div class="faint">Fecha de nacimiento</div>${fd(p.nac)} ${p.nac.slice(0,4)} <span class="faint">(${age(p.nac)} años)</span></div>
+        <div><div class="faint">Teléfono</div>${esc(p.tel||'—')}</div>
+        <div><div class="faint">Correo</div>${esc(p.email||'—')}</div>
+        <div><div class="faint">Domicilio</div>${esc(p.domicilio||'—')}</div>
+        <div><div class="faint">Frecuencia</div>${p.frecuencia} encuentro${p.frecuencia>1?'s':''} por semana</div></div></section>
+
+    <section class="panel"><div class="panel-h"><h2>Referentes</h2>${ed('editref','Editar')}</div>
+      ${cts.map(c=>`<div class="agenda-row" style="grid-template-columns:1fr auto">
+        <div><b>${esc(c.nombre)}</b> ${c.principal?'<span class="tag pri">Principal</span>':''}<div class="small faint">${esc(c.parentesco)}</div></div>
+        <span class="small" style="font-variant-numeric:tabular-nums">${esc(c.tel||'—')}</span></div>`).join('')
+        ||'<div class="empty">Sin referentes cargados. Es el familiar o contacto responsable del paciente.</div>'}</section>
+
+    <section class="panel"><div class="panel-h"><h2>Diagnóstico</h2>${ed('editdiag','Editar')}</div>
+      <div class="panel-b small">${p.diagnostico
+        ?`<div class="row" style="gap:8px"><span class="tag">${esc(p.diagnostico.codigo)}</span><b>${esc(p.diagnostico.texto)}</b></div>
+          <div class="faint" style="margin-top:6px">Desde ${fd(p.diagnostico.desde)} · lo cargó ${esc(p.diagnostico.por)}</div>`
+        :'<span class="faint">Sin diagnóstico cargado.</span>'}</div></section>
+
+    <section class="panel"><div class="panel-h"><h2>Equipo tratante</h2>${ed('editeq','Editar')}</div>
+      ${eq.map(e=>`<div class="agenda-row" style="grid-template-columns:12px 1fr auto auto">
+        <span class="dot" style="background:var(${DISC[pro(e.proId).disc]})"></span>
+        <div>${esc(pro(e.proId).nombre)}<div class="small faint">${pro(e.proId).disc} · desde ${fd(e.desde)}</div></div>
+        <span class="tag">${esc(e.rol)}</span></div>`).join('')
+        ||'<div class="empty">Se asigna al pasar a admisión.</div>'}
+      <div class="panel-b small faint" style="border-top:1px solid var(--line)">Quienes están en el equipo tratante son los que ven la historia clínica de este paciente.</div></section>
   </div>
+
+  <div class="stack">
   <section class="panel"><div class="panel-h"><h2>Cobertura</h2><span class="tag pri">${esc(p.ooss)}</span></div>
-    <div class="panel-b small"><div class="faint">Prestación a presentar según reglas</div><b>${esc(modulo(S,p))}</b></div>
+    <div class="panel-b fgrid small">
+      <div><div class="faint">Obra social</div>${esc(p.ooss)}</div>
+      <div><div class="faint">Número de afiliado</div>${esc(p.afiliado||'—')}</div></div>
+    <div class="panel-b small" style="border-top:1px solid var(--line)">
+      <div class="faint">Prestación a presentar</div>
+      <div class="row" style="gap:8px"><b>${esc(mod.valor)}</b>${mod.excepcion?'<span class="tag warn">Excepción</span>':''}</div>
+      <div class="small faint" style="margin-top:4px">${esc(mod.motivo)}</div>
+      ${ed('editmod',mod.excepcion?'Cambiar excepción':'Cargar excepción')}</div>
     <div class="tablewrap"><table><thead><tr><th>Período</th><th>Autorización</th><th>Estado</th></tr></thead><tbody>
     ${au.map(a=>`<tr><td>${a.periodo}</td><td>${esc(a.prest)}<div class="small faint">${a.autorizadas} autorizadas</div></td><td>${authTag(a.estado)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Paciente particular, sin autorizaciones.</td></tr>'}
-    </tbody></table></div></section></div>`;
+    </tbody></table></div></section></div></div>`;
 }
 function docsTab(p){
   const docs=[['Consentimiento informado','Firmado',-60],['Informe de admisión','Generado',-58],['Solicitud de autorización','Enviado',-30]];
@@ -1065,6 +1132,95 @@ const close=()=>$('#scrim').classList.remove('open');
 
 /* ---------- acciones ---------- */
 const A={
+  /* ----- Ficha del paciente: edición ----- */
+  editdatos:d=>{const p=pat(d.p);
+    modal('Editar datos personales',`<div class="fgrid">
+      <label class="f">Nombre<input type="text" id="dN" value="${esc(p.nombre)}"></label>
+      <label class="f">Apellido<input type="text" id="dA" value="${esc(p.apellido)}"></label>
+      <label class="f">DNI<input type="text" id="dD" inputmode="numeric" value="${esc(p.dni)}"></label>
+      <label class="f">Fecha de nacimiento<input type="date" id="dF" value="${p.nac}"></label>
+      <label class="f">Teléfono<input type="text" id="dT" value="${esc(p.tel||'')}"></label>
+      <label class="f">Correo<input type="email" id="dE" value="${esc(p.email||'')}"></label>
+      <label class="f">Frecuencia semanal<input type="number" id="dQ" min="0" max="7" value="${p.frecuencia}"></label></div>
+      <label class="f">Domicilio<input type="text" id="dM" value="${esc(p.domicilio||'')}"></label>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savedatos" data-p="${p.id}">Guardar</button>`)},
+  savedatos:d=>{const p=pat(d.p);const dni=$('#dD').value.replace(/\D/g,'');
+    const n=$('#dN').value.trim(),a=$('#dA').value.trim(),f=$('#dF').value;
+    if(!n||!a||dni.length<7){toast('Completá nombre, apellido y un DNI válido');return}
+    if(!f||f>TODAY){toast('La fecha de nacimiento no puede ser futura');return}
+    const otro=S.pats.find(x=>x.dni===dni&&x.id!==p.id);
+    if(otro){toast('Ese DNI ya lo tiene '+pname(otro));return}
+    p.nombre=n;p.apellido=a;p.dni=dni;p.nac=f;p.tel=$('#dT').value.trim();p.email=$('#dE').value.trim();
+    p.domicilio=$('#dM').value.trim();p.frecuencia=Math.max(0,+$('#dQ').value||0);
+    audit('Editó datos personales',pname(p));close();render();toast('Datos actualizados')},
+
+  editref:d=>{const p=pat(d.p);const cts=p.contactos||[];
+    modal('Referentes de '+esc(pname(p)),`<p class="small muted">El referente es el familiar o contacto responsable. Podés cargar más de uno y marcar cuál es el principal.</p>
+      ${cts.map((c,i)=>`<div class="agenda-row" style="grid-template-columns:1fr auto auto;padding:8px 0;border-bottom:1px solid var(--line)">
+        <div><b>${esc(c.nombre)}</b> ${c.principal?'<span class="tag pri">Principal</span>':''}<div class="small faint">${esc(c.parentesco)} · ${esc(c.tel||'—')}</div></div>
+        ${c.principal?'':`<button class="btn sm ghost" data-a="refppal" data-p="${p.id}" data-i="${i}">Hacer principal</button>`}
+        <button class="btn sm ghost" data-a="delref" data-p="${p.id}" data-i="${i}">Quitar</button></div>`).join('')
+        ||'<div class="empty">Todavía no cargaste referentes.</div>'}
+      <div class="fgrid" style="margin-top:14px"><label class="f">Nombre y apellido<input type="text" id="rN"></label>
+      <label class="f">Parentesco<select id="rP">${PARENTESCOS.map(x=>`<option>${x}</option>`).join('')}</select></label>
+      <label class="f">Celular<input type="text" id="rT" inputmode="tel" placeholder="261 4000000"></label></div>`,
+      `<button class="btn" data-a="close">Cerrar</button><button class="btn pri" data-a="addref" data-p="${p.id}">Agregar referente</button>`)},
+  addref:d=>{const p=pat(d.p);const n=$('#rN').value.trim(),t=$('#rT').value.trim();
+    if(!n){toast('Cargá el nombre del referente');return}
+    p.contactos=(p.contactos||[]).concat({nombre:n,parentesco:$('#rP').value,tel:t,principal:!(p.contactos||[]).length});
+    audit('Agregó un referente',pname(p)+' — '+n);render();A.editref(d);toast('Referente agregado')},
+  delref:d=>{const p=pat(d.p);const c=p.contactos[+d.i];p.contactos.splice(+d.i,1);
+    if(c.principal&&p.contactos.length)p.contactos[0].principal=true;
+    audit('Quitó un referente',pname(p)+' — '+c.nombre);render();A.editref(d);toast('Referente quitado')},
+  refppal:d=>{const p=pat(d.p);p.contactos.forEach((c,i)=>c.principal=(i===+d.i));
+    audit('Cambió el referente principal',pname(p)+' — '+p.contactos[+d.i].nombre);render();A.editref(d);toast('Referente principal actualizado')},
+
+  editdiag:d=>{const p=pat(d.p);const dg=p.diagnostico;
+    modal('Diagnóstico de '+esc(pname(p)),`<p class="small muted">Se elige de la lista de la institución. Queda registrado quién lo cargó y cuándo.</p>
+      <label class="f">Diagnóstico<select id="gD"><option value="">— Sin diagnóstico —</option>
+        ${DIAGS.map(x=>`<option value="${x[0]}" ${dg&&dg.codigo===x[0]?'selected':''}>${x[0]} — ${x[1]}</option>`).join('')}</select></label>
+      <label class="f">Desde<input type="date" id="gF" value="${dg?dg.desde:TODAY}"></label>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savediag" data-p="${p.id}">Guardar</button>`)},
+  savediag:d=>{const p=pat(d.p);const c=$('#gD').value;
+    if(!c){p.diagnostico=null;audit('Quitó el diagnóstico',pname(p));close();render();toast('Diagnóstico quitado');return}
+    const x=DIAGS.find(y=>y[0]===c);
+    p.diagnostico={codigo:x[0],texto:x[1],desde:$('#gF').value||TODAY,por:R().user};
+    audit('Cargó diagnóstico: '+x[0],pname(p));close();render();toast('Diagnóstico actualizado')},
+
+  editeq:d=>{const p=pat(d.p);const eq=(p.equipo||[]).filter(e=>typeof e!=='string');
+    const libres=S.pros.filter(x=>x.activo!==false&&!eq.some(e=>!e.hasta&&e.proId===x.id));
+    modal('Equipo tratante de '+esc(pname(p)),`<p class="small muted">Quienes están en el equipo ven la historia clínica de este paciente. Al quitar a alguien no se borra nada: se cierra su vigencia.</p>
+      ${eq.map((e,i)=>`<div class="agenda-row" style="grid-template-columns:12px 1fr auto auto;padding:8px 0;border-bottom:1px solid var(--line)">
+        <span class="dot" style="background:var(${DISC[pro(e.proId).disc]})"></span>
+        <div><b>${esc(pro(e.proId).nombre)}</b><div class="small faint">${e.rol} · desde ${fd(e.desde)}${e.hasta?' · hasta '+fd(e.hasta):''}</div></div>
+        <span class="tag ${e.hasta?'':'ok'}">${e.hasta?'Cerrado':'Vigente'}</span>
+        ${e.hasta?'':`<button class="btn sm ghost" data-a="deleq" data-p="${p.id}" data-i="${i}">Quitar</button>`}</div>`).join('')
+        ||'<div class="empty">Todavía no hay equipo asignado.</div>'}
+      ${libres.length?`<div class="fgrid" style="margin-top:14px">
+        <label class="f">Profesional<select id="qP">${libres.map(x=>`<option value="${x.id}">${esc(x.nombre)} — ${x.disc}</option>`).join('')}</select></label>
+        <label class="f">Rol<select id="qR">${ROLES_EQ.map(x=>`<option>${x}</option>`).join('')}</select></label>
+        <label class="f">Desde<input type="date" id="qF" value="${TODAY}"></label></div>`
+        :'<p class="small faint" style="margin-top:14px">Ya están todos los profesionales activos en el equipo.</p>'}`,
+      `<button class="btn" data-a="close">Cerrar</button>${libres.length?`<button class="btn pri" data-a="addeq" data-p="${p.id}">Agregar al equipo</button>`:''}`)},
+  addeq:d=>{const p=pat(d.p);const id=$('#qP').value;if(!id){toast('Elegí un profesional');return}
+    p.equipo=(p.equipo||[]).concat({proId:id,rol:$('#qR').value,desde:$('#qF').value||TODAY,hasta:null});
+    audit('Agregó al equipo tratante',pname(p)+' — '+pro(id).nombre);render();A.editeq(d);toast(pro(id).nombre+' ahora ve la historia clínica')},
+  deleq:d=>{const p=pat(d.p);const e=p.equipo[+d.i];e.hasta=TODAY;
+    audit('Quitó del equipo tratante',pname(p)+' — '+pro(e.proId).nombre);render();A.editeq(d);
+    toast(pro(e.proId).nombre+' deja de ver la historia clínica')},
+
+  editmod:d=>{const p=pat(d.p);const reg=modulo(S,p,true);
+    modal('Excepción de prestación',`<p class="small muted">Por las reglas de cobertura, a ${esc(pname(p))} le corresponde <b>${esc(reg.valor)}</b>. ${esc(reg.motivo)}</p>
+      <p class="small faint">Si este paciente es una excepción, cargala acá con el motivo. Queda a la vista y en la auditoría. Si son varios los casos, conviene agregar una regla en Configuración en lugar de repetir excepciones.</p>
+      <label class="f">Prestación a presentar<select id="xP"><option value="">— Sin excepción: usar la regla —</option>
+        ${S.prest.map(x=>`<option ${p.moduloExc&&p.moduloExc.prest===x?'selected':''}>${x}</option>`).join('')}</select></label>
+      <label class="f">Motivo<input type="text" id="xM" value="${esc(p.moduloExc?p.moduloExc.motivo:'')}" placeholder="Por qué este paciente no sigue la regla"></label>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savemod" data-p="${p.id}">Guardar</button>`)},
+  savemod:d=>{const p=pat(d.p);const v=$('#xP').value,m=$('#xM').value.trim();
+    if(!v){if(p.moduloExc){audit('Quitó la excepción de prestación',pname(p));p.moduloExc=null;}close();render();toast('Vuelve a regir la regla de cobertura');return}
+    if(!m){toast('La excepción necesita un motivo');return}
+    p.moduloExc={prest:v,motivo:m,por:R().user,fecha:TODAY};
+    audit('Cargó excepción de prestación: '+v,pname(p)+' — '+m);close();render();toast('Excepción cargada. Queda marcada en la ficha.')},
   /* ----- Profesionales ----- */
   openpro:d=>{S.proid=d.r;S.view='profesional';render();$('.content').scrollTop=0},
   prf:d=>{S.prf[d.k]=d.v;render()},
@@ -1155,7 +1311,7 @@ const A={
   cfg:d=>{S.cfgTab=d.t;render()},
   soon:d=>toast(d.m),
   newturno:d=>{
-    const opts=S.pats.filter(p=>p.equipo.includes(S.agPro)&&p.estado!=='Alta');
+    const opts=S.pats.filter(p=>equipoIds(p).includes(S.agPro)&&p.estado!=='Alta');
     if(!['direccion','administracion','profesional'].includes(S.role))return;
     modal('Nuevo turno',`<p class="muted">${fdl(d.d)} · ${d.h} hs · ${esc(pro(S.agPro).nombre)}</p>
       <label class="f">Paciente<select id="mP">${opts.map(p=>`<option value="${p.id}">${esc(pname(p))}</option>`).join('')}</select></label>
@@ -1196,12 +1352,24 @@ const A={
   chstate:d=>{const p=pat(d.p);const nx=ESTADOS.filter(e=>e!==p.estado);
     modal('Cambiar estado',`<p class="muted">${esc(pname(p))} está en <b>${p.estado}</b>.</p><label class="f">Nuevo estado<select id="mS">${nx.map(e=>`<option>${e}</option>`).join('')}</select></label><label class="f">Motivo<input type="text" id="mM" placeholder="Opcional"></label>`,
       `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savest" data-p="${p.id}">Guardar cambio</button>`)},
-  savest:d=>{const p=pat(d.p);const n=$('#mS').value;p.historial.push({fecha:TODAY,de:p.estado,a:n,por:R().user});audit('Cambió estado: '+p.estado+' → '+n,pname(p));p.estado=n;if(n==='Admisión'&&!p.equipo.length)p.equipo=['p1','p2'];close();render();toast('Estado actualizado')},
-  newpat:()=>modal('Nuevo paciente',`<div class="fgrid"><label class="f">Nombre<input type="text" id="nN"></label><label class="f">Apellido<input type="text" id="nA"></label><label class="f">DNI<input type="text" id="nD" inputmode="numeric"></label><label class="f">Obra social<select id="nO">${S.ooss.map(o=>`<option>${o}</option>`).join('')}</select></label></div><p class="small faint">Si el DNI ya existe en la institución, se abre la ficha existente en lugar de duplicarla.</p>`,
+  savest:d=>{const p=pat(d.p);const n=$('#mS').value;p.historial.push({fecha:TODAY,de:p.estado,a:n,por:R().user});audit('Cambió estado: '+p.estado+' → '+n,pname(p));p.estado=n;if(n==='Admisión'&&!p.equipo.length)p.equipo=[{proId:'p1',rol:'Referente',desde:TODAY,hasta:null},{proId:'p2',rol:'Tratante',desde:TODAY,hasta:null}];close();render();toast('Estado actualizado')},
+  newpat:()=>modal('Nuevo paciente',`<div class="fgrid">
+      <label class="f">Nombre<input type="text" id="nN"></label>
+      <label class="f">Apellido<input type="text" id="nA"></label>
+      <label class="f">DNI<input type="text" id="nD" inputmode="numeric"></label>
+      <label class="f">Fecha de nacimiento<input type="date" id="nF"></label>
+      <label class="f">Obra social<select id="nO" data-c="nooss">${S.ooss.map(o=>`<option>${o}</option>`).join('')}</select></label>
+      <label class="f">Número de afiliado<input type="text" id="nAf" placeholder="Como figura en la credencial"></label></div>
+      <p class="small faint">Si el DNI ya existe en la institución, se abre la ficha existente en lugar de duplicarla. El número de afiliado no se pide para pacientes particulares.</p>`,
     `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savepat">Crear paciente</button>`),
   savepat:()=>{const dni=$('#nD').value.replace(/\D/g,'');const n=$('#nN').value.trim(),a=$('#nA').value.trim();if(!n||!a||dni.length<7){toast('Completá nombre, apellido y un DNI válido');return}
     const ex=S.pats.find(p=>p.dni===dni);if(ex){close();toast('Ese DNI ya existe: se abrió la ficha');A.openp({p:ex.id});return}
-    const p={id:uid('pa'),nombre:n,apellido:a,dni,nac:'1990-01-01',ooss:$('#nO').value,afiliado:'—',estado:'Preadmisión',modalidad:'Ambulatorio',frecuencia:1,equipo:[],tel:'—',referente:'—',historial:[]};S.pats.push(p);audit('Creó paciente',pname(p));close();A.openp({p:p.id,tab:'datos'});toast('Paciente creado en preadmisión')},
+    const ooss=$('#nO').value;const af=$('#nAf').value.trim();
+    if(ooss!=='Particular'&&!af){toast('Cargá el número de afiliado de la obra social');return}
+    const p={id:uid('pa'),nombre:n,apellido:a,dni,nac:$('#nF').value||'1990-01-01',ooss,afiliado:ooss==='Particular'?'—':af,
+      estado:'Preadmisión',modalidad:'Ambulatorio',frecuencia:1,equipo:[],tel:'',email:'',domicilio:'',
+      contactos:[],diagnostico:null,historial:[]};
+    S.pats.push(p);audit('Creó paciente',pname(p));close();A.openp({p:p.id,tab:'datos'});toast('Paciente creado en preadmisión')},
   ses:d=>{S.sesSel=d.s||null;render()},
   asis:d=>{const s=S.sesiones.find(x=>x.id===d.s);s.tema=$('#sTema').value;s.obs=$('#sObs').value;s.asis[d.p]=d.v==='1';render()},
   allpres:d=>{const s=S.sesiones.find(x=>x.id===d.s);s.tema=$('#sTema').value;s.obs=$('#sObs').value;Object.keys(s.asis).forEach(k=>s.asis[k]=true);render()},
@@ -1211,7 +1379,7 @@ const A={
     audit('Firmó encuentro grupal',g.nombre+' — '+n+' presentes');render();toast(n+' evoluciones grupales agregadas a las historias clínicas')},
   ingreso:d=>{const free=S.pats.filter(p=>p.estado!=='Alta'&&p.modalidad==='Ambulatorio');
     modal('Ingreso a cama '+d.c,`<label class="f">Paciente<select id="mP">${free.map(p=>`<option value="${p.id}">${esc(pname(p))}</option>`).join('')}</select></label><label class="f">Días autorizados<input type="number" id="mD" value="15"></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveing" data-c="${d.c}">Registrar ingreso</button>`)},
-  saveing:d=>{const p=pat($('#mP').value);S.beds[d.c]={pid:p.id,ingreso:TODAY,autorizados:+$('#mD').value||15};p.modalidad='Internación';p.estado='En tratamiento';if(!p.equipo.includes('p6'))p.equipo.push('p6');audit('Registró ingreso a internación',pname(p)+' — cama '+d.c);close();render();toast('Ingreso registrado')},
+  saveing:d=>{const p=pat($('#mP').value);S.beds[d.c]={pid:p.id,ingreso:TODAY,autorizados:+$('#mD').value||15};p.modalidad='Internación';p.estado='En tratamiento';if(!equipoIds(p).includes('p6'))p.equipo.push({proId:'p6',rol:'Interconsulta',desde:TODAY,hasta:null});audit('Registró ingreso a internación',pname(p)+' — cama '+d.c);close();render();toast('Ingreso registrado')},
   prorroga:d=>{const b=S.beds[d.c];b.autorizados+=15;audit('Registró prórroga (+15 días)',pname(pat(b.pid)));render();toast('Prórroga de 15 días registrada')},
   adm:d=>{if(d.v==='0'){modal('Toma no administrada',`<label class="f">Motivo<select id="mM"><option>Rechazo del paciente</option><option>Paciente en permiso de salida</option><option>Indicación suspendida por guardia</option><option>Otro</option></select></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveadm" data-e="${d.e}" data-h="${d.h}" data-v="0">Registrar</button>`);return}A.saveadm(d)},
   saveadm:d=>{const e=S.esquemas.find(x=>x.id===d.e);const mot=d.v==='0'?$('#mM').value:'';S.admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:d.h,estado:d.v==='1'?'Administrada':'No administrada',motivo:mot,por:R().user,ts:nowHM()});
@@ -1229,7 +1397,9 @@ const A={
 document.addEventListener('click',ev=>{const el=ev.target.closest('[data-a]');if(!el)return;const f=A[el.dataset.a];if(f){if(el.dataset.a==='vitals')ev.stopPropagation();f(el.dataset,el,ev)}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')close();if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches('[role=button],tr.click')){ev.preventDefault();ev.target.click()}});
 document.addEventListener('input',ev=>{const c=ev.target.dataset.c;if(c==='pq'){S.pf.q=ev.target.value;const pos=ev.target.selectionStart;render();const i=$('[data-c=pq]');i.focus();i.setSelectionRange(pos,pos)}});
-document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPro=ev.target.value;render()}if(ev.target.dataset.c==='pnpro'){S.pnpro=ev.target.value;render()}});
+document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPro=ev.target.value;render()}if(ev.target.dataset.c==='pnpro'){S.pnpro=ev.target.value;render()}
+  // Los pacientes particulares no tienen numero de afiliado
+  if(ev.target.dataset.c==='nooss'){const i=$('#nAf');const part=ev.target.value==='Particular';i.disabled=part;i.placeholder=part?'No corresponde':'Como figura en la credencial';if(part)i.value=''}});
 document.addEventListener('keydown',ev=>{if(ev.target.id==='gsearch'&&ev.key==='Enter'){const q=ev.target.value.trim();if(!R().views.includes('pacientes')){toast('Tu rol no tiene acceso a la lista de pacientes');return}S.pf={q,estado:'',mod:''};S.view='pacientes';ev.target.value='';render()}});
 $('#scrim').addEventListener('click',ev=>{if(ev.target.id==='scrim')close()});
 render();
