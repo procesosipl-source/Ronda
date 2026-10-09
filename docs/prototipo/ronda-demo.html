@@ -177,6 +177,10 @@ label.chip:has(input:checked){background:var(--primary-soft);border-color:var(--
 .drop b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
 .btn.camara{display:none;justify-content:center;gap:8px;align-items:center}
 tr.anulado td{opacity:.6}
+.docref{display:inline-flex;gap:10px;align-items:center;margin-top:8px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);cursor:pointer;text-align:left;font:inherit}
+.docref:hover{border-color:var(--primary)}
+.docref small{display:block;color:var(--ink-3)}
+.entry.anulado .docref b{text-decoration:line-through}
 tr.anulado td:first-child b{text-decoration:line-through}
 .modal.wide{width:min(860px,100%)}
 @media (max-width:900px){.btn.camara{display:flex}}
@@ -355,11 +359,13 @@ body{display:flex;flex-direction:column}
 }
 @media print{
   body{background:#fff;color:#000}
-  .app,.scrim,.toast{display:none!important}
+  .app,.scrim,.toast,.demobar{display:none!important}
   #print{display:block;font-family:var(--serif);padding:10mm}
   #print h1{font-size:20pt;font-weight:500}
   #print .pe{border-bottom:1px solid #ccc;padding:8pt 0;page-break-inside:avoid}
   #print .pm{font-family:var(--sans);font-size:9pt;color:#444}
+  #print img{display:block;max-width:100%;max-height:200mm;margin-top:6pt;border:1px solid #ccc}
+  #print .anexo{font-family:var(--sans);font-size:10pt;padding:6pt 10pt;border:1px dashed #999;margin-top:6pt}
 }
 </style>
 </head>
@@ -700,6 +706,10 @@ function docSvg(d){
   return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
 }
 const docSrc=d=>FILES[d.id]||(d.gen?docSvg(d):null);
+// Documentos que forman parte de la HC de un paciente. Los anulados se muestran en pantalla, pero no van al PDF.
+const docsDeHc=(pid,conAnulados)=>S.docs.filter(d=>d.pid===pid&&docTipo(d.tipo).hc&&(conAnulados||!d.anulado));
+// Un documento no tiene hora: si se subió el mismo día que su fecha, se usa la hora de carga; si no, va al principio del día.
+const docHora=d=>d.subido.slice(0,10)===d.fecha?d.subido.slice(11):'00:00';
 // Elegir o soltar un archivo en la ventana "Subir documento"
 function setUp(f){
   if(!f)return;
@@ -854,11 +864,22 @@ function hcTab(p){
   const lvl=R().hc;
   if(lvl==='none'){return `<div class="locked"><b>Contenido clínico restringido</b>Tu rol de ${R().label} no tiene acceso a las evoluciones. Cada intento de acceso queda registrado en la auditoría.</div>`}
   const f=S.hcf||'';
-  let ev=S.evols.filter(e=>e.pid===p.id&&(!f||e.disc===f)).sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
+  // La HC es una consulta: evoluciones y documentos que forman parte de la HC, en una sola línea de tiempo.
+  // Los documentos se ordenan por la fecha del documento, no por la de carga.
+  const docsHc=docsDeHc(p.id,true);
+  let ev=(f==='__docs'?[]:S.evols.filter(e=>e.pid===p.id&&(!f||e.disc===f)))
+    .concat(!f||f==='__docs'?docsHc.map(d=>({doc:d,fecha:d.fecha,hora:docHora(d)})):[])
+    .sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
   const discs=[...new Set(S.evols.filter(e=>e.pid===p.id).map(e=>e.disc))];
   const canWrite=lvl==='write'||lvl==='nursing';
   let last='';
-  const items=ev.map(e=>{const pr=pro(e.pro);let h='';if(e.fecha!==last){h+=`<div class="tl-day">${fdl(e.fecha)}</div>`;last=e.fecha}
+  const items=ev.map(e=>{let h='';if(e.fecha!==last){h+=`<div class="tl-day">${fdl(e.fecha)}</div>`;last=e.fecha}
+    if(e.doc){const d=e.doc;const t=docTipo(d.tipo);
+      return h+`<article class="entry${d.anulado?' anulado':''}"><span class="rail" style="background:var(--ink-3)"></span><div>
+      <div class="meta"><b>Documento · ${esc(t.nombre)}</b><span>Cargado por ${esc(d.por)} el ${fd(d.subido.slice(0,10))}</span>${d.anulado?'<span class="tag">Anulado</span>':''}</div>
+      <button class="docref" data-a="verdoc" data-id="${d.id}">${ico('doc',20)}<span><b>${esc(d.titulo)}</b><small>${esc(d.archivo)}</small></span></button>
+      ${d.anulado?`<div class="small faint" style="margin-top:6px">Anulado por ${esc(d.anulado.por)}: ${esc(d.anulado.motivo)}. No se incluye en el PDF.</div>`:''}</div></article>`}
+    const pr=pro(e.pro);
     const mineDraft=!e.firmada&&R().proId===e.pro;
     h+=`<article class="entry"><span class="rail" style="background:var(${DISC[e.disc]})"></span><div>
       <div class="meta"><b>${esc(e.tipo)}</b><span>${e.hora} hs</span><span>${esc(pr.nombre)}</span>${e.firmada?'':'<span class="tag warn">Borrador</span>'}</div>
@@ -870,7 +891,7 @@ function hcTab(p){
       ${mineDraft?`<button class="btn sm" data-a="editev" data-e="${e.id}">Continuar borrador</button>`:''}</div>
     </div></article>`;return h}).join('');
   return `<div class="row" style="justify-content:space-between;margin-bottom:12px">
-    <div class="chips"><button class="chip" data-a="hcf" data-v="" aria-pressed="${!f}">Todo</button>${discs.map(d=>`<button class="chip" data-a="hcf" data-v="${d}" aria-pressed="${f===d}"><span class="dot" style="background:var(${DISC[d]});margin-right:6px"></span>${d}</button>`).join('')}</div>
+    <div class="chips"><button class="chip" data-a="hcf" data-v="" aria-pressed="${!f}">Todo</button>${discs.map(d=>`<button class="chip" data-a="hcf" data-v="${d}" aria-pressed="${f===d}"><span class="dot" style="background:var(${DISC[d]});margin-right:6px"></span>${d}</button>`).join('')}${docsHc.length?`<button class="chip" data-a="hcf" data-v="__docs" aria-pressed="${f==='__docs'}"><span class="dot" style="background:var(--ink-3);margin-right:6px"></span>Documentos</button>`:''}</div>
     <div class="row">${canWrite?`<button class="btn pri" data-a="${lvl==='nursing'?'vitals':'newev'}" data-p="${p.id}">${lvl==='nursing'?'Registrar control':'Nueva evolución'}</button>`:''}<button class="btn" data-a="printhc" data-p="${p.id}">Exportar PDF</button></div></div>
     <p class="small faint" style="margin-bottom:6px">Las evoluciones firmadas no se pueden editar. Las correcciones se agregan como adenda y quedan a la vista.</p>
     <div>${items||'<div class="empty">Todavía no hay registros en la historia clínica.</div>'}</div>`;
@@ -1296,6 +1317,7 @@ const PROX={
 const proxTag=k=>`<span class="tag prox" data-a="soon" data-m="${esc(PROX[k][1])}" role="button" tabindex="0" title="${esc(PROX[k][1])}">${PROX[k][0]} · Próximamente</span>`;
 const proxBtn=(k,t)=>`<button class="btn sm prox" data-a="soon" data-m="${esc(PROX[k][1])}">${t}</button>`;
 IC.up='<path d="M12 15V4M7 9l5-5 5 5M4 15v5h16v-5"/>';
+IC.doc='<path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/>';
 IC.camara='<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>';
 const ico=(n,sz=18,sw=1.8)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
 const NAVG=[['',['hoy','agenda','pacientes','profesionales']],
@@ -1733,10 +1755,24 @@ const A={
   savevit:d=>{const txt=$('#mE').value.trim()||'Sin novedades.';const me=S.role==='enfermeria'?pro('p5'):pro('p5');
     S.evols.push({id:uid('e'),pid:d.p,pro:'p5',fecha:TODAY,hora:nowHM(),tipo:'Control de enfermería',disc:'Enfermería',texto:txt,vitals:{ta:$('#vTA').value||'—',t:$('#vT').value||'—',fc:$('#vFC').value||'—',spo2:$('#vS').value||'—'},firmada:true,addenda:[]});
     audit('Registró control de enfermería',pname(pat(d.p)));close();render();toast('Control registrado en la historia clínica')},
-  printhc:d=>{const p=pat(d.p);const ev=S.evols.filter(e=>e.pid===p.id&&e.firmada).sort((a,b)=>(a.fecha+a.hora).localeCompare(b.fecha+b.hora));
-    $('#print').innerHTML=`<h1>Historia clínica — ${esc(p.nombre+' '+p.apellido)}</h1><p class="pm">DNI ${p.dni} · ${esc(p.ooss)} · Centro Demo de Salud Mental · emitida el ${fdl(TODAY)} por ${esc(R().user)}</p>`+
-      ev.map(e=>`<div class="pe"><div class="pm">${fd(e.fecha)} ${e.hora} hs · ${esc(e.tipo)} · ${esc(pro(e.pro).nombre)} (${pro(e.pro).mat})</div><div>${esc(e.texto)}</div>${e.addenda.map(a=>`<div class="pm">Adenda ${fd(a.fecha)}: ${esc(a.texto)}</div>`).join('')}<div class="pm">Firma electrónica · huella ${hash(e.id+e.texto)}</div></div>`).join('');
-    audit('Exportó historia clínica',pname(p));save();setTimeout(()=>window.print(),50)},
+  // El PDF es una foto fechada: evoluciones firmadas y documentos de la HC (sin anulados), en orden cronológico.
+  // Las imágenes van dentro del PDF. Los PDF cargados se listan como anexos: en el sistema real se agregan como páginas.
+  printhc:d=>{const p=pat(d.p);
+    const ev=S.evols.filter(e=>e.pid===p.id&&e.firmada);const dc=docsDeHc(p.id,false);
+    const items=ev.map(e=>({e,k:e.fecha+e.hora})).concat(dc.map(doc=>({doc,k:doc.fecha+docHora(doc)}))).sort((a,b)=>a.k.localeCompare(b.k));
+    let nAnexo=0;const anexos=[];
+    const html=items.map(({e,doc})=>{
+      if(e)return `<div class="pe"><div class="pm">${fd(e.fecha)} ${e.hora} hs · ${esc(e.tipo)} · ${esc(pro(e.pro).nombre)} (${pro(e.pro).mat})</div><div>${esc(e.texto)}</div>${e.addenda.map(a=>`<div class="pm">Adenda ${fd(a.fecha)}: ${esc(a.texto)}</div>`).join('')}<div class="pm">Firma electrónica · huella ${hash(e.id+e.texto)}</div></div>`;
+      const t=docTipo(doc.tipo);const src=docSrc(doc);let cuerpo;
+      if(doc.mime==='application/pdf'){nAnexo++;anexos.push(doc);cuerpo=`<div class="anexo">Anexo ${nAnexo}: ${esc(doc.archivo)} — se adjunta al final de la historia clínica.</div>`}
+      else cuerpo=src?`<img src="${src}" alt="${esc(doc.titulo)}">`:`<div class="anexo">${esc(doc.archivo)} — la vista previa no está disponible en la demo.</div>`;
+      return `<div class="pe"><div class="pm">${fd(doc.fecha)} · Documento · ${esc(t.nombre)} · cargado por ${esc(doc.por)} el ${fd(doc.subido.slice(0,10))}</div><div><b>${esc(doc.titulo)}</b></div>${cuerpo}<div class="pm">Huella ${hash(doc.id+doc.archivo)}</div></div>`}).join('');
+    $('#print').innerHTML=`<h1>Historia clínica — ${esc(p.nombre+' '+p.apellido)}</h1><p class="pm">DNI ${p.dni} · ${esc(p.ooss)} · Centro Demo de Salud Mental · emitida el ${fdl(TODAY)} a las ${nowHM()} por ${esc(R().user)}</p>
+      <p class="pm">Incluye ${ev.length} evoluciones firmadas y ${dc.length} documentos, en orden cronológico. Los borradores y los documentos anulados no se incluyen.</p>`+html
+      +(anexos.length?`<div class="pe"><div class="pm">Anexos</div>${anexos.map((a,i)=>`<div class="pm">${i+1}. ${esc(a.archivo)} (${fd(a.fecha)})</div>`).join('')}<div class="pm">En la demo los anexos en PDF no se unen. En el sistema real se agregan como páginas al final de este documento.</div></div>`:'');
+    audit('Exportó historia clínica',pname(p)+' — '+ev.length+' evoluciones y '+dc.length+' documentos');save();
+    // Espera a que carguen las imágenes antes de imprimir
+    Promise.all([...$('#print').querySelectorAll('img')].map(i=>i.decode().catch(()=>{}))).then(()=>window.print())},
   chstate:d=>{const p=pat(d.p);const nx=ESTADOS.filter(e=>e!==p.estado);
     modal('Cambiar estado',`<p class="muted">${esc(pname(p))} está en <b>${p.estado}</b>.</p><label class="f">Nuevo estado<select id="mS">${nx.map(e=>`<option>${e}</option>`).join('')}</select></label><label class="f">Motivo<input type="text" id="mM" placeholder="Opcional"></label>`,
       `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savest" data-p="${p.id}">Guardar cambio</button>`)},
