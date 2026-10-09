@@ -24,6 +24,7 @@
 | [01](01-alta-de-paciente.md) | Alta de paciente y admisión | 1 |
 | [02](02-ciclo-de-vida-del-paciente.md) | Ciclo de vida del paciente: alta clínica, reingreso y baja | 1 |
 | [03](03-equipo-tratante.md) | Armado y cambio del equipo tratante | 1 |
+| [24](24-cargar-y-ver-documentos.md) | Cargar y ver documentos: tipos, permisos y anulación | 1 (en la HC: 4) |
 
 ### Agenda
 | # | Proceso | Etapa |

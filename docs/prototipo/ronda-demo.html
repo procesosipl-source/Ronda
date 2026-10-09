@@ -69,6 +69,7 @@ p{margin:0}
 .btn.sm{padding:4px 9px;font-size:.8rem}
 .btn.ghost{border-color:transparent;background:transparent;color:var(--primary)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+a.btn{color:var(--ink);text-decoration:none;display:inline-block}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .panel-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
 .panel-b{padding:14px 18px}
@@ -86,7 +87,7 @@ th{text-align:left;font-weight:500;color:var(--ink-3);font-size:.8rem;padding:10
 td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr.click{cursor:pointer} tr.click:hover td{background:var(--sunk)}
-input[type=text],input[type=search],input[type=date],input[type=number],select,textarea{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);padding:7px 10px;width:100%}
+input[type=text],input[type=search],input[type=date],input[type=time],input[type=number],select,textarea{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);padding:7px 10px;width:100%}
 textarea{font-family:var(--serif);font-size:1.02rem;line-height:1.55;min-height:130px;resize:vertical}
 label.f{display:flex;flex-direction:column;gap:5px;font-size:.84rem;color:var(--ink-2)}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -169,6 +170,16 @@ label.chip:has(input:checked){background:var(--primary-soft);border-color:var(--
 .medrow>:last-child .row{justify-content:flex-end}
 .medrow:last-child{border-bottom:none}
 .corregida{text-decoration:line-through;opacity:.6}
+/* Documentos: zona para soltar el archivo y filas anuladas */
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px dashed var(--line);border-radius:var(--radius-m);padding:24px 16px;text-align:center;color:var(--ink-2);background:var(--sunk);cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--primary);background:var(--primary-soft)}
+.drop.ok{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
+.drop b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.btn.camara{display:none;justify-content:center;gap:8px;align-items:center}
+tr.anulado td{opacity:.6}
+tr.anulado td:first-child b{text-decoration:line-through}
+.modal.wide{width:min(860px,100%)}
+@media (max-width:900px){.btn.camara{display:flex}}
 /* Modal */
 .scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
 .scrim.open{display:flex}
@@ -562,7 +573,22 @@ function seed(){
     {id:'r3',ooss:{op:'cualquiera',v:''},estados:['En tratamiento'],modalidad:'Ambulatorio',minFrec:3,res:'Módulo ambulatorio intensivo',nota:'3 o más encuentros semanales'},
     {id:'r4',ooss:{op:'cualquiera',v:''},estados:['En tratamiento'],modalidad:'Ambulatorio',minFrec:0,res:'Módulo ambulatorio simple',nota:''}
   ];
-  const st={pros,pats,rooms,beds,turnos,evols,grupos,sesiones,esquemas,admins,tarifario,reglas,ooss,prest,auths:[],audit:[],cerrados:[],role:'direccion',view:'hoy',pid:null,ptab:'hc'};
+  // Documentos. Los tipos son un catálogo de la institución; "hc" dice si el tipo forma parte de la historia clínica.
+  const docTipos=[{id:'dt1',nombre:'Consentimiento informado',hc:true},{id:'dt2',nombre:'Informe de admisión',hc:true},
+    {id:'dt3',nombre:'Estudio o análisis',hc:true},{id:'dt4',nombre:'Informe de interconsulta',hc:true},
+    {id:'dt5',nombre:'Orden de la obra social',hc:false},{id:'dt6',nombre:'DNI o credencial',hc:false},{id:'dt7',nombre:'Otro',hc:false}];
+  // Los documentos de la demo no tienen archivo: la vista previa se dibuja con datos ficticios (gen:true).
+  const docs=[];const mkDoc=(p,tipo,dd,titulo,por,ext)=>docs.push({id:uid('d'),pid:p.id,tipo,titulo,archivo:titulo.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/g,'-')+(ext||'.pdf'),
+    mime:'image/svg+xml',fecha:iso(day(dd)),subido:iso(day(dd))+' 1'+Math.floor(rnd()*8)+':'+String(Math.floor(rnd()*60)).padStart(2,'0'),por,anulado:null,gen:true});
+  pats.forEach((p,i)=>{
+    mkDoc(p,'dt6',-62+i%5,'DNI '+p.nombre+' '+p.apellido,'Marcela Ortiz','.jpg');
+    if(p.estado==='Preadmisión')return;
+    mkDoc(p,'dt1',-60+i%5,'Consentimiento informado','Marcela Ortiz');
+    mkDoc(p,'dt2',-58+i%5,'Informe de admisión','Dra. Inés Carrizo');
+    if(p.ooss!=='Particular')mkDoc(p,'dt5',-30,'Orden '+p.ooss+' — '+MESL[day(-30).getMonth()],'Marcela Ortiz');
+    if(internados.includes(i))mkDoc(p,'dt3',-5,'Laboratorio de rutina','Enf. Carla Funes','.jpg');
+  });
+  const st={pros,pats,rooms,beds,turnos,evols,grupos,sesiones,esquemas,admins,tarifario,reglas,ooss,prest,docTipos,docs,auths:[],audit:[],cerrados:[],role:'direccion',view:'hoy',pid:null,ptab:'hc'};
   // autorizaciones
   const curM=TODAY.slice(0,7);const prevD=new Date(T0);prevD.setMonth(prevD.getMonth()-1);const prevM=iso(prevD).slice(0,7);
   pats.filter(p=>p.ooss!=='Particular'&&p.estado!=='Preadmisión').forEach((p,i)=>{
@@ -605,7 +631,7 @@ function modulo(st,p,detalle){
 }
 
 /* ---------- estado ---------- */
-const KEY='ronda-demo-v4';let S;
+const KEY='ronda-demo-v5';let S;
 try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):null;if(S&&(S.day!==TODAY||Date.now()-(S.seededAt||0)>4*36e5))S=null}catch(e){S=null}
 if(!S){S=seed();S.day=TODAY;S.seededAt=Date.now()}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -649,6 +675,40 @@ function visiblePats(){
   return S.pats;
 }
 const canSee=pid=>visiblePats().some(p=>p.id===pid);
+
+/* ---------- documentos ---------- */
+const docTipo=id=>S.docTipos.find(t=>t.id===id)||{nombre:'—',hc:false};
+// Un documento que forma parte de la HC lo ve solo quien tiene acceso a la HC. Los administrativos los ve también Recepción.
+const verDoc=d=>!docTipo(d.tipo).hc||R().hc!=='none';
+const puedeSubir=p=>['direccion','administracion','enfermeria'].includes(S.role)||(esPro()&&equipoIds(p).includes(R().proId));
+const puedeAnular=d=>S.role==='direccion'||d.por===R().user;
+// Archivos subidos en esta sesión. En la demo no se guardan: al recargar la página se pierde la vista previa.
+// En el sistema real van a un bucket privado y se abren con una URL firmada de corta duración.
+const FILES={};let _up=null;
+// Vista previa ficticia para los documentos de la demo: una hoja con los datos del documento.
+function docSvg(d){
+  const p=pat(d.pid);const t=docTipo(d.tipo);
+  const lin=Array.from({length:9},(_,i)=>`<rect x="60" y="${330+i*34}" width="${380-(i*53)%140}" height="10" rx="5" fill="#E4E6E5"/>`).join('');
+  const s=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="760" viewBox="0 0 600 760"><rect width="600" height="760" fill="#fff"/>
+    <rect x="0" y="0" width="600" height="8" fill="#F07D00"/>
+    <text x="60" y="80" font-family="Arial" font-size="15" fill="#5C6360">Centro Demo de Salud Mental</text>
+    <text x="60" y="140" font-family="Arial" font-size="28" font-weight="bold" fill="#1F2422">${esc(t.nombre)}</text>
+    <text x="60" y="190" font-family="Arial" font-size="17" fill="#1F2422">${esc(p?p.nombre+' '+p.apellido:'')} · DNI ${p?p.dni:''}</text>
+    <text x="60" y="222" font-family="Arial" font-size="15" fill="#5C6360">Fecha: ${esc(fdl(d.fecha))}</text>
+    <line x1="60" y1="270" x2="540" y2="270" stroke="#E4E6E5" stroke-width="2"/>${lin}
+    <text x="300" y="720" text-anchor="middle" font-family="Arial" font-size="13" fill="#8A908D">Documento ficticio de la demo</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
+}
+const docSrc=d=>FILES[d.id]||(d.gen?docSvg(d):null);
+// Elegir o soltar un archivo en la ventana "Subir documento"
+function setUp(f){
+  if(!f)return;
+  if(!(f.type.startsWith('image/')||f.type==='application/pdf')){toast('Subí un PDF o una imagen');return}
+  if(f.size>10*1024*1024){toast('El archivo pesa más de 10 MB');return}
+  _up=f;const z=$('#drop');if(!z)return;z.classList.add('ok');
+  const kb=f.size/1024;const tam=kb<1024?Math.max(1,Math.round(kb))+' KB':(kb/1024).toFixed(1).replace('.',',')+' MB';
+  $('#dropT').textContent=f.name;$('#dropS').textContent=tam+' · tocá para cambiarlo';
+}
 const occ=()=>Object.entries(S.beds).filter(([,b])=>b);
 
 /* ---------- métricas ---------- */
@@ -891,11 +951,15 @@ function medTab(p){
       :'<div class="empty">No hay tomas programadas para hoy.</div>'}</section>`;
 }
 function docsTab(p){
-  const docs=[['Consentimiento informado','Firmado',-60],['Informe de admisión','Generado',-58],['Solicitud de autorización','Enviado',-30]];
-  if(p.modalidad==='Internación')docs.push(['Solicitud de prórroga','Borrador',-1]);
-  return `<div class="panel"><div class="panel-h"><h2>Documentos</h2><div class="row"><button class="btn sm" data-a="soon" data-m="Los documentos se generan desde plantillas configurables por institución.">Generar desde plantilla</button>${proxBtn('consent','Pedir firma al paciente')}</div></div>
-  <div class="tablewrap"><table><thead><tr><th>Documento</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
-  ${docs.map(d=>`<tr><td>${d[0]}</td><td>${fd(iso(day(d[2])))}</td><td><span class="tag ${d[1]==='Borrador'?'warn':'ok'}">${d[1]}</span></td></tr>`).join('')}</tbody></table></div></div>`;
+  const todos=S.docs.filter(d=>d.pid===p.id).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.subido.localeCompare(a.subido));
+  const vis=todos.filter(verDoc);const ocultos=todos.length-vis.length;
+  return `<div class="panel"><div class="panel-h"><h2>Documentos</h2><div class="row">${puedeSubir(p)?`<button class="btn sm pri" data-a="newdoc" data-p="${p.id}">${ico('up',16)}Subir documento</button>`:''}<button class="btn sm" data-a="soon" data-m="Los documentos se generan desde plantillas configurables por institución.">Generar desde plantilla</button>${proxBtn('consent','Pedir firma al paciente')}</div></div>
+  ${vis.length?`<div class="tablewrap"><table><thead><tr><th>Documento</th><th>Tipo</th><th>Fecha</th><th>Cargó</th><th>En la HC</th></tr></thead><tbody>
+  ${vis.map(d=>{const t=docTipo(d.tipo);return `<tr class="click${d.anulado?' anulado':''}" data-a="verdoc" data-id="${d.id}" tabindex="0"><td><b>${esc(d.titulo)}</b>${d.anulado?' <span class="tag">Anulado</span>':''}<div class="small faint">${esc(d.archivo)}</div></td>
+    <td class="small">${esc(t.nombre)}</td><td class="small" style="white-space:nowrap">${fd(d.fecha)}</td><td class="small">${esc(d.por)}</td><td>${t.hc?'<span class="tag ok">Sí</span>':'<span class="faint">—</span>'}</td></tr>`}).join('')}</tbody></table></div>`
+  :'<div class="empty">Todavía no hay documentos cargados.</div>'}
+  ${ocultos?`<div class="panel-b small muted" style="border-top:1px solid var(--line)">Hay ${ocultos} documento${ocultos>1?'s':''} de la historia clínica que tu rol no puede ver.</div>`:''}
+  <div class="panel-b small faint" style="border-top:1px solid var(--line)">Tocá un documento para verlo o descargarlo. Los documentos no se borran: si uno se cargó por error, se anula y queda a la vista.</div></div>`;
 }
 
 /* ---------- Profesionales ---------- */
@@ -1181,7 +1245,7 @@ function vFact(){
 /* ---------- Configuración ---------- */
 function vConfig(){
   const t=S.cfgTab||'reglas';
-  const tabs=[['reglas','Reglas de cobertura'],['tarifario','Tarifario'],['roles','Roles y permisos'],['inst','Institución']];
+  const tabs=[['reglas','Reglas de cobertura'],['tarifario','Tarifario'],['tipos','Tipos de documento'],['roles','Roles y permisos'],['inst','Institución']];
   let b='';
   if(t==='reglas')b=`<p class="muted" style="margin-bottom:14px;max-width:72ch">Definen qué prestación se presenta a cada obra social. Se evalúan en orden y gana la primera que coincide. Si ninguna coincide, el paciente queda como <b>No definido</b> y se avisa antes de facturar.</p>
     <section class="panel">${S.reglas.map((r,i)=>`<div class="rule"><span class="n">${i+1}</span><div><div>Si ${r.ooss.op==='cualquiera'?'cualquier obra social':'la obra social es '+(r.ooss.op==='distinta'?'distinta de ':'')+r.ooss.v}${r.estados.length?', estado '+r.estados.join(' o '):''}${r.modalidad?', modalidad '+r.modalidad:''}${r.minFrec?', '+r.minFrec+'+ encuentros por semana':''}</div>
@@ -1189,6 +1253,11 @@ function vConfig(){
     <div class="rule"><span class="n">—</span><div class="muted">Si ninguna regla coincide → No definido</div><span></span></div></section>
     <div style="margin-top:14px"><button class="btn pri" data-a="newrule">Agregar regla</button></div>`;
   if(t==='tarifario'){const pr=S.prest;b=`<p class="muted" style="margin-bottom:14px">Precios vigentes desde el 1 de julio. Cada cambio guarda el precio anterior y su vigencia.</p><section class="panel"><div class="tablewrap"><table><thead><tr><th>Prestación</th>${S.ooss.map(o=>`<th>${o}</th>`).join('')}</tr></thead><tbody>${pr.map(p=>`<tr><td>${p}</td>${S.ooss.map(o=>`<td class="small">${money(S.tarifario.find(x=>x.ooss===o&&x.prest===p).precio)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`}
+  if(t==='tipos')b=`<p class="muted" style="margin-bottom:14px;max-width:72ch">Los tipos de documento que usa la institución. Los que forman parte de la historia clínica solo los ve quien tiene acceso a la HC, y se incluyen por fecha en la historia clínica y en su PDF.</p>
+    <section class="panel"><div class="tablewrap"><table><thead><tr><th>Tipo</th><th>Forma parte de la historia clínica</th><th>Documentos cargados</th></tr></thead><tbody>
+    ${S.docTipos.map(t=>`<tr><td>${esc(t.nombre)}</td><td><label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" data-c="tipohc" data-id="${t.id}" ${t.hc?'checked':''}>${t.hc?'Sí':'No'}</label></td><td class="small">${S.docs.filter(d=>d.tipo===t.id).length}</td></tr>`).join('')}
+    </tbody></table></div></section>
+    <div class="row" style="margin-top:14px;align-items:flex-end"><label class="f" style="flex:1;min-width:220px">Tipo nuevo<input type="text" id="nTipo" placeholder="Por ejemplo: Epicrisis"></label><button class="btn pri" data-a="newtipo">Agregar tipo</button></div>`;
   if(t==='roles'){const perms=[['Ver historia clínica',[1,1,1,0]],['Escribir evoluciones',[0,1,1,0]],['Gestionar turnos de todos',[1,0,0,1]],['Registrar medicación',[1,0,1,0]],['Autorizaciones y facturación',[1,0,0,1]],['Configurar la institución',[1,0,0,0]],['Ver auditoría',[1,0,0,0]]];
     b=`<p class="muted" style="margin-bottom:14px;max-width:72ch">Además del rol, cada profesional ve solo a los pacientes de su equipo tratante y enfermería solo a los internados.</p><section class="panel"><div class="tablewrap"><table class="matrix"><thead><tr><th>Permiso</th>${Object.values(ROLES).map(r=>`<th>${r.label}</th>`).join('')}</tr></thead><tbody>${perms.map(p=>`<tr><td>${p[0]}</td>${p[1].map(v=>`<td>${v?'<span class="tag ok">Sí</span>':'<span class="faint">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`}
   if(t==='inst')b=`<section class="panel"><div class="panel-b fgrid"><label class="f">Nombre<input type="text" value="Centro Demo de Salud Mental" disabled></label><label class="f">Sedes<input type="text" value="Sede central, Hospital de día" disabled></label>
@@ -1226,6 +1295,8 @@ const PROX={
 };
 const proxTag=k=>`<span class="tag prox" data-a="soon" data-m="${esc(PROX[k][1])}" role="button" tabindex="0" title="${esc(PROX[k][1])}">${PROX[k][0]} · Próximamente</span>`;
 const proxBtn=(k,t)=>`<button class="btn sm prox" data-a="soon" data-m="${esc(PROX[k][1])}">${t}</button>`;
+IC.up='<path d="M12 15V4M7 9l5-5 5 5M4 15v5h16v-5"/>';
+IC.camara='<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>';
 const ico=(n,sz=18,sw=1.8)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
 const NAVG=[['',['hoy','agenda','pacientes','profesionales']],
   ['Administración',['grupos','internacion','medicacion','autorizaciones','facturacion','metricas','auditoria']]];
@@ -1359,8 +1430,8 @@ function esqModal(e,pid){
     `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveesq" data-p="${pid}" ${e?`data-e="${e.id}"`:''}>${e?'Guardar cambio':'Indicar'}</button>`)
 }
 
-function modal(title,body,foot){$('#modal').innerHTML=`<div class="mh"><h2>${title}</h2><button class="btn sm ghost" data-a="close" aria-label="Cerrar">Cerrar</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#scrim').classList.add('open');const f=$('#modal').querySelector('input,textarea,select');if(f)f.focus()}
-const close=()=>$('#scrim').classList.remove('open');
+function modal(title,body,foot){$('#modal').classList.remove('wide');$('#modal').innerHTML=`<div class="mh"><h2>${title}</h2><button class="btn sm ghost" data-a="close" aria-label="Cerrar">Cerrar</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#scrim').classList.add('open');const f=$('#modal').querySelector('input,textarea,select');if(f)f.focus()}
+const close=()=>{$('#scrim').classList.remove('open');$('#modal').classList.remove('wide')};
 
 /* ---------- acciones ---------- */
 const A={
@@ -1406,6 +1477,47 @@ const A={
       estado:'Administrada',motivo:$('#mObs').value.trim(),por:R().user,adm:v,ts:nowHM()});
     audit('Registró una toma a demanda',pname(pat(e.pid))+' — '+e.med+' '+e.dosis+' · administrada '+v);
     close();render();toast('Toma registrada · '+v)},
+  /* ----- Documentos ----- */
+  newdoc:d=>{const p=pat(d.p);_up=null;
+    const tipos=S.docTipos.filter(t=>!t.hc||R().hc!=='none');
+    modal('Subir documento',`<p class="small muted">${esc(pname(p))}</p>
+      <label class="drop" id="drop" for="dF"><input type="file" id="dF" accept="image/*,application/pdf" hidden data-c="docfile">${ico('up',26)}<b id="dropT">Arrastrá el archivo acá o tocá para elegirlo</b><span class="small faint" id="dropS">PDF o imagen, hasta 10 MB</span></label>
+      <label class="btn camara" for="dC">${ico('camara',17)}Sacar foto<input type="file" id="dC" accept="image/*" capture="environment" hidden data-c="docfile"></label>
+      <div class="fgrid"><label class="f">Tipo de documento<select id="dT">${tipos.map(t=>`<option value="${t.id}">${esc(t.nombre)}</option>`).join('')}</select></label>
+      <label class="f">Fecha del documento<input type="date" id="dD" value="${TODAY}" max="${TODAY}"></label></div>
+      <label class="f">Descripción<input type="text" id="dDesc" placeholder="Opcional. Por ejemplo: laboratorio de rutina"></label>
+      <p class="small faint">Poné la fecha que figura en el documento, no la de hoy: con esa fecha se ordena en la historia clínica.${R().hc==='none'?' Tu rol solo puede subir documentos administrativos.':''}</p>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savedoc" data-p="${p.id}">Subir documento</button>`)},
+  savedoc:d=>{const p=pat(d.p);if(!_up){toast('Elegí el archivo que querés subir');return}
+    const fecha=$('#dD').value;if(!fecha||fecha>TODAY){toast('La fecha del documento no puede ser posterior a hoy');return}
+    const t=docTipo($('#dT').value);const doc={id:uid('d'),pid:p.id,tipo:$('#dT').value,titulo:$('#dDesc').value.trim()||t.nombre,archivo:_up.name,
+      mime:_up.type,fecha,subido:TODAY+' '+nowHM(),por:R().user,anulado:null};
+    FILES[doc.id]=URL.createObjectURL(_up);S.docs.push(doc);_up=null;
+    audit('Subió documento',pname(p)+' — '+t.nombre+(t.hc?' (historia clínica)':''));close();render();toast('Documento subido')},
+  verdoc:d=>{const doc=S.docs.find(x=>x.id===d.id);const p=pat(doc.pid);const t=docTipo(doc.tipo);
+    if(!verDoc(doc)){audit('Intento de acceso denegado','Documento de la historia clínica — '+pname(p));save();toast('Tu rol no puede ver documentos de la historia clínica');return}
+    if(t.hc){audit('Abrió documento de la historia clínica',pname(p)+' — '+t.nombre);save()}
+    const src=docSrc(doc);
+    const vista=!src?'<div class="locked"><b>Vista previa no disponible en la demo</b>El archivo se subió antes de recargar la página. En el sistema real queda guardado y se abre siempre.</div>'
+      :doc.mime==='application/pdf'?`<iframe src="${src}" title="${esc(doc.titulo)}" style="width:100%;height:62vh;border:1px solid var(--line);border-radius:var(--radius-s)"></iframe>`
+      :`<img src="${src}" alt="${esc(doc.titulo)}" style="width:100%;max-height:62vh;object-fit:contain;background:var(--sunk);border:1px solid var(--line);border-radius:var(--radius-s)">`;
+    // Los documentos de la demo son dibujos: se descargan como imagen, con aclaración en el nombre
+    const nomDesc=doc.gen?doc.archivo.replace(/\.\w+$/,'')+'-demo.svg':doc.archivo;
+    modal(esc(doc.titulo),`<div class="small muted">${esc(t.nombre)} · ${fdl(doc.fecha)}${t.hc?' · forma parte de la historia clínica':''}<br>Cargado por ${esc(doc.por)} el ${fd(doc.subido.slice(0,10))} a las ${doc.subido.slice(11)} · ${esc(doc.archivo)}</div>
+      ${doc.anulado?`<div class="banner" style="background:var(--danger-soft);margin:0"><span>Anulado el ${fd(doc.anulado.fecha)} por ${esc(doc.anulado.por)}: ${esc(doc.anulado.motivo)}</span></div>`:''}${vista}`,
+      `${!doc.anulado&&puedeAnular(doc)?`<button class="btn ghost" data-a="anudoc" data-id="${doc.id}" style="margin-right:auto">Anular</button>`:''}${src?`<a class="btn" href="${src}" download="${esc(nomDesc)}">Descargar</a>`:''}<button class="btn pri" data-a="close">Cerrar</button>`);
+    $('#modal').classList.add('wide')},
+  anudoc:d=>{const doc=S.docs.find(x=>x.id===d.id);
+    modal('Anular documento',`<p class="small muted">${esc(doc.titulo)} — ${esc(pname(pat(doc.pid)))}</p>
+      <label class="f">Motivo<input type="text" id="aM" placeholder="Por ejemplo: se cargó en el paciente equivocado"></label>
+      <p class="small faint">El documento no se borra: queda tachado, con el motivo, y deja de incluirse en el PDF de la historia clínica.</p>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveanu" data-id="${doc.id}">Anular documento</button>`)},
+  saveanu:d=>{const doc=S.docs.find(x=>x.id===d.id);const m=$('#aM').value.trim();if(!m){toast('Cargá el motivo');return}
+    doc.anulado={fecha:TODAY,hora:nowHM(),por:R().user,motivo:m};
+    audit('Anuló documento',pname(pat(doc.pid))+' — '+doc.titulo+': '+m);close();render();toast('Documento anulado')},
+  newtipo:()=>{const n=$('#nTipo').value.trim();if(!n){toast('Escribí el nombre del tipo');return}
+    if(S.docTipos.some(t=>t.nombre.toLowerCase()===n.toLowerCase())){toast('Ese tipo ya existe');return}
+    S.docTipos.push({id:uid('dt'),nombre:n,hc:false});audit('Agregó tipo de documento',n);render();toast('Tipo agregado')},
   /* ----- Ficha del paciente: edición ----- */
   editdatos:d=>{const p=pat(d.p);
     modal('Editar datos personales',`<div class="fgrid">
@@ -1702,10 +1814,16 @@ document.addEventListener('click',ev=>{const el=ev.target.closest('[data-a]');if
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')close();if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches('[role=button],tr.click')){ev.preventDefault();ev.target.click()}});
 document.addEventListener('input',ev=>{const c=ev.target.dataset.c;if(c==='pq'){S.pf.q=ev.target.value;const pos=ev.target.selectionStart;render();const i=$('[data-c=pq]');i.focus();i.setSelectionRange(pos,pos)}});
 document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPro=ev.target.value;render()}if(ev.target.dataset.c==='pnpro'){S.pnpro=ev.target.value;render()}
+  if(ev.target.dataset.c==='docfile')setUp(ev.target.files[0]);
+  if(ev.target.dataset.c==='tipohc'){const t=docTipo(ev.target.dataset.id);t.hc=ev.target.checked;
+    audit('Cambió tipo de documento',t.nombre+': '+(t.hc?'forma parte':'no forma parte')+' de la historia clínica');render()}
   // Los pacientes particulares no tienen numero de afiliado
   if(ev.target.dataset.c==='nooss'){const i=$('#nAf');const part=ev.target.value==='Particular';i.disabled=part;i.placeholder=part?'No corresponde':'Como figura en la credencial';if(part)i.value=''}});
 document.addEventListener('keydown',ev=>{if(ev.target.id==='gsearch'&&ev.key==='Enter'){const q=ev.target.value.trim();if(!R().views.includes('pacientes')){toast('Tu rol no tiene acceso a la lista de pacientes');return}S.pf={q,estado:'',mod:''};S.view='pacientes';ev.target.value='';render()}});
 $('#scrim').addEventListener('click',ev=>{if(ev.target.id==='scrim')close()});
+// Arrastrar y soltar un archivo en la ventana "Subir documento"
+['dragover','dragleave','drop'].forEach(k=>document.addEventListener(k,ev=>{const z=ev.target.closest&&ev.target.closest('#drop');if(!z)return;ev.preventDefault();
+  z.classList.toggle('over',k==='dragover');if(k==='drop')setUp(ev.dataTransfer.files[0])}));
 render();
 setInterval(()=>{if(S.view==='hoy'&&['administracion','profesional','psiquiatria'].includes(S.role)&&!$('#scrim').classList.contains('open')&&!(document.activeElement&&document.activeElement.matches('input,select,textarea')))render()},30000);
 </script>

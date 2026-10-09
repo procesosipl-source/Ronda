@@ -105,7 +105,7 @@ Medicación va en 2ª etapa por riesgo clínico: se diseña con cuidado, no ráp
 - Configuración (reglas de cobertura, tarifario, permisos) y auditoría en vivo.
 - Las funciones que todavía no existen (WhatsApp, videollamada, IA, recetas, portal del paciente, link de pago) se muestran con etiqueta **"Próximamente"** y la etapa en que llegan. **No se presenta como disponible nada que no esté construido.**
 
-Los procesos que la demo recorre están diagramados en `docs/flujos/` (23 diagramas en Mermaid, con roles, puntos de auditoría y caminos bloqueados). Ante una diferencia entre la demo y un flujo, gana el flujo: es la especificación.
+Los procesos que la demo recorre están diagramados en `docs/flujos/` (24 diagramas en Mermaid, con roles, puntos de auditoría y caminos bloqueados). Ante una diferencia entre la demo y un flujo, gana el flujo: es la especificación.
 
 Sirve como **especificación visual**: al construir una pantalla real, tomar de la demo el flujo, los textos y la jerarquía. Su código no se reutiliza.
 
