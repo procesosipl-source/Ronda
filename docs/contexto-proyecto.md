@@ -103,7 +103,21 @@ Medicación va en 2ª etapa por riesgo clínico: se diseña con cuidado, no ráp
 - Prefacturación que bloquea el cierre si hay pacientes "No definido".
 - **Métricas:** asistencia, ocupación, turnos por disciplina y estado de las autorizaciones.
 - Configuración (reglas de cobertura, tarifario, permisos) y auditoría en vivo.
-- Las funciones que todavía no existen (WhatsApp, videollamada, IA, recetas, portal del paciente, link de pago) se muestran con etiqueta **"Próximamente"** y la etapa en que llegan. **No se presenta como disponible nada que no esté construido.**
+- Las funciones que todavía no existen se muestran con etiqueta **"Próximamente"** y la etapa en que llegan. **No se presenta como disponible nada que no esté construido.**
+
+**Lista única de "En camino".** Es la misma en el prototipo (Configuración → Institución), en la web pública y en este documento. Si cambia, se actualizan las tres:
+
+| Funcionalidad | Etapa | Módulo (ver `docs/modulos.md`) |
+|---|---|---|
+| Link de pago | 2ª etapa | Cobros particulares |
+| Consentimientos firmados desde el celular | 2ª etapa | Base |
+| Recordatorios por WhatsApp | 8.1 | Recordatorios por WhatsApp |
+| Factura electrónica ARCA | 8.2 | Factura electrónica ARCA |
+| Videollamada | 8.3 | Telesalud |
+| Borrador de evolución con IA | 8.4 | IA clínica |
+| Receta electrónica | 8.5 | Receta electrónica |
+| Autorizaciones en línea | 8.6 | Obras sociales en línea |
+| Portal del paciente | a definir | Portal del paciente |
 
 Los procesos que la demo recorre están diagramados en `docs/flujos/` (24 diagramas en Mermaid, con roles, puntos de auditoría y caminos bloqueados). Ante una diferencia entre la demo y un flujo, gana el flujo: es la especificación.
 
