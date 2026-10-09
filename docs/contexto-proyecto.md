@@ -2,7 +2,7 @@
 
 > Documento de traspaso. Resume todo lo analizado y decidido antes de empezar a programar: de dónde viene el producto, qué es y qué no, cómo se va a construir y qué falta definir.
 > `CLAUDE.md` tiene las reglas operativas de cada sesión. Este archivo explica el **porqué** detrás de esas reglas.
-> Última actualización: 29 de septiembre de 2026.
+> Última actualización: 9 de octubre de 2026.
 
 ---
 
@@ -95,12 +95,13 @@ Medicación va en 2ª etapa por riesgo clínico: se diseña con cuidado, no ráp
 - Agenda semanal armada **desde los horarios cargados en la ficha del profesional**: al cambiarlos, la grilla cambia.
 - **Profesionales:** disciplina, matrícula, firma y horarios de atención, todo editable.
 - Pacientes: alta con **número de afiliado**, y ficha con datos personales, referentes, diagnóstico, cobertura y equipo tratante **editables**. Cambiar el equipo cambia en vivo quién ve la HC.
-- Historia clínica: evoluciones firmadas, adendas, exportación PDF.
+- **Documentos:** se suben desde la ficha (en el celular, con una foto), se ven en un visor, se descargan y se anulan con motivo. El tipo de documento, configurable, dice si forma parte de la historia clínica; esos solo los ve quien tiene acceso a la HC.
+- Historia clínica: evoluciones firmadas, adendas y **documentos de la HC en orden cronológico**; la exportación PDF los incluye (imágenes adentro, PDF como anexos).
 - Grupos con asistencia que generan evoluciones.
 - Camas con días autorizados y prórrogas.
-- **Medicación en dos pestañas:** los esquemas los indica y cambia psiquiatría (cambiar versiona, no pisa); enfermería registra las tomas, incluidas las de a demanda.
-- Autorizaciones en tablero.
-- Prefacturación que bloquea el cierre si hay pacientes "No definido".
+- **Medicación en dos pestañas:** los esquemas los indica y cambia psiquiatría (cambiar versiona, no pisa); enfermería registra las tomas, incluidas las de a demanda, **con la hora real en que las dio** aunque las cargue más tarde, y puede corregir una hora dejando el registro anterior a la vista.
+- Autorizaciones en tablero, **mes por mes** (5 meses atrás y 3 adelante), con la columna "A pedir" en los meses futuros.
+- Prefacturación que bloquea el cierre si hay pacientes "No definido", y que se mira mes por mes: cerrados (la foto del cierre), pendiente de cierre, en curso y una estimación de los meses futuros.
 - **Métricas:** asistencia, ocupación, turnos por disciplina y estado de las autorizaciones.
 - Configuración (reglas de cobertura, tarifario, permisos) y auditoría en vivo.
 - Las funciones que todavía no existen se muestran con etiqueta **"Próximamente"** y la etapa en que llegan. **No se presenta como disponible nada que no esté construido.**
@@ -277,14 +278,16 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - [x] VS Code + extensión de Claude Code.
 - [x] Proyecto `ronda-dev` en Supabase (región São Paulo, solo datos ficticios).
 - [x] Cuenta de Vercel vinculada a GitHub (el proyecto todavía no se importó).
-- [ ] Repositorio `ronda` clonado en `C:\Proyectos\IPL\ronda` (fuera de OneDrive), con `CLAUDE.md` en la raíz y la demo en `docs/prototipo/`.
-- [ ] Diagnóstico confirmado: raíz correcta, remoto `ronda.git`, `CLAUDE.md` de Ronda.
+- [x] Repositorio clonado, con remoto `procesosipl-source/Ronda`, `CLAUDE.md` en la raíz y la demo en `docs/prototipo/`. Está en `C:\Users\LUCAS\Desktop\Ronda`, no en `C:\Proyectos\IPL\ronda` como estaba previsto.
+- [ ] Decidir si se mueve a `C:\Proyectos\IPL\ronda`. Hoy está en el Escritorio, junto a FLEXColor (ver el aviso de abajo).
+- [ ] Reactivar `ronda-dev`: Supabase lo pausó por inactividad (visto el 9 de octubre de 2026). En la misma organización hay otro proyecto pausado, "procesosipl-source's Project" (`us-east-2`), que no es de Ronda: conviene borrarlo si no se usa.
 - [ ] Esqueleto del proyecto (sesión 1).
 
 **Cuidado:** en la misma computadora existe otro proyecto de cliente (FLEXColor, en el Escritorio). Antes de cada sesión, verificar que VS Code tenga abierta la carpeta de Ronda. Los proyectos de clientes nunca se anidan uno dentro de otro.
 
 ## 14. Próximos pasos
 
+0. **Arreglos al prototipo** (hechos el 9 de octubre de 2026): registro de medicación con hora real y corrección, carga y visor de documentos, documentos en la HC y en su PDF, selector de mes en Autorizaciones y Prefacturación, y una sola lista de "En camino". **Queda pendiente:** revisar el catálogo de módulos ([`docs/modulos.md`](modulos.md)) y, al aprobarlo, aceptar el ADR 0003, armar la pantalla de módulos del prototipo y actualizar §3, §4 y §11.
 1. **Sesión 1 — Esqueleto:** verificar el entorno y crear la app React + Vite + TypeScript con Tailwind, la Supabase CLI vinculada a `ronda-dev`, `.gitignore`, `.env.example` y el README. Primer commit y push. Importar el repo en Vercel.
 2. **Sesión 2 — Modelo de fundaciones:** diseñar juntos, antes de escribir SQL, las tablas `institution`, `site`, `membership`, `role`, `audit_log` y el perfil de usuario. Después migraciones, políticas RLS, tests de aislamiento entre instituciones y seed ficticio con dos instituciones.
 3. **Sesión 3 — Login y roles en la interfaz:** inicio de sesión, selección de institución cuando el usuario pertenece a varias, menú según rol y una pantalla "Hoy" vacía.

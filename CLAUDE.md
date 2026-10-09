@@ -93,7 +93,8 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 | Regla de cobertura | `coverage_rule` | Regla ordenada que define qué prestación se presenta según obra social, estado y modalidad. Sin coincidencia → "No definido". |
 | Autorización | `authorization` | Pedido a una obra social: Solicitada → Autorizada / No autorizada → Presentada → Cobrada. |
 | Período de facturación | `billing_period` | Mes que se prefactura y se cierra. Cerrado = no modificable. |
-| Documento | `document` | Archivo asociado a un paciente, con tipo configurable. |
+| Documento | `document` | Archivo asociado a un paciente. Se anula, no se borra. |
+| Tipo de documento | `document_type` | Catálogo de la institución. Dice si los documentos de ese tipo forman parte de la historia clínica. |
 
 ## Estructura del repositorio
 
@@ -115,6 +116,7 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
   /pantallas    pantallas diseñadas en detalle: captura, maqueta y especificación
   /prototipo    demo navegable de referencia
   /web          borrador de la web pública del producto
+  modulos.md    catálogo de módulos para vender (propuesta en revisión)
 ```
 
 Los procesos de la clínica están diagramados en `docs/flujos/` (índice en su `README.md`). Antes de modelar una tabla con ciclo de vida o de escribir un trigger, mirá el flujo correspondiente: de ahí salen los estados, las transiciones válidas y los bloqueos.
