@@ -164,8 +164,11 @@ label.chip:has(input:checked){background:var(--primary-soft);border-color:var(--
 /* Meds */
 .hourblock{margin-bottom:18px}
 .hourblock.now .panel{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
-.medrow{display:grid;grid-template-columns:1.1fr 1.4fr auto;gap:12px;padding:11px 18px;border-bottom:1px solid var(--line);align-items:center}
+.medrow{display:grid;grid-template-columns:1.1fr 1.4fr minmax(300px,auto);gap:12px;padding:11px 18px;border-bottom:1px solid var(--line);align-items:center}
+.medrow>:last-child{text-align:right}
+.medrow>:last-child .row{justify-content:flex-end}
 .medrow:last-child{border-bottom:none}
+.corregida{text-decoration:line-through;opacity:.6}
 /* Modal */
 .scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
 .scrim.open{display:flex}
@@ -335,6 +338,8 @@ body{display:flex;flex-direction:column}
   .daystrip div:nth-child(-n+2){border-bottom:1px solid var(--line)}
   .fgrid{grid-template-columns:1fr}
   .medrow{grid-template-columns:1fr;gap:6px}
+  .medrow>:last-child{text-align:left}
+  .medrow>:last-child .row{justify-content:flex-start}
   .ptop h1{font-size:1.6rem}
 }
 @media print{
@@ -404,7 +409,7 @@ const ROLES_EQ=['Referente','Tratante','Interconsulta'];
 const VIAS=['VO','IM','EV','SC','SL'];
 const HORAS_MED=['08','12','16','20','22'];
 // Catálogo de medicamentos de la institución. Ficticio.
-const MEDS=[['Sertralina','50 mg','VO',['08']],['Quetiapina','25 mg','VO',['22']],['Clonazepam','0,5 mg','VO',['08','20']],
+const MEDS=[['Sertralina','50 mg','VO',['08']],['Quetiapina','25 mg','VO',['22']],['Clonazepam','0,5 mg','VO',['08','12','20']],
   ['Carbonato de litio','300 mg','VO',['08','20']],['Olanzapina','5 mg','VO',['22']],['Ácido valproico','500 mg','VO',['08','16']],
   ['Risperidona','2 mg','VO',['08','20']],['Lorazepam','1 mg','VO',['22']],['Haloperidol','5 mg','IM',['08']],
   ['Escitalopram','10 mg','VO',['08']],['Lamotrigina','100 mg','VO',['08']],['Difenhidramina','50 mg','VO',['22']]];
@@ -532,8 +537,20 @@ function seed(){
   // Una indicación a demanda
   esquemas.push({id:uid('m'),pid:'pa'+(internados[1]+1),med:'Difenhidramina',dosis:'50 mg',via:'VO',horas:[],prn:true,
     indicaciones:'Ante insomnio. Máximo una vez por noche.',indica:'p2',desde:iso(day(-8)),hasta:null,motivoFin:'',version:1});
+  // Tomas ya registradas: las de horarios anteriores al horario en curso, menos una que queda atrasada.
+  // El horario en curso queda sin registrar, así en la demo siempre hay algo para cargar.
   const hNow=new Date().getHours();const admins=[];
-  esquemas.filter(e=>!e.hasta&&!e.prn).forEach(e=>e.horas.forEach(h=>{if(+h<hNow)admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:h,estado:rnd()<0.93?'Administrada':'No administrada',motivo:'',por:'Enf. Carla Funes',ts:h+':1'+Math.floor(rnd()*9)})}));
+  const curH=HORAS_MED.filter(h=>+h<=hNow).pop();const prevH=curH?HORAS_MED[HORAS_MED.indexOf(curH)-1]:null;
+  let dejada=false,tarde=false;
+  esquemas.filter(e=>!e.hasta&&!e.prn).forEach(e=>e.horas.forEach(h=>{
+    if(!curH||+h>=+curH)return;
+    if(h===prevH&&!dejada){dejada=true;return}
+    const estado=rnd()<0.93?'Administrada':'No administrada';
+    const adm=estado==='Administrada'?h+':0'+Math.floor(rnd()*9):'';
+    // Una toma cargada tarde: se dio a horario y se registró después. Se guardan las dos horas.
+    let ts=adm||h+':1'+Math.floor(rnd()*9);
+    if(adm&&!tarde&&h==='08'){tarde=true;ts='09:4'+Math.floor(rnd()*9)}
+    admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:h,estado,motivo:estado==='Administrada'?'':'Rechazo del paciente',por:'Enf. Carla Funes',adm,ts})}));
   // prestaciones, tarifario, reglas
   const prest=['Consulta psicológica','Control psiquiátrico','Módulo ambulatorio intensivo','Módulo ambulatorio simple','Día de internación','Admisión','Preadmisión'];
   const base={'Consulta psicológica':18000,'Control psiquiátrico':26000,'Módulo ambulatorio intensivo':410000,'Módulo ambulatorio simple':190000,'Día de internación':98000,'Admisión':45000,'Preadmisión':30000};
@@ -588,7 +605,7 @@ function modulo(st,p,detalle){
 }
 
 /* ---------- estado ---------- */
-const KEY='ronda-demo-v3';let S;
+const KEY='ronda-demo-v4';let S;
 try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):null;if(S&&(S.day!==TODAY||Date.now()-(S.seededAt||0)>4*36e5))S=null}catch(e){S=null}
 if(!S){S=seed();S.day=TODAY;S.seededAt=Date.now()}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -605,6 +622,20 @@ const vigente=e=>e.desde<=TODAY&&(!e.hasta||e.hasta>TODAY);
 const puedeIndicar=()=>S.role==='direccion'||(!!R().proId&&pro(R().proId).disc==='Psiquiatría');
 const esqPac=pid=>S.esquemas.filter(e=>e.pid===pid).sort((a,b)=>(b.hasta?0:1)-(a.hasta?0:1)||b.desde.localeCompare(a.desde));
 const medLinea=e=>esc(e.med)+' '+esc(e.dosis)+' · '+esc(e.via)+(e.prn?' · a demanda':' · '+(e.horas||[]).map(h=>h+':00').join(', '));
+// Tomas de medicación. Son de solo inserción: corregir una hora agrega un registro que reemplaza al anterior,
+// y el anterior queda a la vista. Cada toma guarda la hora en que se administró (adm) y la hora en que se registró (ts).
+const reemplazada=a=>S.admins.some(x=>x.reemplaza===a.id);
+const tomasHoy=()=>S.admins.filter(a=>a.fecha===TODAY&&!reemplazada(a));
+const tomaDe=(eid,h)=>tomasHoy().find(a=>a.eid===eid&&a.hora===h);
+const puedeRegistrar=()=>['enfermeria','direccion'].includes(S.role);
+const hm2m=s=>{const [h,m]=s.split(':');return +h*60+ +m};
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
+// Atrasada: pasaron más de 30 minutos del horario previsto
+const atrasada=h=>nowMin()-(+h*60)>30;
+// La hora de administración no puede ser futura ni anterior a 2 horas antes del horario previsto
+const horaInvalida=(v,h)=>{if(!/^\d{2}:\d{2}$/.test(v||''))return 'Cargá la hora en que se administró';const m=hm2m(v);
+  if(m>nowMin())return 'La hora no puede ser posterior a ahora';
+  if(h&&m<+h*60-120)return 'La hora es muy anterior al horario previsto ('+h+':00)';return ''};
 const equipoIds=p=>(p.equipo||[]).map(e=>typeof e==='string'?e:(!e.hasta||e.hasta>TODAY?e.proId:null)).filter(Boolean);
 const pname=p=>p?p.apellido+', '+p.nombre:'—';
 const audit=(acc,ent)=>{S.audit.push({ts:TODAY+' '+nowHM(),user:R().user,rol:R().label,acc,ent});};
@@ -660,13 +691,13 @@ function vHoy(m){
   const strips={
     direccion:[[m.hoy.length,'turnos hoy'],[m.asis+'%','asistencia últimos 30 días'],[m.pend.length,'evoluciones pendientes'],[occ().length+' / '+S.rooms.flatMap(x=>x.camas).length,'camas ocupadas']],
     profesional:[[m.hoy.length,'turnos hoy'],[m.pend.length,'evoluciones por escribir'],[visiblePats().length,'pacientes a cargo'],[m.asis+'%','asistencia de tus pacientes']],
-    enfermeria:[[occ().length,'pacientes internados'],[m.medPend.length,'tomas pendientes ahora'],[S.admins.filter(a=>a.fecha===TODAY).length,'tomas registradas hoy'],[m.cortos.length,'internaciones por vencer']],
+    enfermeria:[[occ().length,'pacientes internados'],[m.medPend.length,'tomas pendientes ahora'],[tomasHoy().length,'tomas registradas hoy'],[m.cortos.length,'internaciones por vencer']],
     administracion:[[m.hoy.length,'turnos hoy'],[m.solicitadas.length,'autorizaciones sin respuesta'],[m.vencen.length,'vencen en 15 días'],[m.nodef.length,'sin regla de facturación']]
   }[S.role];
   const alerts=[];
   if(S.role!=='administracion'&&S.role!=='enfermeria')m.pend.slice(0,6).forEach(t=>alerts.push({k:'',t:'Falta la evolución de '+pname(pat(t.pid)),s:t.tipo+' del '+fd(t.fecha)+' · '+pro(t.pro).nombre,a:`data-a="openp" data-p="${t.pid}" data-tab="hc"`}));
   if(!esPro())m.cortos.forEach(([c,b])=>alerts.push({k:'danger',t:'Internación de '+pname(pat(b.pid))+' por vencer',s:'Día '+diff(TODAY,b.ingreso)+' de '+b.autorizados+' autorizados · cama '+c,a:'data-a="go" data-v="internacion"'}));
-  if(S.role==='enfermeria')m.medPend.slice(0,6).forEach(x=>alerts.push({k:'danger',t:x.e.med+' '+x.e.dosis+' de las '+x.h+' hs sin registrar',s:pname(pat(x.e.pid)),a:'data-a="go" data-v="medicacion"'}));
+  if(S.role==='enfermeria')m.medPend.slice(0,6).forEach(x=>alerts.push({k:'danger',t:x.e.med+' '+x.e.dosis+' de las '+x.h+' hs sin registrar',s:pname(pat(x.e.pid)),a:'data-a="go" data-v="medicacion"',b:tomaCtrl(x.e,x.h)}));
   if(['direccion','administracion'].includes(S.role)){m.vencen.forEach(a=>alerts.push({k:'',t:'Autorización de '+pname(pat(a.pid))+' vence el '+fd(a.vence),s:a.ooss+' · '+a.prest,a:'data-a="go" data-v="autorizaciones"'}));
     m.nodef.forEach(p=>alerts.push({k:'info',t:pname(p)+' no tiene regla de facturación',s:p.ooss+' · estado '+p.estado+' · revisá las reglas de cobertura',a:'data-a="gocfg" data-t="reglas"'}));}
   const ag=m.hoy.slice().sort((a,b)=>a.hora.localeCompare(b.hora));
@@ -678,7 +709,7 @@ function vHoy(m){
   <div class="daystrip">${strips.map(s=>`<div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
   <div class="grid2">
     <section class="panel"><div class="panel-h"><h2>Requiere atención</h2><span class="tag ${alerts.length?'warn':'ok'}">${alerts.length||'Todo al día'}</span></div>
-      ${alerts.length?alerts.slice(0,10).map(a=>`<div class="alert" role="button" tabindex="0" ${a.a}><span class="k ${a.k}"></span><div><div>${esc(a.t)}</div><div class="small muted">${esc(a.s)}</div></div></div>`).join(''):'<div class="empty">No hay pendientes. Buen trabajo.</div>'}
+      ${alerts.length?alerts.slice(0,10).map(a=>`<div class="alert" role="button" tabindex="0" ${a.a}><span class="k ${a.k}"></span><div><div>${esc(a.t)}</div><div class="small muted">${esc(a.s)}</div>${a.b?`<div style="margin-top:8px">${a.b}</div>`:''}</div></div>`).join(''):'<div class="empty">No hay pendientes. Buen trabajo.</div>'}
     </section>
     ${showAgenda?`<section class="panel"><div class="panel-h"><h2>${esPro()?'Tus turnos de hoy':'Turnos de hoy'}</h2><button class="btn sm ghost" data-a="go" data-v="agenda">Ver agenda</button></div>
       ${ag.length?ag.map(t=>`<div class="agenda-row"><time>${t.hora}</time><div><div>${esc(pname(pat(t.pid)))}</div><div class="small muted">${esc(t.tipo)}${!esPro()?' · '+esc(pro(t.pro).nombre):''}</div></div>${stTag(t.estado)}</div>`).join(''):'<div class="empty">Sin turnos para hoy.</div>'}
@@ -839,19 +870,25 @@ function datosTab(p){
 }
 function medTab(p){
   const es=esqPac(p.id);const puede=puedeIndicar();
-  const hoy=S.admins.filter(a=>a.fecha===TODAY&&es.some(e=>e.id===a.eid)).sort((a,b)=>(a.ts||'').localeCompare(b.ts||''));
+  const prog=es.filter(e=>vigente(e)&&!e.prn).flatMap(e=>e.horas.map(h=>({e,h}))).sort((a,b)=>a.h.localeCompare(b.h));
+  const prn=es.filter(e=>vigente(e)&&e.prn);
+  const deEsq=a=>S.esquemas.find(x=>x.id===a.eid);
+  const tomasPrn=tomasHoy().filter(a=>prn.some(e=>e.id===a.eid));
+  const corregidas=S.admins.filter(a=>a.fecha===TODAY&&reemplazada(a)&&es.some(e=>e.id===a.eid));
+  const fila=(hora,e,reg,quien,cls)=>`<tr${cls?` class="${cls}"`:''}><td style="font-variant-numeric:tabular-nums">${hora}</td><td>${esc(e.med)} ${esc(e.dosis)}</td><td>${reg}</td><td class="small">${quien}</td></tr>`;
+  const filas=prog.map(({e,h})=>{const a=tomaDe(e.id,h);return fila(h+':00',e,tomaCtrl(e,h),a?esc(a.por):'')})
+    .concat(tomasPrn.map(a=>fila('A demanda',deEsq(a),tomaTag(a),esc(a.por))))
+    .concat(corregidas.map(a=>{const n=S.admins.find(x=>x.reemplaza===a.id);return fila(a.prn?'A demanda':a.hora+':00',deEsq(a),`${a.estado} ${a.adm||a.ts}`,'Corregida por '+esc(n.por),'corregida')}));
   return `<div class="row" style="justify-content:space-between;margin-bottom:12px">
     <p class="small faint" style="max-width:72ch">Cambiar un esquema no borra el anterior: se suspende y queda a la vista con su fecha y motivo. Las tomas ya registradas siguen apuntando al esquema que se administró.</p>
     ${puede?`<button class="btn pri" data-a="newesq" data-p="${p.id}">Indicar medicación</button>`:''}</div>
   <section class="panel"><div class="panel-h"><h2>Esquemas</h2><span class="small faint">${es.filter(vigente).length} vigentes</span></div>
     ${es.map(e=>esqFila(e,puede)).join('')||'<div class="empty">Sin medicación indicada.</div>'}</section>
-  <section class="panel" style="margin-top:20px"><div class="panel-h"><h2>Tomas de hoy</h2></div>
-    ${hoy.length?`<div class="tablewrap"><table><thead><tr><th>Hora</th><th>Medicamento</th><th>Registro</th><th>Quién</th></tr></thead><tbody>
-      ${hoy.map(a=>{const e=S.esquemas.find(x=>x.id===a.eid);return `<tr><td style="font-variant-numeric:tabular-nums">${esc(a.ts||a.hora+':00')}</td>
-        <td>${esc(e.med)} ${esc(e.dosis)}</td>
-        <td><span class="tag ${a.estado==='Administrada'?'ok':'danger'}">${a.estado}</span>${a.motivo?`<div class="small faint">${esc(a.motivo)}</div>`:''}</td>
-        <td class="small">${esc(a.por)}</td></tr>`}).join('')}</tbody></table></div>`
-      :'<div class="empty">Todavía no se registraron tomas hoy.</div>'}</section>`;
+  <section class="panel" style="margin-top:20px"><div class="panel-h"><h2>Tomas de hoy</h2>
+    ${puedeRegistrar()&&prn.length?`<div class="row">${prn.map(e=>`<button class="btn sm" data-a="admprn" data-e="${e.id}">Toma a demanda · ${esc(e.med)}</button>`).join('')}</div>`:''}</div>
+    ${filas.length?`<div class="tablewrap"><table><thead><tr><th>Horario</th><th>Medicamento</th><th>Registro</th><th>Quién</th></tr></thead><tbody>
+      ${filas.join('')}</tbody></table></div>`
+      :'<div class="empty">No hay tomas programadas para hoy.</div>'}</section>`;
 }
 function docsTab(p){
   const docs=[['Consentimiento informado','Firmado',-60],['Informe de admisión','Generado',-58],['Solicitud de autorización','Enviado',-30]];
@@ -976,7 +1013,7 @@ function vMedicacion(){
   const t=S.medTab||'hoy';
   const tabs=[['hoy','Administración de hoy'],['esquemas','Esquemas vigentes']];
   return `<div class="head"><div><h1>Medicación</h1><p>${t==='hoy'
-    ?'Registrá cada toma en el momento. Lo que registres queda con tu nombre y la hora real.'
+    ?'Registrá cada toma con la hora en que la diste. Si la cargás más tarde, elegí la hora real: quedan guardadas las dos.'
     :'Los esquemas los indica psiquiatría. Cambiar uno no borra el anterior: se cierra y queda a la vista.'}</p></div></div>
   <div class="tabs" role="tablist">${tabs.map(x=>`<button role="tab" aria-selected="${t===x[0]}" data-a="medtab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>
   ${t==='hoy'?medHoy():medEsquemas()}`;
@@ -985,25 +1022,22 @@ function vMedicacion(){
 function medHoy(){
   const hN=new Date().getHours();
   const cur=HORAS_MED.filter(h=>+h<=hN).pop()||HORAS_MED[0];
-  const canReg=['enfermeria','direccion'].includes(S.role);
+  const canReg=puedeRegistrar();
   const internados=e=>occ().some(([,b])=>b.pid===e.pid);
   const prn=S.esquemas.filter(e=>vigente(e)&&e.prn&&internados(e));
   const bloques=HORAS_MED.map(h=>{
     const rows=S.esquemas.filter(e=>vigente(e)&&!e.prn&&e.horas.includes(h)&&internados(e));
     if(!rows.length)return '';
     return `<div class="hourblock ${h===cur?'now':''}"><section class="panel"><div class="panel-h"><h2>${h}:00 hs</h2>${h===cur?'<span class="tag pri">Horario actual</span>':+h>hN?'<span class="small faint">Más tarde</span>':''}</div>
-    ${rows.map(e=>{const a=S.admins.find(x=>x.eid===e.id&&x.fecha===TODAY&&x.hora===h);
-      return `<div class="medrow"><div><b>${esc(pname(pat(e.pid)))}</b></div>
+    ${rows.map(e=>`<div class="medrow"><div><b>${esc(pname(pat(e.pid)))}</b></div>
       <div>${esc(e.med)} ${esc(e.dosis)} · ${esc(e.via)}<div class="small faint">Indicó ${esc(pro(e.indica).nombre)}${e.indicaciones?' · '+esc(e.indicaciones):''}</div></div>
-      <div>${a?`<span class="tag ${a.estado==='Administrada'?'ok':'danger'}">${a.estado} ${a.ts||''}</span>${a.motivo?`<div class="small faint">${esc(a.motivo)}</div>`:''}`
-        :canReg&&+h<=hN+1?`<div class="row"><button class="btn sm pri" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="1">Administrada</button><button class="btn sm" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="0">No administrada</button></div>`
-        :'<span class="tag">Pendiente</span>'}</div></div>`}).join('')}
+      <div>${tomaCtrl(e,h)}</div></div>`).join('')}
     </section></div>`}).join('');
   const bloquePrn=prn.length?`<section class="panel" style="margin-top:20px"><div class="panel-h"><h2>A demanda</h2><span class="small faint">Se registran cuando hacen falta, sin horario fijo</span></div>
-    ${prn.map(e=>{const hoy=S.admins.filter(x=>x.eid===e.id&&x.fecha===TODAY);
+    ${prn.map(e=>{const hoy=tomasHoy().filter(x=>x.eid===e.id);
       return `<div class="medrow"><div><b>${esc(pname(pat(e.pid)))}</b></div>
       <div>${esc(e.med)} ${esc(e.dosis)} · ${esc(e.via)}<div class="small faint">${esc(e.indicaciones||'Sin indicaciones adicionales')}</div></div>
-      <div>${hoy.length?`<span class="tag ok">${hoy.length} toma${hoy.length>1?'s':''} hoy</span><div class="small faint">${hoy.map(a=>a.ts).join(' · ')}</div>`:'<span class="small faint">Sin tomas hoy</span>'}
+      <div>${hoy.length?`<span class="tag ok">${hoy.length} toma${hoy.length>1?'s':''} hoy</span><div class="small faint">${hoy.map(a=>a.adm||a.ts).join(' · ')}</div>`:'<span class="small faint">Sin tomas hoy</span>'}
         ${canReg?`<button class="btn sm" data-a="admprn" data-e="${e.id}">Registrar toma</button>`:''}</div></div>`}).join('')}
     </section>`:'';
   return (bloques||'<div class="empty">No hay esquemas vigentes para los pacientes internados.</div>')+bloquePrn;
@@ -1022,6 +1056,26 @@ function medEsquemas(){
   }).join('');
 }
 
+// Lo que se muestra para una toma programada: su registro, o los botones para registrarla.
+// Se puede registrar desde una hora antes del horario previsto. Si está atrasada, el botón pide la hora real.
+function tomaCtrl(e,h){
+  const a=tomaDe(e.id,h);
+  if(a)return tomaTag(a);
+  const late=atrasada(h);
+  if(!puedeRegistrar())return `<span class="tag ${late?'danger':''}">${late?'Sin registrar':'Pendiente'}</span>`;
+  const desde=+h-1;
+  if(nowMin()<desde*60)return `<button class="btn sm" disabled>Desde las ${String(desde).padStart(2,'0')}:00</button>`;
+  return `<div class="row" style="gap:6px">${late?'<span class="tag danger">Atrasada</span>':''}<button class="btn sm pri" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="1">Administrada</button><button class="btn sm" data-a="adm" data-e="${e.id}" data-h="${h}" data-v="0">No administrada</button>${late?'':`<button class="btn sm ghost" data-a="admhora" data-e="${e.id}" data-h="${h}">Otra hora</button>`}</div>`;
+}
+// Etiqueta de una toma registrada. Si se cargó más tarde, muestra también la hora de registro.
+function tomaTag(a){
+  const hz=a.adm||a.ts;
+  return `<span class="tag ${a.estado==='Administrada'?'ok':'danger'}">${a.estado} ${hz||''}</span>`
+    +(a.adm&&a.adm!==a.ts?`<div class="small faint">registrada ${a.ts}</div>`:'')
+    +(a.reemplaza?`<div class="small faint">Hora corregida: ${esc(a.motivoCorr)}</div>`:'')
+    +(a.motivo?`<div class="small faint">${esc(a.motivo)}</div>`:'')
+    +(a.estado==='Administrada'&&puedeRegistrar()?`<div><button class="btn sm ghost" data-a="corrhora" data-id="${a.id}" style="padding:2px 0">Corregir hora</button></div>`:'');
+}
 // Una fila de esquema, vigente o cerrado. Los cerrados no se ocultan: quedan como historial.
 function esqFila(e,puede){
   const v=vigente(e);
@@ -1284,7 +1338,7 @@ function vMiDia(m){
   <div class="stack"><section class="panel"><div class="panel-h"><h2>Más tarde</h2></div>${later.map(t=>li(t,estTagF(t))).join('')||'<div class="empty">No quedan más turnos hoy.</div>'}</section>
   <section class="panel"><div class="panel-h"><h2>Atendidos hoy</h2></div>${done.map(t=>li(t,t.flujo==='ausente'?'<span class="tag danger">Ausente</span>':S.evols.some(e=>e.turnoId===t.id)?'<span class="tag ok">Con evolución</span>':`<button class="btn sm" data-a="newev" data-p="${t.pid}" data-t="${t.id}">Escribir evolución</button>`)).join('')||'<div class="empty">Todavía no atendiste pacientes hoy.</div>'}</section></div></div>`;
 }
-const GUIA=[['Dirección','Mirá la pantalla Hoy: alertas de toda la institución en un solo lugar.'],['Recepción','En el Panel del día, marcá la llegada de un paciente, hacelo pasar y finalizá la consulta. Mirá cómo se mueve entre grupos y cómo corre el tiempo de espera.'],['Psicóloga','En Mi día, hacé pasar al paciente que espera, escribí la evolución y firmala. Después intentá editarla: solo se puede agregar una adenda.'],['Enfermería','En Medicación, registrá una toma. Probalo desde el celular.'],['Recepción','Abrí un paciente e intentá ver su historia clínica: está restringida y el intento queda registrado.'],['Dirección','Entrá a Auditoría: está todo lo que hiciste, con usuario y hora.']];
+const GUIA=[['Dirección','Mirá la pantalla Hoy: alertas de toda la institución en un solo lugar.'],['Recepción','En el Panel del día, marcá la llegada de un paciente, hacelo pasar y finalizá la consulta. Mirá cómo se mueve entre grupos y cómo corre el tiempo de espera.'],['Psicóloga','En Mi día, hacé pasar al paciente que espera, escribí la evolución y firmala. Después intentá editarla: solo se puede agregar una adenda.'],['Enfermería','En Medicación, registrá una toma del horario actual y otra atrasada, con la hora real en que la diste. Después corregí una hora: el registro anterior queda tachado. Probalo desde el celular.'],['Recepción','Abrí un paciente e intentá ver su historia clínica: está restringida y el intento queda registrado.'],['Dirección','Entrá a Auditoría: está todo lo que hiciste, con usuario y hora.']];
 
 /* ---------- modales ---------- */
 // Un mismo formulario para indicar medicación y para cambiar un esquema vigente.
@@ -1344,13 +1398,14 @@ const A={
   admprn:d=>{const e=S.esquemas.find(x=>x.id===d.e);
     modal('Registrar toma a demanda',`<p class="small muted">${medLinea(e)} — ${esc(pname(pat(e.pid)))}</p>
       ${e.indicaciones?`<p class="small faint">${esc(e.indicaciones)}</p>`:''}
+      <label class="f">Hora en que se administró<input type="time" id="mHA" value="${nowHM()}"></label>
       <label class="f">Observación<input type="text" id="mObs" placeholder="Opcional"></label>`,
       `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveprn" data-e="${e.id}">Registrar toma</button>`)},
-  saveprn:d=>{const e=S.esquemas.find(x=>x.id===d.e);
-    S.admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:String(new Date().getHours()).padStart(2,'0'),
-      estado:'Administrada',motivo:$('#mObs').value.trim(),por:R().user,ts:nowHM()});
-    audit('Registró una toma a demanda',pname(pat(e.pid))+' — '+e.med+' '+e.dosis);
-    close();render();toast('Toma registrada')},
+  saveprn:d=>{const e=S.esquemas.find(x=>x.id===d.e);const v=$('#mHA').value;const err=horaInvalida(v);if(err){toast(err);return}
+    S.admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:v.slice(0,2),prn:true,
+      estado:'Administrada',motivo:$('#mObs').value.trim(),por:R().user,adm:v,ts:nowHM()});
+    audit('Registró una toma a demanda',pname(pat(e.pid))+' — '+e.med+' '+e.dosis+' · administrada '+v);
+    close();render();toast('Toma registrada · '+v)},
   /* ----- Ficha del paciente: edición ----- */
   editdatos:d=>{const p=pat(d.p);
     modal('Editar datos personales',`<div class="fgrid">
@@ -1602,9 +1657,37 @@ const A={
     modal('Ingreso a cama '+d.c,`<label class="f">Paciente<select id="mP">${free.map(p=>`<option value="${p.id}">${esc(pname(p))}</option>`).join('')}</select></label><label class="f">Días autorizados<input type="number" id="mD" value="15"></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveing" data-c="${d.c}">Registrar ingreso</button>`)},
   saveing:d=>{const p=pat($('#mP').value);S.beds[d.c]={pid:p.id,ingreso:TODAY,autorizados:+$('#mD').value||15};p.modalidad='Internación';p.estado='En tratamiento';if(!equipoIds(p).includes('p6'))p.equipo.push({proId:'p6',rol:'Interconsulta',desde:TODAY,hasta:null});audit('Registró ingreso a internación',pname(p)+' — cama '+d.c);close();render();toast('Ingreso registrado')},
   prorroga:d=>{const b=S.beds[d.c];b.autorizados+=15;audit('Registró prórroga (+15 días)',pname(pat(b.pid)));render();toast('Prórroga de 15 días registrada')},
-  adm:d=>{if(d.v==='0'){modal('Toma no administrada',`<label class="f">Motivo<select id="mM"><option>Rechazo del paciente</option><option>Paciente en permiso de salida</option><option>Indicación suspendida por guardia</option><option>Otro</option></select></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveadm" data-e="${d.e}" data-h="${d.h}" data-v="0">Registrar</button>`);return}A.saveadm(d)},
-  saveadm:d=>{const e=S.esquemas.find(x=>x.id===d.e);const mot=d.v==='0'?$('#mM').value:'';S.admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:d.h,estado:d.v==='1'?'Administrada':'No administrada',motivo:mot,por:R().user,ts:nowHM()});
-    audit(d.v==='1'?'Registró administración':'Registró toma no administrada',e.med+' — '+pname(pat(e.pid)));close();render();toast('Toma registrada')},
+  adm:d=>{const e=S.esquemas.find(x=>x.id===d.e);
+    if(d.v==='0'){modal('Toma no administrada',`<p class="small muted">${medLinea(e)} — ${esc(pname(pat(e.pid)))} · horario ${d.h}:00</p><label class="f">Motivo<select id="mM"><option>Rechazo del paciente</option><option>Paciente en permiso de salida</option><option>Indicación suspendida por guardia</option><option>Otro</option></select></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveadm" data-e="${d.e}" data-h="${d.h}" data-v="0">Registrar</button>`);return}
+    // Toma atrasada: se pide la hora real en que se administró
+    if(atrasada(d.h)){A.admhora(d);return}
+    A.saveadm({e:d.e,h:d.h,v:'1',adm:nowHM()})},
+  admhora:d=>{const e=S.esquemas.find(x=>x.id===d.e);const ahora=nowHM();
+    modal('Registrar toma',`<p class="small muted">${medLinea(e)} — ${esc(pname(pat(e.pid)))}</p>
+      ${atrasada(d.h)?`<div class="banner" style="background:var(--warn-soft);margin-bottom:12px"><span>Esta toma era de las ${d.h}:00. Si la diste antes y la registrás ahora, cargá la hora en que la diste.</span></div>`:''}
+      <label class="f">Hora en que se administró<input type="time" id="mHA" value="${ahora}"></label>
+      <p class="small faint">El registro queda con tu nombre y la hora de ahora (${ahora}). Si no coinciden, se ven las dos.</p>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveadmh" data-e="${e.id}" data-h="${d.h}">Registrar toma</button>`)},
+  saveadmh:d=>{const v=$('#mHA').value;const err=horaInvalida(v,d.h);if(err){toast(err);return}A.saveadm({e:d.e,h:d.h,v:'1',adm:v})},
+  saveadm:d=>{const e=S.esquemas.find(x=>x.id===d.e);const mot=d.v==='0'?$('#mM').value:'';const ts=nowHM();const adm=d.v==='1'?(d.adm||ts):'';
+    S.admins.push({id:uid('a'),eid:e.id,fecha:TODAY,hora:d.h,estado:d.v==='1'?'Administrada':'No administrada',motivo:mot,por:R().user,adm,ts});
+    audit(d.v==='1'?'Registró administración':'Registró toma no administrada',e.med+' — '+pname(pat(e.pid))+' · horario '+d.h+':00'+(adm&&adm!==ts?' · administrada '+adm+', registrada '+ts:''));
+    close();render();toast(adm?'Toma registrada · '+adm:'Toma registrada')},
+  // Corregir no edita: agrega un registro nuevo que reemplaza al anterior. Los dos quedan a la vista.
+  corrhora:d=>{const a=S.admins.find(x=>x.id===d.id);const e=S.esquemas.find(x=>x.id===a.eid);
+    modal('Corregir hora de la toma',`<p class="small muted">${medLinea(e)} — ${esc(pname(pat(e.pid)))}</p>
+      <p class="small" style="margin-bottom:12px">Registrada como administrada a las <b>${a.adm||a.ts}</b> por ${esc(a.por)}.</p>
+      <label class="f">Hora correcta<input type="time" id="mHA" value="${a.adm||a.ts}"></label>
+      <label class="f">Motivo de la corrección<input type="text" id="mMC" placeholder="Por ejemplo: cargué mal la hora"></label>
+      <p class="small faint">El registro anterior no se borra: queda a la vista, tachado, junto al nuevo.</p>`,
+      `<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="savecorr" data-id="${a.id}">Guardar corrección</button>`)},
+  savecorr:d=>{const a=S.admins.find(x=>x.id===d.id);const e=S.esquemas.find(x=>x.id===a.eid);const v=$('#mHA').value;const mot=$('#mMC').value.trim();
+    const err=horaInvalida(v,e.prn?null:a.hora);if(err){toast(err);return}
+    if(v===(a.adm||a.ts)){toast('Es la misma hora que ya está registrada');return}
+    if(!mot){toast('Cargá el motivo de la corrección');return}
+    S.admins.push({...a,id:uid('a'),adm:v,ts:nowHM(),por:R().user,reemplaza:a.id,motivoCorr:mot});
+    audit('Corrigió la hora de una toma',e.med+' — '+pname(pat(e.pid))+': '+(a.adm||a.ts)+' → '+v+' ('+mot+')');
+    close();render();toast('Hora corregida')},
   advauth:d=>{const a=S.auths.find(x=>x.id===d.id);const nx=AUTH_ST[AUTH_ST.indexOf(a.estado)+1];audit('Autorización '+a.estado.toLowerCase()+' → '+nx.toLowerCase(),a.ooss+' — '+pname(pat(a.pid)));a.estado=nx;render();toast('Autorización '+nx.toLowerCase())},
   cerrar:()=>{S.cerrados.push(TODAY.slice(0,7));audit('Cerró período de facturación',TODAY.slice(0,7));render();toast('Período cerrado. Ya no se puede modificar.')},
   delrule:d=>{S.reglas=S.reglas.filter(r=>r.id!==d.id);audit('Eliminó regla de cobertura',d.id);render();toast('Regla quitada. Revisá la prefacturación.')},
