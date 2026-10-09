@@ -45,11 +45,27 @@ No se bloquea por cualquier cosa: solo por lo que hace perder dinero de forma in
 | Antes de cerrar | Después de cerrar |
 |---|---|
 | Los turnos del mes se pueden corregir | Los turnos del mes ya no se tocan |
-| Las autorizaciones se pueden cambiar | No se cambian |
+| Las autorizaciones se pueden cambiar | No se cambian, salvo para **registrar el cobro**: la plata llega después del cierre |
+| Las autorizaciones del mes están Autorizadas | Pasan a **Presentada** al cerrar: cerrar es presentar |
 | Los precios del mes se pueden ajustar | Quedan congelados |
 | La prefacturación se recalcula sola | Queda como una foto |
 
 Lo hace un trigger en la base. Si hay que corregir un período cerrado, se **reabre** de forma explícita, con motivo y registro: no se edita por la puerta de atrás.
+
+Lo que se congela es **lo facturado**: prestación, cantidades y precios. Al cerrar se guarda una foto de la prefacturación (paciente, obra social, prestación, cantidad, precio e importe) y desde ahí se muestra esa foto, aunque después cambien los turnos, las reglas o el tarifario.
+
+## Mirar otros meses
+
+La pantalla tiene un selector de mes, compartido con Autorizaciones: 5 meses atrás y 3 adelante.
+
+| Mes | Qué muestra | Cierre |
+|---|---|---|
+| Cerrado | La foto del cierre, con la fecha y quién cerró | — |
+| Terminado, sin cerrar | Calculada con la asistencia real del mes | **Se cierra acá.** Bloqueado si hay "No definido" |
+| En curso | Calculada con lo atendido hasta hoy | No se cierra hasta que termina el mes |
+| Futuro | **Estimación**: frecuencia semanal de cada paciente × semanas del mes, días de internación del mes completo, precios de hoy | No se cierra ni se exporta |
+
+La estimación lleva un aviso visible, "Estimado, no es una prefacturación", y su total dice "total estimado". Sirve para prever ingresos, no para presentar.
 
 ## El tarifario
 
@@ -69,7 +85,7 @@ Es el mismo criterio que la historia clínica y los esquemas de medicación: lo 
 
 ## Auditoría
 
-Cierre y reapertura del período (con motivo), exportaciones y cambios de precio.
+Cierre (con cantidad de pacientes, importe y autorizaciones que pasaron a presentada) y reapertura del período (con motivo), exportaciones y cambios de precio.
 
 ## Reglas de `CLAUDE.md` que aplican
 

@@ -97,12 +97,16 @@ Ronda se usa **únicamente en modo claro**, aunque el sistema operativo o el nav
 - **Tablas:** encabezados en `--ink-3`, 0,8 rem; filas separadas por `--line`; hover `--sunk`. Si no entran, la tabla se desplaza horizontalmente dentro de su panel, nunca la página.
 - **Tarjetas de turno en la agenda:** fondo suave con franja izquierda de 3 px del color del estado (programado = naranja suave, presente = éxito, ausente = error).
 - **Historia clínica:** línea de tiempo con franja lateral del color de la disciplina; texto de la evolución en Newsreader; firma y huella en gris claro debajo.
-- **Modales:** para crear o confirmar algo corto. Máximo ~560 px de ancho. Si el formulario es largo, usar una pantalla completa.
+- **Modales:** para crear o confirmar algo corto. Máximo ~560 px de ancho. Si el formulario es largo, usar una pantalla completa. Única excepción: el **visor de documentos**, que llega a 860 px para que el documento se lea; la imagen o el PDF ocupan como máximo el 62 % del alto de pantalla, así los botones *Descargar* y *Cerrar* siempre se ven.
+- **Selector de mes:** botón ‹, desplegable con el mes (en 600) y botón ›, seguido de una etiqueta con el estado del mes (Cerrado el… por… / Pendiente de cierre / Mes en curso / Mes futuro) y, si no es el mes actual, el enlace *Ir al mes actual*. Las flechas se deshabilitan en los extremos. Lo comparten las pantallas que miran un período: el mes elegido se mantiene al pasar de una a otra.
+- **Zona para subir archivos:** recuadro con borde punteado `--line` y fondo `--sunk`, ícono de subir y el texto "Arrastrá el archivo acá o tocá para elegirlo", con los formatos y el tamaño máximo debajo. Al pasar un archivo por encima o con el mouse: borde y fondo `--primary`. Con el archivo elegido: borde `--ok` y fondo `--ok-soft`, con el nombre y el tamaño. En celular se agrega debajo un botón secundario *Sacar foto* que abre la cámara.
+- **Estimaciones:** todo número que no es real (por ejemplo, una prefacturación de un mes futuro) lleva un aviso en fondo "Atención" que empieza con "Estimado" y la palabra *estimado* en su etiqueta. Nunca se muestra igual que un dato real.
 - **Avisos breves (toast):** abajo al centro, fondo `--ink`, desaparecen solos.
 - **Estados vacíos:** una frase útil que diga qué hacer, nunca solo "Sin datos".
 - **Panel editable:** los datos que se pueden cambiar van en un panel con su título y un botón secundario *Editar* a la derecha del encabezado, que abre un modal. Un panel, un modal: no se edita media pantalla de una vez.
 - **Etiqueta "Próximamente":** para lo que se muestra pero todavía no existe. Píldora con fondo `--sunk`, texto `--ink-3` y borde punteado `--line`; al tocarla explica en qué etapa llega. El borde punteado es la señal de que no es una función disponible. **Nunca se presenta como disponible algo que no está construido.**
 - **Registro cerrado:** una evolución firmada, un esquema suspendido o un período cerrado se muestran atenuados (opacidad .65) pero **no se ocultan**: son historial, no ruido.
+- **Registro corregido o anulado:** una toma de medicación corregida o un documento anulado se muestran **tachados** y atenuados, con quién lo hizo y el motivo. El registro que lo reemplaza, si lo hay, va a la vista con la aclaración "Hora corregida: motivo".
 
 ## Textos
 

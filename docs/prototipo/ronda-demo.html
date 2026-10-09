@@ -159,6 +159,8 @@ label.chip:has(input:checked){background:var(--primary-soft);border-color:var(--
 .bed.free{color:var(--ink-3)}
 /* Kanban */
 .kanban{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;overflow-x:auto;padding-bottom:6px}
+.messel{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.messel select{width:auto;font-weight:600;min-width:170px}
 .col{background:var(--sunk);border-radius:var(--radius-m);padding:10px;display:flex;flex-direction:column;gap:10px;min-height:120px}
 .col h3{font-size:.9rem;padding:4px 6px;display:flex;justify-content:space-between}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px;display:flex;flex-direction:column;gap:7px;font-size:.87rem}
@@ -465,7 +467,7 @@ function seed(){
     const estado=i===16?'Admisión':i===17?'Preadmisión':i===15?'Alta':'En tratamiento';
     const psi=i%2?'p4':'p1';
     const equipo=[[psi,'Referente'],['p2','Tratante']];if(i%3===0)equipo.push(['p3','Interconsulta']);if(intern)equipo.push(['p6','Interconsulta']);
-    const desdeEq=iso(day(-100+i*3));
+    const desdeEq=iso(day(-170+i*5));
     const dg=DIAGS[i%DIAGS.length];
     return {id:'pa'+(i+1),nombre:n[0],apellido:n[1],dni:String(30000000+Math.floor(rnd()*14000000)),nac:(1968+Math.floor(rnd()*38))+'-0'+(1+Math.floor(rnd()*9))+'-1'+Math.floor(rnd()*9),
       ooss:i===17?'Sancor Salud':ooss[i%ooss.length],afiliado:String(100000+Math.floor(rnd()*899999)),estado,modalidad:intern?'Internación':'Ambulatorio',
@@ -476,7 +478,7 @@ function seed(){
       deuda:(i%2===1),
       contactos:[{nombre:pick(['Ana','Luis','Carolina','Pedro','Silvia'])+' '+n[1],parentesco:pick(PARENTESCOS.slice(0,5)),tel:'261 '+(4000000+Math.floor(rnd()*999999)),principal:true}],
       diagnostico:estado==='Preadmisión'?null:{codigo:dg[0],texto:dg[1],desde:desdeEq,por:'Dr. Martín Aguirre'},
-      historial:[{fecha:iso(day(-120+i*3)),de:'Preadmisión',a:'Admisión',por:'Marcela Ortiz'},{fecha:iso(day(-100+i*3)),de:'Admisión',a:'En tratamiento',por:'Dra. Inés Carrizo'}].slice(0,estado==='Preadmisión'?0:estado==='Admisión'?1:2)};
+      historial:[{fecha:iso(day(-190+i*5)),de:'Preadmisión',a:'Admisión',por:'Marcela Ortiz'},{fecha:iso(day(-170+i*5)),de:'Admisión',a:'En tratamiento',por:'Dra. Inés Carrizo'}].slice(0,estado==='Preadmisión'?0:estado==='Admisión'?1:2)};
   });
   // camas
   const rooms=[{id:'h1',nombre:'Habitación 1',camas:['1A','1B']},{id:'h2',nombre:'Habitación 2',camas:['2A','2B']},{id:'h3',nombre:'Habitación 3',camas:['3A','3B','3C']},{id:'h4',nombre:'Habitación 4',camas:['4A','4B']}];
@@ -491,7 +493,9 @@ function seed(){
   const TXT_TS=['Entrevista con referente familiar. Se evalúa red de contención y se orienta sobre trámites de certificado de discapacidad.'];
   const pmap={};pats.forEach(p=>pmap[p.id]=p);
   const agendaPros=['p1','p2','p4','p3'];
-  for(let d=-21;d<=7;d++){
+  // Turnos desde el 1° del mes anterior (o 21 días, si es más), para poder prefacturar el mes que falta cerrar
+  const iniPrev=new Date(T0);iniPrev.setDate(1);iniPrev.setMonth(iniPrev.getMonth()-1);
+  for(let d=Math.min(-21,-diff(TODAY,iso(iniPrev)));d<=7;d++){
     const dt=day(d);const wd=dt.getDay();if(d===0||wd===0||wd===6)continue;
     agendaPros.forEach(pro=>{
       const mine=pats.filter(p=>p.equipo.some(e=>e.proId===pro)&&p.estado!=='Preadmisión'&&(p.estado!=='Alta'||d<-5));
@@ -594,13 +598,28 @@ function seed(){
     if(p.ooss!=='Particular')mkDoc(p,'dt5',-30,'Orden '+p.ooss+' — '+MESL[day(-30).getMonth()],'Marcela Ortiz');
     if(internados.includes(i))mkDoc(p,'dt3',-5,'Laboratorio de rutina','Enf. Carla Funes','.jpg');
   });
-  const st={pros,pats,rooms,beds,turnos,evols,grupos,sesiones,esquemas,admins,tarifario,reglas,ooss,prest,docTipos,docs,auths:[],audit:[],cerrados:[],role:'direccion',view:'hoy',pid:null,ptab:'hc'};
+  const st={pros,pats,rooms,beds,turnos,evols,grupos,sesiones,esquemas,admins,tarifario,reglas,ooss,prest,docTipos,docs,auths:[],audit:[],cierres:{},role:'direccion',view:'hoy',pid:null,ptab:'hc'};
   // autorizaciones
-  const curM=TODAY.slice(0,7);const prevD=new Date(T0);prevD.setMonth(prevD.getMonth()-1);const prevM=iso(prevD).slice(0,7);
+  // Meses de la demo: del -5 al -2 cerrados (con foto de cierre), el -1 terminado y sin cerrar,
+  // el actual en curso y el próximo con algunos pedidos hechos con anticipación.
+  const curM=TODAY.slice(0,7);const mAdd=n=>{const d=new Date(curM+'-01T00:00');d.setMonth(d.getMonth()+n);return iso(d).slice(0,7)};
+  const prevM=mAdd(-1);const finM=m=>iso(new Date(+m.slice(0,4),+m.slice(5),0));
+  const ingresoInst=p=>(p.historial[0]||{}).fecha;
+  const precio=(o,pr)=>(tarifario.find(t=>t.ooss===o&&t.prest===pr)||{}).precio;
+  for(let k=-5;k<=-2;k++){const m=mAdd(k);const rows=[];
+    pats.forEach((p,i)=>{if(!ingresoInst(p)||ingresoInst(p)>finM(m))return;
+      const mm=modulo(st,p);const pu=precio(p.ooss,mm);if(!pu)return;
+      if(p.ooss!=='Particular')st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:mm,periodo:m,autorizadas:p.modalidad==='Internación'?30:8,estado:k===-2&&i%3===0?'Presentada':'Cobrada',vence:finM(m)});
+      if(rnd()<0.1)return;
+      const ses=2+Math.floor(rnd()*7);const dias=p.modalidad==='Internación'?20+Math.floor(rnd()*11):0;
+      const cant=mm==='Día de internación'?dias:mm.startsWith('Módulo')||mm==='Admisión'||mm==='Preadmisión'?1:ses;
+      rows.push({pid:p.id,nom:p.apellido+', '+p.nombre,ooss:p.ooss,m:mm,ses,dias,cant,pu,total:pu*cant})});
+    st.cierres[m]={fecha:mAdd(k+1)+'-0'+(3+Math.floor(rnd()*4)),hora:'11:'+String(10+Math.floor(rnd()*40)),por:k%2?'Marcela Ortiz':'Dra. Inés Carrizo',rows}}
   pats.filter(p=>p.ooss!=='Particular'&&p.estado!=='Preadmisión').forEach((p,i)=>{
     const pr=modulo(st,p);
-    st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:prevM,autorizadas:p.modalidad==='Internación'?30:8,estado:i%3===0?'Presentada':'Cobrada',vence:iso(day(-diff(TODAY,prevM+'-28')))});
+    st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:prevM,autorizadas:p.modalidad==='Internación'?30:8,estado:'Autorizada',vence:finM(prevM)});
     if(p.estado==='Alta')return;
+    if(i%2===0)st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:mAdd(1),autorizadas:p.modalidad==='Internación'?30:(p.frecuencia>=3?30:20),estado:'Solicitada',vence:finM(mAdd(1)),via:'Portal OS'});
     const s=i%5===0?'Solicitada':i%7===0?'Presentada':'Autorizada';
     st.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:pr,periodo:curM,autorizadas:p.modalidad==='Internación'?30:(p.frecuencia>=3?30:20),estado:s,vence:iso(day(i%4===0?6+i%5:20+i)),via:pick(['Portal OS','Correo','Presencial'])});
   });
@@ -637,7 +656,7 @@ function modulo(st,p,detalle){
 }
 
 /* ---------- estado ---------- */
-const KEY='ronda-demo-v5';let S;
+const KEY='ronda-demo-v6';let S;
 try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):null;if(S&&(S.day!==TODAY||Date.now()-(S.seededAt||0)>4*36e5))S=null}catch(e){S=null}
 if(!S){S=seed();S.day=TODAY;S.seededAt=Date.now()}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -729,7 +748,8 @@ function metrics(){
   const asis=pas.length?Math.round(pas.filter(t=>t.estado==='presente').length/pas.length*100):0;
   const pend=S.turnos.filter(t=>t.estado==='presente'&&(!t.flujo||t.flujo==='atendido')&&mine(t)&&!S.evols.some(e=>e.turnoId===t.id));
   const vencen=S.auths.filter(a=>a.estado==='Autorizada'&&diff(a.vence,TODAY)<=15&&diff(a.vence,TODAY)>=0);
-  const solicitadas=S.auths.filter(a=>a.estado==='Solicitada');
+  // Los pedidos hechos con anticipación para meses futuros no son urgentes: no cuentan como "sin respuesta"
+  const solicitadas=S.auths.filter(a=>a.estado==='Solicitada'&&a.periodo<=TODAY.slice(0,7));
   const hN=new Date().getHours();
   const medPend=[];S.esquemas.filter(vigente).forEach(e=>e.horas.forEach(h=>{if(+h<=hN&&!S.admins.some(a=>a.eid===e.id&&a.fecha===TODAY&&a.hora===h))medPend.push({e,h})}));
   const cortos=occ().filter(([,b])=>b.autorizados-diff(TODAY,b.ingreso)<=5);
@@ -1223,44 +1243,101 @@ function vMetricas(m){
 }
 
 /* ---------- Autorizaciones ---------- */
+/* ---------- Períodos: selector de mes ---------- */
+// Autorizaciones y Prefacturación comparten el mes elegido (S.periodo). Se puede mirar 5 meses atrás y 3 adelante.
+const MES_ATRAS=5,MES_ADELANTE=3;
+const mesAdd=(m,n)=>{const d=new Date(m+'-01T00:00');d.setMonth(d.getMonth()+n);return iso(d).slice(0,7)};
+const mesNom=m=>{const s=MESL[+m.slice(5)-1]+' '+m.slice(0,4);return s[0].toUpperCase()+s.slice(1)};
+const finMes=m=>iso(new Date(+m.slice(0,4),+m.slice(5),0));
+const dmas=(s,n)=>{const d=new Date(s+'T00:00');d.setDate(d.getDate()+n);return iso(d)};
+const periodo=()=>S.periodo||TODAY.slice(0,7);
+// cerrado: tiene foto de cierre · abierto: terminó y falta cerrarlo · curso: el mes actual · futuro
+function mesEstado(m){const hoy=TODAY.slice(0,7);if(S.cierres[m])return 'cerrado';if(m<hoy)return 'abierto';if(m===hoy)return 'curso';return 'futuro'}
+function mesSel(){
+  const cur=periodo();const hoy=TODAY.slice(0,7);const ops=[];for(let i=-MES_ATRAS;i<=MES_ADELANTE;i++)ops.push(mesAdd(hoy,i));
+  const i=ops.indexOf(cur);const est=mesEstado(cur);const ci=S.cierres[cur];
+  const etiq={cerrado:ci?`<span class="tag ok">Cerrado el ${fd(ci.fecha)} por ${esc(ci.por)}</span>`:'',abierto:'<span class="tag warn">Pendiente de cierre</span>',curso:'<span class="tag pri">Mes en curso</span>',futuro:'<span class="tag">Mes futuro</span>'}[est];
+  return `<div class="messel" role="group" aria-label="Mes">
+    <button class="btn icon" data-a="mes" data-v="${ops[i-1]||''}" ${i<=0?'disabled':''} aria-label="Mes anterior">${ico('cl',17)}</button>
+    <select data-c="mes" aria-label="Elegir mes">${ops.map(m=>`<option value="${m}" ${m===cur?'selected':''}>${mesNom(m)}</option>`).join('')}</select>
+    <button class="btn icon" data-a="mes" data-v="${ops[i+1]||''}" ${i>=ops.length-1?'disabled':''} aria-label="Mes siguiente">${ico('cr',17)}</button>
+    ${etiq}${cur!==hoy?`<button class="btn sm ghost" data-a="mes" data-v="${hoy}">Ir al mes actual</button>`:''}</div>`;
+}
+
 function vAuth(){
-  const cur=TODAY.slice(0,7);const fo=S.aOoss||'';
+  const cur=periodo();const est=mesEstado(cur);const fo=S.aOoss||'';
   const list=S.auths.filter(a=>a.periodo===cur&&(!fo||a.ooss===fo));
   const edit=['direccion','administracion'].includes(S.role);
-  return `<div class="head"><div><h1>Autorizaciones</h1><p>${MESL[+cur.slice(5)-1]} ${cur.slice(0,4)} · seguimiento de pedidos a obras sociales hasta el cobro</p></div>
+  // En un mes cerrado lo presentado ya no cambia: solo se registra el cobro
+  const puedeAvanzar=a=>edit&&(est!=='cerrado'||a.estado==='Presentada');
+  // Meses futuros: pacientes que todavía no tienen pedido para ese mes
+  const aPedir=est==='futuro'?S.pats.filter(p=>p.ooss!=='Particular'&&!['Preadmisión','Alta','Baja'].includes(p.estado)&&(!fo||p.ooss===fo)&&!S.auths.some(a=>a.pid===p.id&&a.periodo===cur)):[];
+  const sub={cerrado:'Período cerrado: lo presentado ya no cambia. El cobro se sigue registrando.',abierto:'El mes terminó y falta cerrar la prefacturación.',
+    curso:'Seguimiento de pedidos a obras sociales hasta el cobro.',futuro:'Renovaciones a pedir y pedidos hechos con anticipación.'}[est];
+  const colPedir=est==='futuro'?`<div class="col"><h3><span>A pedir</span><span class="faint">${aPedir.length}</span></h3>
+    ${aPedir.map(p=>`<div class="card"><b style="cursor:pointer" data-a="openp" data-p="${p.id}" data-tab="datos">${esc(pname(p))}</b><div class="small muted">${esc(p.ooss)} · ${esc(modulo(S,p))}</div>
+      ${edit?`<button class="btn sm" data-a="pedirauth" data-p="${p.id}">Registrar pedido</button>`:''}</div>`).join('')||'<div class="small faint" style="padding:6px">Todos tienen su pedido</div>'}</div>`:'';
+  return `<div class="head"><div><h1>Autorizaciones</h1><p>${sub}</p></div>
     <div class="chips">${['',...S.ooss.filter(o=>o!=='Particular')].map(o=>`<button class="chip" data-a="aoo" data-v="${o}" aria-pressed="${fo===o}">${o||'Todas'}</button>`).join('')}</div></div>
-  <div class="kanban">${AUTH_ST.map(st=>{const cs=list.filter(a=>a.estado===st);return `<div class="col"><h3><span>${st}</span><span class="faint">${cs.length}</span></h3>
+  ${mesSel()}
+  <div class="kanban"${colPedir?' style="grid-template-columns:repeat(5,minmax(220px,1fr))"':''}>${colPedir}${AUTH_ST.map(st=>{const cs=list.filter(a=>a.estado===st);return `<div class="col"><h3><span>${st}</span><span class="faint">${cs.length}</span></h3>
     ${cs.map(a=>{const p=pat(a.pid);const used=S.turnos.filter(t=>t.pid===a.pid&&t.fecha.slice(0,7)===a.periodo&&t.estado==='presente').length;const dv=diff(a.vence,TODAY);const nx=AUTH_ST[AUTH_ST.indexOf(st)+1];
       return `<div class="card"><b style="cursor:pointer" data-a="openp" data-p="${p.id}" data-tab="datos">${esc(pname(p))}</b><div class="small muted">${esc(a.ooss)} · ${esc(a.prest)}</div>
-      ${p.modalidad==='Ambulatorio'&&st!=='Solicitada'?`<div class="row small"><div class="bar ${used>=a.autorizadas?'danger':''}" style="flex:1"><i style="width:${Math.min(100,used/a.autorizadas*100)}%"></i></div>${used}/${a.autorizadas}</div>`:''}
-      ${st==='Autorizada'?`<span class="tag ${dv<=15?'warn':''}">Vence ${fd(a.vence)}</span>`:''}
-      ${edit&&nx?`<button class="btn sm" data-a="advauth" data-id="${a.id}">Pasar a ${nx.toLowerCase()}</button>`:''}</div>`}).join('')||'<div class="small faint" style="padding:6px">Sin pedidos</div>'}</div>`}).join('')}</div>`;
+      ${p.modalidad==='Ambulatorio'&&st!=='Solicitada'&&est!=='futuro'&&used?`<div class="row small"><div class="bar ${used>=a.autorizadas?'danger':''}" style="flex:1"><i style="width:${Math.min(100,used/a.autorizadas*100)}%"></i></div>${used}/${a.autorizadas}</div>`:''}
+      ${st==='Autorizada'&&dv>=0?`<span class="tag ${dv<=15?'warn':''}">Vence ${fd(a.vence)}</span>`:''}
+      ${nx&&puedeAvanzar(a)?`<button class="btn sm" data-a="advauth" data-id="${a.id}">Pasar a ${nx.toLowerCase()}</button>`:''}</div>`}).join('')||'<div class="small faint" style="padding:6px">Sin pedidos</div>'}</div>`}).join('')}</div>`;
 }
 const authTag=s=>`<span class="tag ${s==='Cobrada'?'ok':s==='Solicitada'?'warn':'pri'}">${s}</span>`;
 
 /* ---------- Prefacturación ---------- */
-function vFact(){
-  const cur=TODAY.slice(0,7);const closed=S.cerrados.includes(cur);
+// Prefacturación de un mes. Cerrado: la foto guardada al cerrar, que no cambia.
+// Abierto o en curso: se calcula con la asistencia real, las reglas de cobertura y el tarifario.
+// Futuro: estimación con la frecuencia semanal de cada paciente.
+function prefact(m){
+  const est=mesEstado(m);
+  if(est==='cerrado')return S.cierres[m].rows;
   const price=(o,pr)=>(S.tarifario.find(t=>t.ooss===o&&t.prest===pr)||{}).precio;
-  const rows=S.pats.map(p=>{
-    const ses=S.turnos.filter(t=>t.pid===p.id&&t.fecha.slice(0,7)===cur&&t.estado==='presente').length;
-    const bed=occ().find(([,b])=>b.pid===p.id);
-    const dias=bed?Math.min(diff(TODAY,bed[1].ingreso),new Date(T0).getDate()):0;
-    if(!ses&&!dias)return null;const m=modulo(S,p);const pu=price(p.ooss,m);
-    const cant=m==='Día de internación'?dias:m.startsWith('Módulo')||m==='Admisión'||m==='Preadmisión'?1:ses;
-    return {p,m,ses,dias,cant,pu,total:pu?pu*cant:0};
+  const ini=m+'-01',fin=finMes(m);
+  return S.pats.map(p=>{
+    const bed=occ().find(([,b])=>b.pid===p.id);let ses=0,dias=0;
+    if(est==='futuro'){
+      if(['Preadmisión','Alta','Baja'].includes(p.estado))return null;
+      ses=Math.round((p.frecuencia||1)*4.3);if(bed)dias=diff(dmas(fin,1),ini);
+    }else{
+      ses=S.turnos.filter(t=>t.pid===p.id&&t.fecha>=ini&&t.fecha<=fin&&t.estado==='presente').length;
+      // Días internado dentro del mes: desde el ingreso (o el 1°) hasta hoy (o fin de mes)
+      if(bed){const desde=bed[1].ingreso>ini?bed[1].ingreso:ini;const hasta=TODAY<=fin?TODAY:dmas(fin,1);dias=Math.max(0,diff(hasta,desde))}
+    }
+    if(!ses&&!dias)return null;
+    const mm=modulo(S,p);const pu=price(p.ooss,mm);
+    const cant=mm==='Día de internación'?dias:mm.startsWith('Módulo')||mm==='Admisión'||mm==='Preadmisión'?1:ses;
+    return {pid:p.id,nom:pname(p),ooss:p.ooss,m:mm,ses,dias,cant,pu,total:pu?pu*cant:0};
   }).filter(Boolean);
-  const byO={};rows.forEach(r=>{(byO[r.p.ooss]=byO[r.p.ooss]||[]).push(r)});
+}
+function vFact(){
+  const cur=periodo();const est=mesEstado(cur);const ci=S.cierres[cur];
+  const rows=prefact(cur);
+  const byO={};rows.forEach(r=>{(byO[r.ooss]=byO[r.ooss]||[]).push(r)});
   const open=S.fOpen||'';
   const tot=rows.reduce((s,r)=>s+r.total,0);const nd=rows.filter(r=>r.m==='No definido');
-  return `<div class="head"><div><h1>Prefacturación</h1><p>${MESL[+cur.slice(5)-1]} ${cur.slice(0,4)} · calculada a partir de la asistencia, las reglas de cobertura y el tarifario vigente</p></div>
-    <div class="row"><button class="btn" data-a="soon" data-m="La exportación genera un archivo por obra social con el formato que cada una exige.">Exportar</button>${closed?'<span class="tag ok">Período cerrado</span>':`<button class="btn pri" data-a="cerrar" ${nd.length?'disabled title="Resolvé los pacientes sin regla antes de cerrar"':''}>Cerrar período</button>`}</div></div>
-  ${nd.length?`<div class="banner" style="background:var(--warn-soft)"><span>${nd.length} paciente${nd.length>1?'s':''} sin regla de facturación: ${nd.map(r=>esc(pname(r.p))).join(', ')}. No se puede cerrar el período hasta resolverlo.</span><button class="btn sm" data-a="gocfg" data-t="reglas">Revisar reglas</button></div>`:''}
-  <div class="daystrip"><div><b>${money(tot)}</b><span>total a presentar</span></div><div><b>${rows.length}</b><span>pacientes con prestaciones</span></div><div><b>${Object.keys(byO).length}</b><span>obras sociales</span></div><div><b>${rows.reduce((s,r)=>s+r.ses,0)}</b><span>sesiones con asistencia</span></div></div>
-  <div class="panel"><div class="tablewrap"><table><thead><tr><th>Obra social</th><th>Pacientes</th><th>Importe</th><th></th></tr></thead><tbody>
+  const sub={cerrado:`Es la foto del cierre: no cambia aunque después cambien los turnos, las reglas o los precios.`,
+    abierto:'El mes terminó y falta cerrarlo. Calculada a partir de la asistencia, las reglas de cobertura y el tarifario vigente.',
+    curso:'Mes en curso: se recalcula sola con cada turno atendido. Se cierra cuando termina el mes.',
+    futuro:'Estimación a partir de la frecuencia semanal de cada paciente y los precios de hoy.'}[est];
+  const exportar=`<button class="btn" data-a="soon" data-m="La exportación genera un archivo por obra social con el formato que cada una exige.">Exportar</button>`;
+  const cerrar=est==='cerrado'?'':est==='curso'?'<button class="btn pri" disabled title="Se cierra cuando termina el mes">Cerrar período</button>'
+    :est==='abierto'?`<button class="btn pri" data-a="cerrar" data-m="${cur}" ${nd.length?'disabled title="Resolvé los pacientes sin regla antes de cerrar"':''}>Cerrar ${esc(mesNom(cur).toLowerCase())}</button>`:'';
+  const fut=est==='futuro';
+  return `<div class="head"><div><h1>Prefacturación</h1><p>${sub}</p></div>
+    <div class="row">${fut?'':exportar}${cerrar}</div></div>
+  ${mesSel()}
+  ${fut?`<div class="banner" style="background:var(--warn-soft)"><span><b>Estimado, no es una prefacturación.</b> Cambia con la asistencia real, las altas y los ingresos. No se puede exportar ni cerrar.</span></div>`:''}
+  ${nd.length&&est!=='cerrado'?`<div class="banner" style="background:var(--warn-soft)"><span>${nd.length} paciente${nd.length>1?'s':''} sin regla de facturación: ${nd.map(r=>esc(r.nom)).join(', ')}. ${fut?'Conviene resolverlo antes de que llegue el mes.':'No se puede cerrar el período hasta resolverlo.'}</span><button class="btn sm" data-a="gocfg" data-t="reglas">Revisar reglas</button></div>`:''}
+  <div class="daystrip"><div><b>${money(tot)}</b><span>${fut?'total estimado':est==='cerrado'?'total presentado':'total a presentar'}</span></div><div><b>${rows.length}</b><span>pacientes con prestaciones</span></div><div><b>${Object.keys(byO).length}</b><span>obras sociales</span></div><div><b>${rows.reduce((s,r)=>s+r.ses,0)}</b><span>${fut?'sesiones estimadas':'sesiones con asistencia'}</span></div></div>
+  ${rows.length?`<div class="panel"><div class="tablewrap"><table><thead><tr><th>Obra social</th><th>Pacientes</th><th>Importe${fut?' estimado':''}</th><th></th></tr></thead><tbody>
   ${Object.entries(byO).sort((a,b)=>b[1].length-a[1].length).map(([o,rs])=>`<tr class="click" data-a="fopen" data-o="${esc(o)}"><td><b>${esc(o)}</b></td><td>${rs.length}</td><td>${money(rs.reduce((s,r)=>s+r.total,0))}</td><td class="small muted">${open===o?'Ocultar':'Ver detalle'}</td></tr>
-    ${open===o?rs.map(r=>`<tr><td class="small" style="padding-left:30px">${esc(pname(r.p))}</td><td class="small">${r.m==='No definido'?'<span class="tag danger">No definido</span>':esc(r.m)}</td><td class="small">${r.pu?r.cant+' × '+money(r.pu):'—'}</td><td class="small">${money(r.total)}</td></tr>`).join(''):''}`).join('')}
-  </tbody></table></div></div>`;
+    ${open===o?rs.map(r=>`<tr><td class="small" style="padding-left:30px">${esc(r.nom)}</td><td class="small">${r.m==='No definido'?'<span class="tag danger">No definido</span>':esc(r.m)}</td><td class="small">${r.pu?r.cant+' × '+money(r.pu):'—'}</td><td class="small">${money(r.total)}</td></tr>`).join(''):''}`).join('')}
+  </tbody></table></div></div>`:'<div class="empty">No hay prestaciones para este mes.</div>'}`;
 }
 
 /* ---------- Configuración ---------- */
@@ -1837,7 +1914,17 @@ const A={
     audit('Corrigió la hora de una toma',e.med+' — '+pname(pat(e.pid))+': '+(a.adm||a.ts)+' → '+v+' ('+mot+')');
     close();render();toast('Hora corregida')},
   advauth:d=>{const a=S.auths.find(x=>x.id===d.id);const nx=AUTH_ST[AUTH_ST.indexOf(a.estado)+1];audit('Autorización '+a.estado.toLowerCase()+' → '+nx.toLowerCase(),a.ooss+' — '+pname(pat(a.pid)));a.estado=nx;render();toast('Autorización '+nx.toLowerCase())},
-  cerrar:()=>{S.cerrados.push(TODAY.slice(0,7));audit('Cerró período de facturación',TODAY.slice(0,7));render();toast('Período cerrado. Ya no se puede modificar.')},
+  // Cerrar guarda la foto de la prefacturación y presenta las autorizaciones del mes
+  cerrar:d=>{const m=d.m;if(mesEstado(m)!=='abierto')return;const rows=prefact(m);
+    if(rows.some(r=>r.m==='No definido')){toast('Resolvé los pacientes sin regla antes de cerrar');return}
+    S.cierres[m]={fecha:TODAY,hora:nowHM(),por:R().user,rows};
+    const pres=S.auths.filter(a=>a.periodo===m&&a.estado==='Autorizada');pres.forEach(a=>a.estado='Presentada');
+    audit('Cerró período de facturación',mesNom(m)+' — '+rows.length+' pacientes, '+money(rows.reduce((s,r)=>s+r.total,0))+(pres.length?' · '+pres.length+' autorizaciones pasaron a presentada':''));
+    render();toast(mesNom(m)+' cerrado. Ya no se puede modificar.')},
+  mes:d=>{if(!d.v)return;S.periodo=d.v;S.fOpen='';render()},
+  pedirauth:d=>{const p=pat(d.p);const m=periodo();
+    S.auths.push({id:uid('au'),pid:p.id,ooss:p.ooss,prest:modulo(S,p),periodo:m,autorizadas:p.modalidad==='Internación'?30:(p.frecuencia>=3?30:20),estado:'Solicitada',vence:finMes(m),via:'Portal OS'});
+    audit('Registró pedido de autorización',p.ooss+' — '+pname(p)+' · '+mesNom(m));render();toast('Pedido registrado')},
   delrule:d=>{S.reglas=S.reglas.filter(r=>r.id!==d.id);audit('Eliminó regla de cobertura',d.id);render();toast('Regla quitada. Revisá la prefacturación.')},
   newrule:()=>modal('Nueva regla de cobertura',`<div class="fgrid"><label class="f">Obra social<select id="rO"><option value="">Cualquiera</option>${S.ooss.map(o=>`<option>${o}</option>`).join('')}</select></label>
     <label class="f">Estado del paciente<select id="rE"><option value="">Cualquiera</option>${ESTADOS.map(e=>`<option>${e}</option>`).join('')}</select></label>
@@ -1851,6 +1938,7 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape')close();if((ev.key
 document.addEventListener('input',ev=>{const c=ev.target.dataset.c;if(c==='pq'){S.pf.q=ev.target.value;const pos=ev.target.selectionStart;render();const i=$('[data-c=pq]');i.focus();i.setSelectionRange(pos,pos)}});
 document.addEventListener('change',ev=>{if(ev.target.dataset.c==='agpro'){S.agPro=ev.target.value;render()}if(ev.target.dataset.c==='pnpro'){S.pnpro=ev.target.value;render()}
   if(ev.target.dataset.c==='docfile')setUp(ev.target.files[0]);
+  if(ev.target.dataset.c==='mes'){S.periodo=ev.target.value;S.fOpen='';render()}
   if(ev.target.dataset.c==='tipohc'){const t=docTipo(ev.target.dataset.id);t.hc=ev.target.checked;
     audit('Cambió tipo de documento',t.nombre+': '+(t.hc?'forma parte':'no forma parte')+' de la historia clínica');render()}
   // Los pacientes particulares no tienen numero de afiliado

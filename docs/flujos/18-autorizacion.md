@@ -82,11 +82,24 @@ flowchart TD
 
 El consumo **se calcula**, no se escribe: era una de las fuentes de error de las planillas.
 
+## Mirar otros meses
+
+La pantalla muestra un mes por vez, con un selector (‹ Octubre 2026 ›) que comparte con Prefacturación. Se puede ir hasta 5 meses atrás y 3 adelante.
+
+| Mes | Qué se ve | Qué se puede hacer |
+|---|---|---|
+| Cerrado | Las autorizaciones como quedaron al cerrar la prefacturación | **Solo registrar el cobro** (Presentada → Cobrada) |
+| Terminado, sin cerrar | Las autorizaciones del mes, todavía Autorizadas | Avanzar estados. Al cerrar la prefacturación pasan a Presentada |
+| En curso | El tablero de siempre | Todo |
+| Futuro | Una columna **A pedir**: pacientes en tratamiento con obra social que todavía no tienen pedido para ese mes. Y los pedidos hechos con anticipación | Registrar el pedido (queda Solicitada) |
+
+Los pedidos de meses futuros no cuentan como "sin respuesta" en los avisos: todavía no son urgentes.
+
 ## Caminos que la base impide
 
 ```mermaid
 flowchart LR
-    A["Autorización de un período cerrado"] -->|se intenta cambiar| B["🔒 Rechazado"]
+    A["Autorización de un período cerrado"] -->|se intenta cambiar prestación,<br/>cantidad o estado| B["🔒 Rechazado.<br/>Solo se registra el cobro"]
     C["Se intenta pasar de Solicitada a Cobrada"] --> D["🔒 Rechazado: falta Autorizada y Presentada"]
     E["Se intenta consumir más de lo autorizado"] --> F["⚠ Se permite, pero queda marcado<br/>como exceso a resolver"]
 
