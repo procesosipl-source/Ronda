@@ -97,4 +97,28 @@ Se registra: ver la evolución, firmarla, agregar adenda, exportar la historia c
 
 ## En camino
 
-- Borrador armado por IA desde notas o audio — etapa 8.4. **La IA propone; el profesional revisa y firma. La IA nunca firma.**
+- Borrador armado por IA desde notas o audio — etapa 8.4. **La IA propone; el profesional revisa y firma. La IA nunca firma.** Se puede recorrer como **vista previa** en el prototipo (Nueva evolución → Dictar con IA):
+
+```mermaid
+flowchart TD
+    N["Nueva evolución"] --> D["Dictar con IA"]
+    D --> C{"¿El paciente aceptó<br/>que se use IA en esta sesión?"}
+    C -->|No| NO["🔒 No se puede dictar.<br/>Se escribe a mano"]
+    C -->|Sí| REG["Se registra el consentimiento"]
+    REG --> G["El profesional dicta.<br/>La IA arma un borrador ordenado"]
+    G --> B["El borrador queda en el campo<br/>de texto, marcado como hecho con IA"]
+    B --> R["El profesional lo revisa y lo corrige"]
+    R --> T{"¿Tildó 'Revisé el borrador'?"}
+    T -->|No| NOF["🔒 No se puede firmar"]
+    T -->|Sí| F["Firma el profesional"]
+    F --> HC["En la HC y en el PDF:<br/>'Borrador asistido por IA,<br/>revisado por quien firma'"]
+
+    classDef aud fill:#FFF1E6,stroke:#B8520A,color:#B8520A
+    classDef bloq fill:#FDECEA,stroke:#B42318,color:#B42318
+    class REG,F aud
+    class NO,NOF bloq
+```
+
+  - El borrador se puede guardar sin firmar. Para firmarlo después, se vuelve a pedir la confirmación de que se revisó.
+  - La evolución guarda que su origen fue un borrador con IA (`origin = ai_draft`), además de quién la firmó. Ese dato no se puede borrar.
+  - Antes de construirlo hace falta la consulta legal del contexto §8: consentimiento del paciente, condiciones del proveedor de IA sobre uso y retención de datos, y transferencia internacional. Grabar la sesión es opcional y necesita consentimiento explícito en cada sesión.

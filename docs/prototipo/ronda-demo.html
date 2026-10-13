@@ -920,11 +920,11 @@ function hcTab(p){
     const pr=pro(e.pro);
     const mineDraft=!e.firmada&&R().proId===e.pro;
     h+=`<article class="entry"><span class="rail" style="background:var(${DISC[e.disc]})"></span><div>
-      <div class="meta"><b>${esc(e.tipo)}</b><span>${e.hora} hs</span><span>${esc(pr.nombre)}</span>${e.firmada?'':'<span class="tag warn">Borrador</span>'}</div>
+      <div class="meta"><b>${esc(e.tipo)}</b><span>${e.hora} hs</span><span>${esc(pr.nombre)}</span>${e.firmada?'':'<span class="tag warn">Borrador</span>'}${e.ia?'<span class="tag prox">Borrador con IA · vista previa</span>':''}</div>
       ${e.vitals?`<div class="vitals"><span>TA ${e.vitals.ta}</span><span>T° ${e.vitals.t}</span><span>FC ${e.vitals.fc}</span><span>SpO₂ ${e.vitals.spo2}%</span></div>`:''}
       <div class="text">${esc(e.texto)}</div>
       ${e.addenda.map(a=>`<div class="addenda"><small>Adenda · ${fd(a.fecha)} ${a.hora} · ${esc(a.por)}</small>${esc(a.texto)}</div>`).join('')}
-      <div class="sig">${e.firmada?`<span>Firmado por ${esc(pr.nombre)} · ${pr.mat} · huella ${hash(e.id+e.texto)}</span>`:''}
+      <div class="sig">${e.firmada?`<span>Firmado por ${esc(pr.nombre)} · ${pr.mat} · huella ${hash(e.id+e.texto)}</span>`:''}${e.ia&&e.firmada?'<span>Borrador asistido por IA, revisado por quien firma</span>':''}
       ${e.firmada&&R().proId===e.pro?`<button class="btn sm ghost" data-a="addenda" data-e="${e.id}">Agregar adenda</button>`:''}
       ${mineDraft?`<button class="btn sm" data-a="editev" data-e="${e.id}">Continuar borrador</button>`:''}</div>
     </div></article>`;return h}).join('');
@@ -1419,9 +1419,20 @@ const vpTag='<span class="tag prox" title="Vista previa: todavía no está dispo
 const vpHead=k=>`<div class="preview-h">${vpTag}<span>Así va a funcionar: <b>${PROX[k][0]}</b>. Llega en la ${PROX[k][2]}; hoy no está disponible.</span></div>`;
 const vpBtn=(k,t,a,attrs)=>`<button class="btn sm prox" data-a="${a}" ${attrs||''} title="Vista previa · ${esc(PROX[k][0])} · ${PROX[k][2]}">${t}</button>`;
 const auditVP=(acc,ent)=>audit('[Vista previa] '+acc,ent);
+// Vista previa de IA clínica (etapa 8.4). La IA propone un borrador; el profesional lo revisa y lo firma. Nunca firma sola.
+let _iaT=null,_iaSeg=0,_iaDraft=false;
+function iaBorrador(p){
+  const n=p.nombre;const d=pro(R().proId).disc;
+  const T={
+    'Psicología':`Presentación: ${n} llega puntual, con ánimo bajo y discurso coherente. Refiere que durmió mal varias noches de la semana.\n\nLo trabajado: se revisa el registro diario acordado. Se identifican dos situaciones del trabajo que dispararon ansiedad y se practica respiración diafragmática.\n\nAcuerdos: continuar con el registro diario y sumar una actividad placentera por día.\n\nPróximos pasos: revisar el registro en la próxima sesión.`,
+    'Psiquiatría':`Presentación: ${n} concurre a control. Refiere buena tolerancia a la medicación, sin efectos adversos. Sueño conservado.\n\nExamen: lúcido, orientado, ánimo eutímico, sin ideas de muerte.\n\nIndicación: se mantiene el esquema vigente.\n\nPróximo control: en 15 días.`,
+    'Trabajo social':`Entrevista con ${n} y su referente familiar. Se revisa la red de contención y los trámites pendientes.\n\nSituación: cuenta con apoyo de su familia para asistir a las sesiones. Falta presentar la documentación del certificado de discapacidad.\n\nAcuerdos: el referente acerca la documentación la semana próxima.`};
+  return T[d]||`Presentación: ${n} concurre a la sesión.\n\nLo trabajado: …\n\nAcuerdos: …`;
+}
 const proxTag=k=>`<span class="tag prox" data-a="soon" data-m="${esc(PROX[k][1])}" role="button" tabindex="0" title="${esc(PROX[k][1])}">${PROX[k][0]} · Próximamente</span>`;
 const proxBtn=(k,t)=>`<button class="btn sm prox" data-a="soon" data-m="${esc(PROX[k][1])}">${t}</button>`;
 IC.up='<path d="M12 15V4M7 9l5-5 5 5M4 15v5h16v-5"/>';
+IC.mic='<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>';
 IC.doc='<path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/>';
 IC.camara='<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>';
 const ico=(n,sz=18,sw=1.8)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
@@ -1565,7 +1576,7 @@ function esqModal(e,pid){
 }
 
 function modal(title,body,foot){$('#modal').classList.remove('wide');$('#modal').innerHTML=`<div class="mh"><h2>${title}</h2><button class="btn sm ghost" data-a="close" aria-label="Cerrar">Cerrar</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#scrim').classList.add('open');const f=$('#modal').querySelector('input,textarea,select');if(f)f.focus()}
-const close=()=>{$('#scrim').classList.remove('open');$('#modal').classList.remove('wide')};
+const close=()=>{$('#scrim').classList.remove('open');$('#modal').classList.remove('wide');clearInterval(_iaT)};
 
 /* ---------- acciones ---------- */
 const A={
@@ -1871,18 +1882,34 @@ const A={
      ${canEv&&t.estado==='presente'&&!ev?`<button class="btn pri" data-a="newev" data-p="${p.id}" data-t="${t.id}">Escribir evolución</button>`:''}
      ${canSee(p.id)?`<button class="btn" data-a="openp" data-p="${p.id}">Abrir ficha</button>`:''}`)},
   mark:d=>{const t=S.turnos.find(x=>x.id===d.t);t.estado=d.v;if(t.fecha===TODAY){if(d.v==='presente'){t.flujo='espera';t.arr=Date.now()}else t.flujo='ausente'}audit('Registró asistencia ('+d.v+')',pname(pat(t.pid)));close();render();toast('Asistencia registrada')},
-  newev:d=>{const p=pat(d.p);const t=d.t?S.turnos.find(x=>x.id===d.t):null;
+  newev:d=>{const p=pat(d.p);const t=d.t?S.turnos.find(x=>x.id===d.t):null;_iaDraft=false;
     modal('Evolución — '+esc(pname(p)),`<p class="small muted">${t?esc(t.tipo)+' del '+fd(t.fecha)+' · '+t.hora+' hs':'Registro sin turno asociado · hoy'}</p>
       <label class="f">Evolución<textarea id="mE" placeholder="Qué se trabajó, cómo se presentó el paciente, acuerdos y próximos pasos."></textarea></label>
       <p class="small faint">Al firmar, la evolución queda cerrada. Cualquier corrección posterior se agrega como adenda.</p>
-      <div class="row" style="margin-top:8px">${proxBtn('ia','Dictar y armar borrador')}${proxBtn('receta','Prescribir')}</div>`,
+      <div class="row" style="margin-top:8px">${vpBtn('ia',ico('mic',15)+' Dictar con IA','iadict',`data-p="${p.id}"`)}${proxBtn('receta','Prescribir')}</div><div id="iaBox"></div>`,
       `<button class="btn" data-a="saveev" data-p="${p.id}" data-t="${d.t||''}" data-s="0">Guardar borrador</button><button class="btn pri" data-a="saveev" data-p="${p.id}" data-t="${d.t||''}" data-s="1">Firmar evolución</button>`)},
   saveev:d=>{const txt=$('#mE').value.trim();if(!txt){toast('Escribí la evolución antes de guardar');return}
+    // Un borrador hecho con IA no se firma sin que el profesional confirme que lo revisó
+    if(_iaDraft&&d.s==='1'&&!($('#iaRev')||{}).checked){toast('Tildá "Revisé el borrador" antes de firmar. La IA no firma.');return}
     const t=d.t?S.turnos.find(x=>x.id===d.t):null;const me=pro(R().proId);
-    S.evols.push({id:uid('e'),pid:d.p,pro:me.id,fecha:t?t.fecha:TODAY,hora:t?t.hora:nowHM(),tipo:t?t.tipo:'Evolución',disc:me.disc,texto:txt,firmada:d.s==='1',turnoId:t?t.id:null,addenda:[]});
-    audit(d.s==='1'?'Firmó evolución':'Guardó borrador de evolución',pname(pat(d.p)));close();if(S.view!=='hoy'){S.view='paciente';S.pid=d.p;S.ptab='hc'}render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
-  editev:d=>{const e=S.evols.find(x=>x.id===d.e);modal('Continuar borrador',`<label class="f">Evolución<textarea id="mE">${esc(e.texto)}</textarea></label>`,`<button class="btn" data-a="upev" data-e="${e.id}" data-s="0">Guardar</button><button class="btn pri" data-a="upev" data-e="${e.id}" data-s="1">Firmar evolución</button>`)},
-  upev:d=>{const e=S.evols.find(x=>x.id===d.e);e.texto=$('#mE').value;if(d.s==='1'){e.firmada=true;audit('Firmó evolución',pname(pat(e.pid)))}close();render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
+    S.evols.push({id:uid('e'),pid:d.p,pro:me.id,fecha:t?t.fecha:TODAY,hora:t?t.hora:nowHM(),tipo:t?t.tipo:'Evolución',disc:me.disc,texto:txt,firmada:d.s==='1',turnoId:t?t.id:null,addenda:[],ia:_iaDraft?{vp:true}:null});
+    audit(d.s==='1'?(_iaDraft?'Firmó evolución (borrador con IA revisado)':'Firmó evolución'):'Guardó borrador de evolución',pname(pat(d.p)));_iaDraft=false;close();if(S.view!=='hoy'){S.view='paciente';S.pid=d.p;S.ptab='hc'}render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
+  editev:d=>{const e=S.evols.find(x=>x.id===d.e);modal('Continuar borrador',`<label class="f">Evolución<textarea id="mE">${esc(e.texto)}</textarea></label>${e.ia?`<div class="preview">${vpHead('ia')}<div class="preview-b una"><label class="row" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" id="iaRev"><span class="small">Revisé el borrador hecho con IA y lo corregí si hacía falta</span></label></div></div>`:''}`,`<button class="btn" data-a="upev" data-e="${e.id}" data-s="0">Guardar</button><button class="btn pri" data-a="upev" data-e="${e.id}" data-s="1">Firmar evolución</button>`)},
+  upev:d=>{const e=S.evols.find(x=>x.id===d.e);if(e.ia&&d.s==='1'&&!$('#iaRev').checked){toast('Tildá "Revisé el borrador" antes de firmar. La IA no firma.');return}e.texto=$('#mE').value;if(d.s==='1'){e.firmada=true;audit(e.ia?'Firmó evolución (borrador con IA revisado)':'Firmó evolución',pname(pat(e.pid)))}close();render();toast(d.s==='1'?'Evolución firmada':'Borrador guardado')},
+  iadict:d=>{const p=pat(d.p);
+    $('#iaBox').innerHTML=`<div class="preview" style="margin-top:12px">${vpHead('ia')}<div class="preview-b una">
+      <label class="row" style="gap:8px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="iaCons" style="margin-top:3px"><span class="small">${esc(p.nombre)} aceptó que se use IA para esta sesión. El consentimiento queda registrado.</span></label>
+      <div class="row"><button class="btn sm pri" data-a="iarec" data-p="${p.id}">${ico('mic',15)} Empezar a dictar</button><span class="small faint">Contá la sesión con tus palabras. La IA arma un borrador; vos lo revisás y lo firmás.</span></div></div></div>`},
+  iarec:d=>{if(!$('#iaCons').checked){toast('Sin el consentimiento del paciente no se puede usar IA');return}
+    auditVP('Registró consentimiento para usar IA en la sesión',pname(pat(d.p)));
+    $('#iaBox .preview-b').innerHTML=`<div class="row"><span class="tag danger">● Grabando <span id="iaSeg">0:00</span></span><button class="btn sm" data-a="iastop" data-p="${d.p}">Terminar dictado</button></div>
+      <p class="small faint">En la demo no se graba nada: el borrador que aparece es ficticio.</p>`;
+    _iaSeg=0;clearInterval(_iaT);_iaT=setInterval(()=>{_iaSeg++;const s=$('#iaSeg');if(s)s.textContent=Math.floor(_iaSeg/60)+':'+String(_iaSeg%60).padStart(2,'0')},1000)},
+  iastop:d=>{clearInterval(_iaT);const p=pat(d.p);const ta=$('#mE');
+    ta.value=(ta.value.trim()?ta.value.trim()+'\n\n':'')+iaBorrador(p);_iaDraft=true;
+    $('#iaBox .preview-b').innerHTML=`<div class="banner" style="background:var(--warn-soft);margin:0"><span><b>Borrador hecho con IA.</b> Revisalo y corregilo antes de firmar: lo que firmes es tuyo.</span></div>
+      <label class="row" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" id="iaRev"><span class="small">Revisé el borrador y lo corregí si hacía falta</span></label>`;
+    auditVP('Generó un borrador de evolución con IA',pname(p));ta.focus();ta.setSelectionRange(0,0);ta.scrollTop=0},
   addenda:d=>{modal('Agregar adenda',`<p class="small muted">La evolución original no se modifica. La adenda queda debajo, con tu firma, fecha y hora.</p><label class="f">Adenda<textarea id="mE"></textarea></label>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveadd" data-e="${d.e}">Firmar adenda</button>`)},
   saveadd:d=>{const v=$('#mE').value.trim();if(!v)return;const e=S.evols.find(x=>x.id===d.e);e.addenda.push({fecha:TODAY,hora:nowHM(),por:R().user,texto:v});audit('Agregó adenda',pname(pat(e.pid)));close();render();toast('Adenda firmada')},
   vitals:(d,el,ev)=>{if(ev)ev.stopPropagation();const p=pat(d.p);
@@ -1898,7 +1925,7 @@ const A={
     const items=ev.map(e=>({e,k:e.fecha+e.hora})).concat(dc.map(doc=>({doc,k:doc.fecha+docHora(doc)}))).sort((a,b)=>a.k.localeCompare(b.k));
     let nAnexo=0;const anexos=[];
     const html=items.map(({e,doc})=>{
-      if(e)return `<div class="pe"><div class="pm">${fd(e.fecha)} ${e.hora} hs · ${esc(e.tipo)} · ${esc(pro(e.pro).nombre)} (${pro(e.pro).mat})</div><div>${esc(e.texto)}</div>${e.addenda.map(a=>`<div class="pm">Adenda ${fd(a.fecha)}: ${esc(a.texto)}</div>`).join('')}<div class="pm">Firma electrónica · huella ${hash(e.id+e.texto)}</div></div>`;
+      if(e)return `<div class="pe"><div class="pm">${fd(e.fecha)} ${e.hora} hs · ${esc(e.tipo)} · ${esc(pro(e.pro).nombre)} (${pro(e.pro).mat})</div><div>${esc(e.texto)}</div>${e.addenda.map(a=>`<div class="pm">Adenda ${fd(a.fecha)}: ${esc(a.texto)}</div>`).join('')}${e.ia?'<div class="pm">Borrador asistido por IA (vista previa), revisado y firmado por el profesional.</div>':''}<div class="pm">Firma electrónica · huella ${hash(e.id+e.texto)}</div></div>`;
       const t=docTipo(doc.tipo);const src=docSrc(doc);let cuerpo;
       if(doc.mime==='application/pdf'){nAnexo++;anexos.push(doc);cuerpo=`<div class="anexo">Anexo ${nAnexo}: ${esc(doc.archivo)} — se adjunta al final de la historia clínica.</div>`}
       else cuerpo=src?`<img src="${src}" alt="${esc(doc.titulo)}">`:`<div class="anexo">${esc(doc.archivo)} — la vista previa no está disponible en la demo.</div>`;
