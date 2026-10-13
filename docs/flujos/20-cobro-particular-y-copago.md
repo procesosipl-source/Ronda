@@ -64,7 +64,12 @@ Cada cobro con monto, medio de pago y usuario. Cada anulación con su motivo. Ca
 
 ## En camino
 
-- Link de pago para que el paciente pague desde el celular — 2ª etapa.
+- Link de pago para que el paciente pague desde el celular — 2ª etapa. Se puede recorrer como **vista previa** en el prototipo (Panel de turnos → un turno con "Copago pendiente" → Enviar link de pago):
+  - Recepción envía el link por WhatsApp con el monto, que sale del tarifario.
+  - El paciente abre el link, elige tarjeta o transferencia y paga.
+  - Cuando el pago se aprueba, el cobro se registra solo, con origen "Link de pago" y el medio elegido, y desaparece el "Copago pendiente". Nadie lo carga a mano.
+  - Cada cobro guarda su origen (mostrador o link de pago), así la caja se puede conciliar.
+  - Para construirlo hace falta elegir una plataforma de pagos y definir quién cobra la comisión.
 - Factura electrónica ARCA — etapa 8.2.
 
 ## Relacionados

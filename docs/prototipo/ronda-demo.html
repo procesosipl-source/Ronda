@@ -202,6 +202,10 @@ tr.anulado td:first-child b{text-decoration:line-through}
 .walist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .walist button{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);cursor:pointer;font:inherit}
 .walist button[aria-pressed=true]{border-color:var(--primary);background:var(--primary-soft)}
+.pad{width:100%;height:110px;background:var(--surface);border:1px dashed var(--ink-3);border-radius:var(--radius-s);touch-action:none;cursor:crosshair}
+.doctxt{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-s);padding:10px;font-size:.8rem;max-height:150px;overflow:auto;white-space:pre-line}
+.paybox{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-s);padding:12px;display:flex;flex-direction:column;gap:8px;font-size:.84rem}
+.paybox b.monto{font-size:1.5rem;font-weight:600}
 @media (max-width:900px){.preview-b{grid-template-columns:1fr}}
 @media (max-width:900px){.btn.camara{display:flex}}
 /* Modal */
@@ -554,6 +558,9 @@ function seed(){
       turnos.push(t);
       if(f==='at'){const disc=pros.find(x=>x.id===pro).disc;evols.push({id:uid('e'),pid:p.id,pro,fecha:t.fecha,hora:h,tipo:t.tipo,disc,texto:pick(disc==='Psiquiatría'?TXT_PSQ:disc==='Trabajo social'?TXT_TS:TXT_PSI),firmada:true,turnoId:t.id,addenda:[]})}
   });
+  // Uno de los pacientes que llegan hoy es particular y debe el copago, para que el cobro se vea en el Panel de turnos
+  const tp=turnos.find(t=>t.fecha===iso(T0)&&t.flujo==='porllegar'&&pmap[t.pid].modalidad==='Ambulatorio'&&pmap[t.pid].estado==='En tratamiento');
+  if(tp){pmap[tp.pid].ooss='Particular';pmap[tp.pid].deuda=true}
   // enfermería para internados
   internados.forEach(pi=>{for(let d=-6;d<=-1;d++){evols.push({id:uid('e'),pid:'pa'+(pi+1),pro:'p5',fecha:iso(day(d)),hora:'07:30',tipo:'Control de enfermería',disc:'Enfermería',texto:pick(TXT_ENF),vitals:{ta:pick(['120/80','110/70','130/85']),t:pick(['36,4','36,7','36,5']),fc:String(68+Math.floor(rnd()*20)),spo2:String(95+Math.floor(rnd()*4))},firmada:true,addenda:[]})}});
   // grupos
@@ -674,7 +681,7 @@ function modulo(st,p,detalle){
 }
 
 /* ---------- estado ---------- */
-const KEY='ronda-demo-v6';let S;
+const KEY='ronda-demo-v7';let S;
 try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):null;if(S&&(S.day!==TODAY||Date.now()-(S.seededAt||0)>4*36e5))S=null}catch(e){S=null}
 if(!S){S=seed();S.day=TODAY;S.seededAt=Date.now()}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -731,7 +738,7 @@ const FILES={};let _up=null;
 // Vista previa ficticia para los documentos de la demo: una hoja con los datos del documento.
 function docSvg(d){
   const p=pat(d.pid);const t=docTipo(d.tipo);
-  const lin=Array.from({length:9},(_,i)=>`<rect x="60" y="${330+i*34}" width="${380-(i*53)%140}" height="10" rx="5" fill="#E4E6E5"/>`).join('');
+  const lin=Array.from({length:d.firma?7:9},(_,i)=>`<rect x="60" y="${330+i*34}" width="${380-(i*53)%140}" height="10" rx="5" fill="#E4E6E5"/>`).join('');
   const s=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="760" viewBox="0 0 600 760"><rect width="600" height="760" fill="#fff"/>
     <rect x="0" y="0" width="600" height="8" fill="#F07D00"/>
     <text x="60" y="80" font-family="Arial" font-size="15" fill="#5C6360">Centro Demo de Salud Mental</text>
@@ -739,13 +746,17 @@ function docSvg(d){
     <text x="60" y="190" font-family="Arial" font-size="17" fill="#1F2422">${esc(p?p.nombre+' '+p.apellido:'')} · DNI ${p?p.dni:''}</text>
     <text x="60" y="222" font-family="Arial" font-size="15" fill="#5C6360">Fecha: ${esc(fdl(d.fecha))}</text>
     <line x1="60" y1="270" x2="540" y2="270" stroke="#E4E6E5" stroke-width="2"/>${lin}
-    <text x="300" y="720" text-anchor="middle" font-family="Arial" font-size="13" fill="#8A908D">Documento ficticio de la demo</text></svg>`;
+    ${d.firma?`<image href="${d.firma.img}" x="60" y="575" width="240" height="96"/><line x1="60" y1="675" x2="320" y2="675" stroke="#8A908D"/>
+    <text x="60" y="695" font-family="Arial" font-size="12" fill="#5C6360">Firmado desde el celular por ${esc(p?p.nombre+' '+p.apellido:'')} el ${esc(fd(d.fecha))} a las ${d.firma.ts} · vista previa</text>`:''}
+    <text x="300" y="740" text-anchor="middle" font-family="Arial" font-size="13" fill="#8A908D">Documento ficticio de la demo</text></svg>`;
   return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
 }
 const docSrc=d=>FILES[d.id]||(d.gen?docSvg(d):null);
 // Documentos que forman parte de la HC de un paciente. Los anulados se muestran en pantalla, pero no van al PDF.
 const docsDeHc=(pid,conAnulados)=>S.docs.filter(d=>d.pid===pid&&docTipo(d.tipo).hc&&(conAnulados||!d.anulado));
 // Un documento no tiene hora: si se subió el mismo día que su fecha, se usa la hora de carga; si no, va al principio del día.
+// Precio de un turno para un paciente particular, según el tarifario
+const precioPart=t=>{const pr=t&&t.tipo==='Control psiquiátrico'?'Control psiquiátrico':'Consulta psicológica';return (S.tarifario.find(x=>x.ooss==='Particular'&&x.prest===pr)||{}).precio||0};
 const docHora=d=>d.subido.slice(0,10)===d.fecha?d.subido.slice(11):'00:00';
 // Elegir o soltar un archivo en la ventana "Subir documento"
 function setUp(f){
@@ -914,7 +925,7 @@ function hcTab(p){
   const items=ev.map(e=>{let h='';if(e.fecha!==last){h+=`<div class="tl-day">${fdl(e.fecha)}</div>`;last=e.fecha}
     if(e.doc){const d=e.doc;const t=docTipo(d.tipo);
       return h+`<article class="entry${d.anulado?' anulado':''}"><span class="rail" style="background:var(--ink-3)"></span><div>
-      <div class="meta"><b>Documento · ${esc(t.nombre)}</b><span>Cargado por ${esc(d.por)} el ${fd(d.subido.slice(0,10))}</span>${d.anulado?'<span class="tag">Anulado</span>':''}</div>
+      <div class="meta"><b>Documento · ${esc(t.nombre)}</b><span>${d.firma?'Firmado por el paciente desde su celular':'Cargado por '+esc(d.por)} el ${fd(d.subido.slice(0,10))}</span>${d.anulado?'<span class="tag">Anulado</span>':''}${d.vp?vpTag:''}</div>
       <button class="docref" data-a="verdoc" data-id="${d.id}">${ico('doc',20)}<span><b>${esc(d.titulo)}</b><small>${esc(d.archivo)}</small></span></button>
       ${d.anulado?`<div class="small faint" style="margin-top:6px">Anulado por ${esc(d.anulado.por)}: ${esc(d.anulado.motivo)}. No se incluye en el PDF.</div>`:''}</div></article>`}
     const pr=pro(e.pro);
@@ -985,7 +996,10 @@ function datosTab(p){
       ${ed('editmod',mod.excepcion?'Cambiar excepción':'Cargar excepción')}</div>
     <div class="tablewrap"><table><thead><tr><th>Período</th><th>Autorización</th><th>Estado</th></tr></thead><tbody>
     ${au.map(a=>`<tr><td>${a.periodo}</td><td>${esc(a.prest)}<div class="small faint">${a.autorizadas} autorizadas</div></td><td>${authTag(a.estado)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Paciente particular, sin autorizaciones.</td></tr>'}
-    </tbody></table></div></section></div></div>`;
+    </tbody></table></div>
+    ${p.ooss==='Particular'?`<div class="panel-b" style="border-top:1px solid var(--line)"><div class="row" style="justify-content:space-between"><b>Cobros</b>${p.deuda?'<span class="tag warn">Copago pendiente</span>':''}</div>
+      ${cobros().filter(c=>c.pid===p.id).map(c=>`<div class="row small" style="justify-content:space-between;margin-top:8px"><span>${fd(c.fecha)} · ${esc(c.concepto)}</span><span>${money(c.monto)} · ${esc(c.via)} ${c.vp?vpTag:''}</span></div>`).join('')||'<div class="small faint" style="margin-top:6px">Todavía no hay cobros registrados en la demo.</div>'}</div>`:''}
+    </section></div></div>`;
 }
 function medTab(p){
   const es=esqPac(p.id);const puede=puedeIndicar();
@@ -1012,9 +1026,9 @@ function medTab(p){
 function docsTab(p){
   const todos=S.docs.filter(d=>d.pid===p.id).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.subido.localeCompare(a.subido));
   const vis=todos.filter(verDoc);const ocultos=todos.length-vis.length;
-  return `<div class="panel"><div class="panel-h"><h2>Documentos</h2><div class="row">${puedeSubir(p)?`<button class="btn sm pri" data-a="newdoc" data-p="${p.id}">${ico('up',16)}Subir documento</button>`:''}<button class="btn sm" data-a="soon" data-m="Los documentos se generan desde plantillas configurables por institución.">Generar desde plantilla</button>${proxBtn('consent','Pedir firma al paciente')}</div></div>
+  return `<div class="panel"><div class="panel-h"><h2>Documentos</h2><div class="row">${puedeSubir(p)?`<button class="btn sm pri" data-a="newdoc" data-p="${p.id}">${ico('up',16)}Subir documento</button>`:''}<button class="btn sm" data-a="soon" data-m="Los documentos se generan desde plantillas configurables por institución.">Generar desde plantilla</button>${puedeSubir(p)?vpBtn('consent','Pedir firma al paciente','firma',`data-p="${p.id}"`):''}</div></div>
   ${vis.length?`<div class="tablewrap"><table><thead><tr><th>Documento</th><th>Tipo</th><th>Fecha</th><th>Cargó</th><th>En la HC</th></tr></thead><tbody>
-  ${vis.map(d=>{const t=docTipo(d.tipo);return `<tr class="click${d.anulado?' anulado':''}" data-a="verdoc" data-id="${d.id}" tabindex="0"><td><b>${esc(d.titulo)}</b>${d.anulado?' <span class="tag">Anulado</span>':''}<div class="small faint">${esc(d.archivo)}</div></td>
+  ${vis.map(d=>{const t=docTipo(d.tipo);return `<tr class="click${d.anulado?' anulado':''}" data-a="verdoc" data-id="${d.id}" tabindex="0"><td><b>${esc(d.titulo)}</b>${d.anulado?' <span class="tag">Anulado</span>':''}<div class="small faint">${esc(d.archivo)}</div>${d.firma?`<div style="margin-top:4px"><span class="tag ok">Firmado desde el celular</span> ${vpTag}</div>`:''}</td>
     <td class="small">${esc(t.nombre)}</td><td class="small" style="white-space:nowrap">${fd(d.fecha)}</td><td class="small">${esc(d.por)}</td><td>${t.hc?'<span class="tag ok">Sí</span>':'<span class="faint">—</span>'}</td></tr>`}).join('')}</tbody></table></div>`
   :'<div class="empty">Todavía no hay documentos cargados.</div>'}
   ${ocultos?`<div class="panel-b small muted" style="border-top:1px solid var(--line)">Hay ${ocultos} documento${ocultos>1?'s':''} de la historia clínica que tu rol no puede ver.</div>`:''}
@@ -1421,6 +1435,21 @@ const vpBtn=(k,t,a,attrs)=>`<button class="btn sm prox" data-a="${a}" ${attrs||'
 const auditVP=(acc,ent)=>audit('[Vista previa] '+acc,ent);
 // Vista previa de IA clínica (etapa 8.4). La IA propone un borrador; el profesional lo revisa y lo firma. Nunca firma sola.
 let _iaT=null,_iaSeg=0,_iaDraft=false;
+// Vista previa de consentimiento firmado desde el celular y de link de pago (2ª etapa)
+let _firma=null,_pago=null;
+const cobros=()=>S.cobros||(S.cobros=[]);
+// Plantillas ficticias de consentimiento. El texto real lo define cada institución.
+const CONSENT=[
+  {id:'ci',nombre:'Consentimiento informado de tratamiento',tipo:'dt1',texto:'Declaro que me explicaron en qué consiste el tratamiento, sus objetivos, su frecuencia y sus alternativas.\n\nSé que puedo hacer preguntas en cualquier momento y que puedo dejar el tratamiento cuando lo decida, avisando al equipo.\n\nAutorizo al equipo tratante a registrar la evolución del tratamiento en mi historia clínica.'},
+  {id:'ia',nombre:'Consentimiento para usar IA en las sesiones',tipo:'dt1',texto:'Acepto que mi profesional use una herramienta de inteligencia artificial para armar el borrador de la evolución de mis sesiones.\n\nEl borrador siempre lo revisa y lo firma mi profesional. Puedo retirar este consentimiento cuando quiera.'},
+  {id:'dp',nombre:'Autorización de uso de datos personales',tipo:'dt7',texto:'Autorizo a la institución a usar mis datos de contacto para recordatorios de turnos y avisos administrativos.\n\nMis datos de salud solo los ve el equipo que me atiende, según la Ley 25.326.'}];
+// Panel de firma: dibujar con el dedo o el mouse
+function padInit(){const c=$('#fPad');if(!c)return;const x=c.getContext('2d');
+  x.lineWidth=2.4;x.lineCap='round';x.lineJoin='round';x.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||'#1F2328';
+  let on=false;c._tr=0;const pos=e=>{const r=c.getBoundingClientRect();return [(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]};
+  c.onpointerdown=e=>{on=true;try{c.setPointerCapture(e.pointerId)}catch(_){};const [a,b]=pos(e);x.beginPath();x.moveTo(a,b)};
+  c.onpointermove=e=>{if(!on)return;const [a,b]=pos(e);x.lineTo(a,b);x.stroke();c._tr++};
+  c.onpointerup=()=>{on=false}}
 function iaBorrador(p){
   const n=p.nombre;const d=pro(R().proId).disc;
   const T={
@@ -1648,7 +1677,7 @@ const A={
       :`<img src="${src}" alt="${esc(doc.titulo)}" style="width:100%;max-height:62vh;object-fit:contain;background:var(--sunk);border:1px solid var(--line);border-radius:var(--radius-s)">`;
     // Los documentos de la demo son dibujos: se descargan como imagen, con aclaración en el nombre
     const nomDesc=doc.gen?doc.archivo.replace(/\.\w+$/,'')+'-demo.svg':doc.archivo;
-    modal(esc(doc.titulo),`<div class="small muted">${esc(t.nombre)} · ${fdl(doc.fecha)}${t.hc?' · forma parte de la historia clínica':''}<br>Cargado por ${esc(doc.por)} el ${fd(doc.subido.slice(0,10))} a las ${doc.subido.slice(11)} · ${esc(doc.archivo)}</div>
+    modal(esc(doc.titulo),`<div class="small muted">${esc(t.nombre)} · ${fdl(doc.fecha)}${t.hc?' · forma parte de la historia clínica':''}<br>${doc.firma?`Firmado por el paciente desde su celular el ${fd(doc.subido.slice(0,10))} a las ${doc.firma.ts}, a pedido de ${esc(doc.por)} · vista previa`:`Cargado por ${esc(doc.por)} el ${fd(doc.subido.slice(0,10))} a las ${doc.subido.slice(11)}`} · ${esc(doc.archivo)}</div>
       ${doc.anulado?`<div class="banner" style="background:var(--danger-soft);margin:0"><span>Anulado el ${fd(doc.anulado.fecha)} por ${esc(doc.anulado.por)}: ${esc(doc.anulado.motivo)}</span></div>`:''}${vista}`,
       `${!doc.anulado&&puedeAnular(doc)?`<button class="btn ghost" data-a="anudoc" data-id="${doc.id}" style="margin-right:auto">Anular</button>`:''}${src?`<a class="btn" href="${src}" download="${esc(nomDesc)}">Descargar</a>`:''}<button class="btn pri" data-a="close">Cerrar</button>`);
     $('#modal').classList.add('wide')},
@@ -1845,11 +1874,71 @@ const A={
     modal(esc(pname(p)),`<p class="muted">${t.hora} hs · ${esc(t.tipo)} · ${esc(pro(t.pro).nombre)}</p><div>${estTagF(t)} ${cobLabel(t).tag}</div>`,
     `${t.flujo==='porllegar'?`<button class="btn" data-a="ausenteT" data-t="${t.id}">Marcar ausente</button>${t.conf?'':`<button class="btn" data-a="confT" data-t="${t.id}">Marcar confirmado</button>`}`:''}
      <button class="btn" data-a="soon" data-m="Reprogramar abre la agenda del profesional con los horarios libres.">Reprogramar</button>
-     ${p.deuda?`<button class="btn" data-a="cobrar" data-p="${p.id}">Registrar cobro</button>`:''}
+     ${p.deuda?`${vpBtn('pago','Enviar link de pago','linkpago',`data-p="${p.id}" data-t="${t.id}"`)}<button class="btn" data-a="cobrar" data-p="${p.id}" data-t="${t.id}">Registrar cobro</button>`:''}
      ${canSee(p.id)?`<button class="btn pri" data-a="openp" data-p="${p.id}" data-tab="datos">Ver ficha</button>`:''}`)},
   ausenteT:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='ausente';t.estado='ausente';audit('Marcó ausente',pname(pat(t.pid)));close();render();toast('Turno marcado como ausente')},
   confT:d=>{const t=S.turnos.find(x=>x.id===d.t);t.conf=true;audit('Confirmó turno',pname(pat(t.pid)));close();render();toast('Turno confirmado')},
-  cobrar:d=>{const p=pat(d.p);p.deuda=false;audit('Registró cobro de copago',pname(p));close();render();toast('Cobro registrado')},
+  cobrar:d=>{const p=pat(d.p);p.deuda=false;const t=d.t?S.turnos.find(x=>x.id===d.t):null;
+    cobros().push({id:uid('c'),pid:p.id,fecha:TODAY,hora:nowHM(),monto:precioPart(t),concepto:t?t.tipo:'Copago',via:'Mostrador',por:R().user});
+    audit('Registró cobro de copago',pname(p));close();render();toast('Cobro registrado')},
+  // Vista previa del link de pago: el paciente recibe el link, elige cómo pagar y el cobro queda registrado solo
+  linkpago:d=>{const p=pat(d.p);const t=S.turnos.find(x=>x.id===d.t);if(!_pago||_pago.t!==d.t)_pago={p:d.p,t:d.t,paso:0,medio:''};const P=_pago;const monto=precioPart(t);
+    const fase=[
+      `<div class="chat"><div class="small faint" style="text-align:center;margin-top:40px">${esc(p.nombre)} todavía no recibió nada.</div></div>`,
+      `<div class="chat"><div class="bub">Hola ${esc(p.nombre)}, te enviamos el link para pagar tu ${esc(t.tipo.toLowerCase())} del ${esc(fd(t.fecha))} con ${esc(pro(t.pro).nombre)}: ${money(monto)}.</div></div>
+       <div class="phone-act"><button class="btn sm pri" data-a="pagopaso" data-v="2">Abrir el link de pago</button></div>`,
+      `<div class="chat"><div class="paybox"><span class="small faint">Centro Demo de Salud Mental</span><b class="monto">${money(monto)}</b><span>${esc(t.tipo)} · ${esc(fd(t.fecha))}</span>
+         <label class="row" style="gap:8px"><input type="radio" name="pm" value="Tarjeta de débito o crédito" checked>Tarjeta de débito o crédito</label>
+         <label class="row" style="gap:8px"><input type="radio" name="pm" value="Transferencia">Transferencia</label></div></div>
+       <div class="phone-act"><button class="btn sm pri" data-a="pagopaso" data-v="3">Pagar ${money(monto)}</button></div>`,
+      `<div class="chat"><div class="paybox" style="align-items:center;text-align:center"><span class="tag ok">Pago aprobado</span><b class="monto">${money(monto)}</b><span class="small faint">${esc(P.medio)} · comprobante enviado por WhatsApp</span></div></div>`][P.paso];
+    modal('Link de pago',`<div class="preview">${vpHead('pago')}<div class="preview-b">
+      <div><p><b>${esc(pname(p))}</b></p><p class="small muted">${esc(t.tipo)} del ${esc(fd(t.fecha))} a las ${t.hora} · ${esc(pro(t.pro).nombre)}</p>
+        <div class="daystrip" style="grid-template-columns:1fr;margin:12px 0"><div><b>${money(monto)}</b><span>copago a cobrar</span></div></div>
+        ${P.paso===0?`<button class="btn pri" data-a="pagopaso" data-v="1">Enviar link por WhatsApp</button>`
+          :P.paso<3?`<span class="tag warn">Enviado a las ${P.env} · esperando el pago</span>`
+          :`<span class="tag ok">Cobro registrado · ${esc(P.medio)} por link de pago</span><p class="small faint" style="margin-top:8px">El copago pendiente desapareció del Panel de turnos y el cobro figura en la ficha del paciente.</p>`}
+        <p class="small faint" style="margin-top:12px">Probá el recorrido del paciente en el celular de la derecha.</p></div>
+      <div class="phone"><div class="phone-top">Centro Demo de Salud Mental<small>Celular de ${esc(p.nombre)}</small></div>${fase}</div></div>
+      <div class="preview-n">Cuando exista, el link se genera con una plataforma de pagos y el cobro se registra solo cuando el pago se aprueba.</div></div>`,
+      `<button class="btn pri" data-a="close">Cerrar</button>`);
+    $('#modal').classList.add('wide')},
+  pagopaso:d=>{const P=_pago;const p=pat(P.p);const t=S.turnos.find(x=>x.id===P.t);
+    if(d.v==='1'){P.env=nowHM();auditVP('Envió link de pago',pname(p)+' — '+money(precioPart(t)))}
+    if(d.v==='3'){P.medio=(document.querySelector('input[name=pm]:checked')||{}).value||'Tarjeta';p.deuda=false;
+      cobros().push({id:uid('c'),pid:p.id,fecha:TODAY,hora:nowHM(),monto:precioPart(t),concepto:t.tipo,via:'Link de pago · '+P.medio,por:'El paciente',vp:true});
+      auditVP('Cobro registrado por link de pago',pname(p)+' — '+money(precioPart(t))+' · '+P.medio)}
+    P.paso=+d.v;render();A.linkpago({p:P.p,t:P.t})},
+  // Vista previa de consentimiento firmado desde el celular del paciente
+  firma:d=>{const p=pat(d.p);if(!_firma||_firma.p!==d.p)_firma={p:d.p,pl:'',env:'',via:'WhatsApp'};const F=_firma;
+    const pls=CONSENT.filter(c=>!docTipo(c.tipo).hc||R().hc!=='none');const pl=pls.find(c=>c.id===F.pl)||pls[0];
+    modal('Pedir firma al paciente',`<div class="preview">${vpHead('consent')}<div class="preview-b">
+      <div><p><b>${esc(pname(p))}</b></p>
+        <label class="f" style="margin-top:10px">Documento<select id="fPl" ${F.env?'disabled':''}>${pls.map(c=>`<option value="${c.id}" ${c.id===pl.id?'selected':''}>${esc(c.nombre)}</option>`).join('')}</select></label>
+        <label class="f" style="margin-top:10px">Enviar por<select id="fVia" ${F.env?'disabled':''}><option ${F.via==='WhatsApp'?'selected':''}>WhatsApp</option><option ${F.via==='Correo electrónico'?'selected':''}>Correo electrónico</option></select></label>
+        <div style="margin-top:12px">${F.env?`<span class="tag warn">Enviado a las ${F.env} por ${esc(F.via)} · esperando la firma</span>`:`<button class="btn pri" data-a="firmaenv" data-p="${p.id}">Enviar al paciente</button>`}</div>
+        <p class="small faint" style="margin-top:12px">Al firmar, el documento queda en Documentos${docTipo(pl.tipo).hc?' y en la historia clínica':''}, con la firma, la fecha y la hora.</p></div>
+      <div class="phone"><div class="phone-top">Centro Demo de Salud Mental<small>Celular de ${esc(p.nombre)}</small></div>
+        ${F.env?`<div class="chat"><b>${esc(pl.nombre)}</b><div class="doctxt">${esc(pl.texto)}</div>
+          <label class="row small" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" id="fAcepto">Leí y acepto</label>
+          <span class="small faint">Firmá con el dedo</span><canvas id="fPad" class="pad" width="520" height="220"></canvas>
+          <button class="btn sm ghost" data-a="padclear" style="align-self:flex-start;padding:2px 0">Borrar firma</button></div>
+          <div class="phone-act"><button class="btn sm pri" data-a="firmaok" data-p="${p.id}">Firmar</button></div>`
+        :`<div class="chat"><div class="small faint" style="text-align:center;margin-top:40px">${esc(p.nombre)} todavía no recibió nada.</div></div>`}</div></div>
+      <div class="preview-n">El valor legal de esta firma (firma electrónica, Ley 25.506) está pendiente de validar con especialistas. Mientras tanto, el consentimiento en papel se escanea y se sube como documento.</div></div>`,
+      `<button class="btn pri" data-a="close">Cerrar</button>`);
+    $('#modal').classList.add('wide');padInit()},
+  firmaenv:d=>{const F=_firma;F.pl=$('#fPl').value;F.via=$('#fVia').value;F.env=nowHM();
+    auditVP('Pidió firma de documento al paciente',pname(pat(d.p))+' — '+CONSENT.find(c=>c.id===F.pl).nombre+' · por '+F.via);A.firma(d)},
+  padclear:()=>{const c=$('#fPad');c.getContext('2d').clearRect(0,0,c.width,c.height);c._tr=0},
+  firmaok:d=>{const F=_firma;const c=$('#fPad');const p=pat(d.p);const pl=CONSENT.find(x=>x.id===F.pl)||CONSENT[0];
+    if(!$('#fAcepto').checked){toast('El paciente tiene que tildar "Leí y acepto"');return}
+    if(!c._tr||c._tr<5){toast('Falta la firma');return}
+    const doc={id:uid('d'),pid:p.id,tipo:pl.tipo,titulo:pl.nombre,archivo:pl.nombre.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/g,'-')+'-firmado.pdf',mime:'image/svg+xml',
+      fecha:TODAY,subido:TODAY+' '+nowHM(),por:R().user,anulado:null,gen:true,vp:true,firma:{img:c.toDataURL('image/png'),ts:nowHM(),via:F.via}};
+    S.docs.push(doc);_firma=null;
+    auditVP('El paciente firmó desde el celular',pname(p)+' — '+pl.nombre);
+    close();S.view='paciente';S.pid=p.id;S.ptab='docs';render();toast('Documento firmado y guardado')},
   guia:()=>modal('Guía de la demo',`<p class="muted">Un recorrido de 5 minutos. Cambiá de rol con el selector "Ver como" de arriba.</p>${GUIA.map((g,i)=>`<div class="row" style="align-items:flex-start;flex-wrap:nowrap;gap:12px"><span class="tag pri">${i+1}</span><div><b>${g[0]}</b><div class="small muted">${g[1]}</div></div></div>`).join('')}`,`<button class="btn pri" data-a="close">Empezar</button>`),
   gocfg:d=>{S.view='config';S.cfgTab=d.t;render()},
   role:d=>{S.role=d.r;S.pf=null;S.hcf='';if(S.view==='paciente'&&!canSee(S.pid))S.view='pacientes';render();toast('Ahora ves la app como '+R().label)},

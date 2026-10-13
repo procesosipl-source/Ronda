@@ -113,6 +113,31 @@ Subir, abrir un documento de la historia clínica, anular, cambiar la configurac
 - **7** — abrir un documento clínico es tan sensible como abrir la historia clínica.
 - **11** — qué tipos existen y cuáles forman parte de la HC es configuración, no código.
 
+## En camino: firma desde el celular del paciente
+
+2ª etapa. Se puede recorrer como **vista previa** en el prototipo (Documentos → Pedir firma al paciente):
+
+```mermaid
+flowchart TD
+    P["Pedir firma al paciente"] --> E["Se elige el documento<br/>(plantilla de la institución)"]
+    E --> V["Se envía por WhatsApp o correo"]
+    V --> L["El paciente lo lee en su celular"]
+    L --> A{"¿Tildó 'Leí y acepto'<br/>y firmó con el dedo?"}
+    A -->|No| NO["🔒 No se puede firmar"]
+    A -->|Sí| G["Se guarda como documento del paciente,<br/>con la firma, la fecha y la hora"]
+    G --> AUD["Queda en audit_log"]
+    AUD --> HC["Si el tipo forma parte de la HC,<br/>aparece en la HC y en su PDF"]
+
+    classDef aud fill:#FFF1E6,stroke:#B8520A,color:#B8520A
+    classDef bloq fill:#FDECEA,stroke:#B42318,color:#B42318
+    class G,AUD aud
+    class NO bloq
+```
+
+- Las plantillas (consentimiento informado, uso de IA, datos personales) son configuración de cada institución. Recepción solo puede pedir la firma de documentos administrativos.
+- El documento firmado dice que lo firmó el paciente desde su celular y a pedido de quién.
+- **Pendiente legal:** el valor de esta firma (firma electrónica, Ley 25.506) hay que validarlo con especialistas antes de construirlo. Mientras tanto, el consentimiento en papel se escanea y se sube.
+
 ## Relacionados
 
 [10 — Consultar y exportar la historia clínica](10-consultar-y-exportar-hc.md) · [22 — Acceso y auditoría](22-acceso-y-auditoria.md) · [01 — Alta de paciente](01-alta-de-paciente.md)
