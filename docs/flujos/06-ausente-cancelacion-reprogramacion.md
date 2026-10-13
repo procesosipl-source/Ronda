@@ -74,7 +74,7 @@ Cada cancelación con su motivo, cada ausente (y quién lo marcó, o si fue el s
 
 ## En camino
 
-- El paciente cancela o pide reprogramar desde el mensaje de WhatsApp — etapa 8.1.
+- El paciente cancela o pide reprogramar desde el mensaje de WhatsApp — etapa 8.1. Se puede recorrer como **vista previa** en el prototipo. Pedir reprogramar **no** reprograma solo: deja el turno marcado y Recepción lo resuelve, porque el horario nuevo depende de la agenda del profesional. Cancelar por WhatsApp cuenta como cancelación con aviso, no como ausente.
 
 ## Relacionados
 

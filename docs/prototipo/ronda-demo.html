@@ -185,6 +185,24 @@ tr.anulado td{opacity:.6}
 .entry.anulado .docref b{text-decoration:line-through}
 tr.anulado td:first-child b{text-decoration:line-through}
 .modal.wide{width:min(860px,100%)}
+/* Vista previa: lo que todavía no existe pero se puede recorrer. Borde punteado = no es una función disponible. */
+.preview{border:1.5px dashed var(--line);border-radius:var(--radius-m);overflow:hidden}
+.preview-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 14px;background:var(--sunk);font-size:.82rem;color:var(--ink-2);border-bottom:1.5px dashed var(--line)}
+.preview-b{padding:14px;display:grid;grid-template-columns:1fr 290px;gap:18px;align-items:start}
+.preview-b.una{grid-template-columns:1fr}
+.preview-n{padding:10px 14px;border-top:1px solid var(--line);font-size:.8rem;color:var(--ink-3)}
+/* Celular simulado del paciente */
+.phone{border:7px solid var(--ink);border-radius:26px;background:var(--sunk);overflow:hidden;display:flex;flex-direction:column;min-height:400px}
+.phone-top{background:var(--surface);padding:10px 14px;font-size:.82rem;font-weight:600;border-bottom:1px solid var(--line)}
+.phone-top small{display:block;font-weight:400;color:var(--ink-3)}
+.chat{flex:1;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:.84rem}
+.bub{max-width:88%;padding:8px 11px;border-radius:12px;background:var(--surface);border:1px solid var(--line);white-space:pre-line}
+.bub.out{align-self:flex-end;background:var(--primary-soft);border-color:transparent}
+.phone-act{display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:var(--surface);border-top:1px solid var(--line)}
+.walist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.walist button{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);cursor:pointer;font:inherit}
+.walist button[aria-pressed=true]{border-color:var(--primary);background:var(--primary-soft)}
+@media (max-width:900px){.preview-b{grid-template-columns:1fr}}
 @media (max-width:900px){.btn.camara{display:flex}}
 /* Modal */
 .scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
@@ -744,7 +762,7 @@ const occ=()=>Object.entries(S.beds).filter(([,b])=>b);
 function metrics(){
   const r=R();const mine=t=>!esPro()||t.pro===r.proId;
   const hoy=S.turnos.filter(t=>t.fecha===TODAY&&mine(t));
-  const d30=iso(day(-30));const pas=S.turnos.filter(t=>t.fecha>=d30&&t.fecha<=TODAY&&t.estado!=='programado'&&mine(t));
+  const d30=iso(day(-30));const pas=S.turnos.filter(t=>t.fecha>=d30&&t.fecha<=TODAY&&!['programado','cancelado'].includes(t.estado)&&mine(t));
   const asis=pas.length?Math.round(pas.filter(t=>t.estado==='presente').length/pas.length*100):0;
   const pend=S.turnos.filter(t=>t.estado==='presente'&&(!t.flujo||t.flujo==='atendido')&&mine(t)&&!S.evols.some(e=>e.turnoId===t.id));
   const vencen=S.auths.filter(a=>a.estado==='Autorizada'&&diff(a.vence,TODAY)<=15&&diff(a.vence,TODAY)>=0);
@@ -1396,6 +1414,11 @@ const PROX={
   portal:['Portal del paciente','El paciente ve sus turnos, sus documentos y sus pagos desde su propio acceso. La etapa está a definir.','a definir']
 };
 const CAMINO=Object.keys(PROX);
+// Vista previa: se puede recorrer, pero queda rotulada en todas partes. Lo que se crea en ella lleva vp:true.
+const vpTag='<span class="tag prox" title="Vista previa: todavía no está disponible">Vista previa</span>';
+const vpHead=k=>`<div class="preview-h">${vpTag}<span>Así va a funcionar: <b>${PROX[k][0]}</b>. Llega en la ${PROX[k][2]}; hoy no está disponible.</span></div>`;
+const vpBtn=(k,t,a,attrs)=>`<button class="btn sm prox" data-a="${a}" ${attrs||''} title="Vista previa · ${esc(PROX[k][0])} · ${PROX[k][2]}">${t}</button>`;
+const auditVP=(acc,ent)=>audit('[Vista previa] '+acc,ent);
 const proxTag=k=>`<span class="tag prox" data-a="soon" data-m="${esc(PROX[k][1])}" role="button" tabindex="0" title="${esc(PROX[k][1])}">${PROX[k][0]} · Próximamente</span>`;
 const proxBtn=(k,t)=>`<button class="btn sm prox" data-a="soon" data-m="${esc(PROX[k][1])}">${t}</button>`;
 IC.up='<path d="M12 15V4M7 9l5-5 5 5M4 15v5h16v-5"/>';
@@ -1424,7 +1447,11 @@ function cobLabel(t){
   return {o:p.ooss,tag:`<span class="tag">Sesión ${Math.min(n,a.autorizadas)} de ${a.autorizadas}</span>`};
 }
 function estTagF(t){
-  if(t.flujo==='porllegar')return t.conf?'<span class="tag ok">Confirmó</span>':'<span class="tag warn">Sin confirmar</span>';
+  if(t.flujo==='porllegar'){
+    if(t.resp==='reprogramar')return '<span class="tag warn">Pide reprogramar</span>'+(t.vp?' '+vpTag:'');
+    if(t.conf)return t.confVia==='whatsapp'?'<span class="tag ok">Confirmó por WhatsApp</span> '+vpTag:'<span class="tag ok">Confirmó</span>';
+    return '<span class="tag warn">Sin confirmar</span>'}
+  if(t.flujo==='cancelado')return '<span class="tag">Canceló por WhatsApp</span> '+vpTag;
   if(t.flujo==='espera'){const m=minsSince(t.arr);return `<span class="tag ${m>=15?'warn':''}">Espera ${m} min</span>`}
   if(t.flujo==='consulta')return `<span class="tag pri">${ico('clock',13)}${minsSince(t.ini)} min</span>`;
   if(t.flujo==='ausente')return '<span class="tag danger">Ausente</span>';
@@ -1447,10 +1474,12 @@ function trow(t){
 function vPanel(m){
   const all=todayT();const f=S.pnf||'todos';const fp=S.pnpro||'';
   const L=all.filter(t=>!fp||t.pro===fp);
-  const G={consulta:L.filter(t=>t.flujo==='consulta'),espera:L.filter(t=>t.flujo==='espera'),porllegar:L.filter(t=>t.flujo==='porllegar'),atendidos:L.filter(t=>t.flujo==='atendido'||t.flujo==='ausente')};
+  const G={consulta:L.filter(t=>t.flujo==='consulta'),espera:L.filter(t=>t.flujo==='espera'),porllegar:L.filter(t=>t.flujo==='porllegar'),atendidos:L.filter(t=>['atendido','ausente','cancelado'].includes(t.flujo))};
+  const reprog=all.filter(t=>t.flujo==='porllegar'&&t.resp==='reprogramar');
   const esp=all.filter(t=>t.flujo==='espera');
   const esp15=esp.filter(t=>minsSince(t.arr)>=15);
-  const sinconf=all.filter(t=>t.flujo==='porllegar'&&!t.conf);
+  // Quien pidió reprogramar ya respondió: va a "Para resolver hoy", no a "sin confirmar"
+  const sinconf=all.filter(t=>t.flujo==='porllegar'&&!t.conf&&!t.resp);
   const venc=S.auths.filter(a=>a.estado==='Autorizada'&&diff(a.vence,TODAY)<=15&&diff(a.vence,TODAY)>=0);
   const sinEv=all.filter(t=>t.flujo==='atendido'&&!S.evols.some(e=>e.turnoId===t.id));
   const grp=(title,rows)=>rows.length?`<div class="tgroup">${title}<span>${rows.length}</span></div>${rows.map(trow).join('')}`:'';
@@ -1459,7 +1488,7 @@ function vPanel(m){
   if(f==='espera')body=grp('En sala de espera',G.espera);
   if(f==='espera15')body=grp('Esperan más de 15 minutos',G.espera.filter(t=>minsSince(t.arr)>=15));
   if(f==='porllegar')body=grp('Por llegar',G.porllegar);
-  if(f==='sinconf')body=grp('Sin confirmar',G.porllegar.filter(t=>!t.conf));
+  if(f==='sinconf')body=grp('Sin confirmar',G.porllegar.filter(t=>!t.conf&&!t.resp));
   if(f==='consulta')body=grp('En consulta',G.consulta);
   if(f==='atendidos')body=grp('Atendidos y ausentes',G.atendidos);
   if(!body)body='<div class="empty">No hay turnos en este grupo.</div>';
@@ -1473,11 +1502,12 @@ function vPanel(m){
     <div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${Math.round(done/ts.length*100)}%"></i></div><span class="faint" style="white-space:nowrap;font-size:12px">${done} de ${ts.length} turnos</span></div></div>`}).join('');
   const todos=[];
   venc.slice(0,2).forEach(a=>todos.push(`<button class="todo" data-a="go" data-v="autorizaciones"><span class="ic">${ico('autorizaciones')}</span><span><span style="display:block;font-size:14px">Pedir renovación a ${esc(a.ooss)}</span><span class="faint" style="font-size:12px">${esc(pat(a.pid).nombre+' '+pat(a.pid).apellido)} · vence el ${noDow(fd(a.vence))}</span></span></button>`));
-  if(sinconf.length)todos.push(`<button class="todo" data-a="recordar"><span class="ic">${ico('bell')}</span><span><span style="display:block;font-size:14px">${sinconf.length} turno${sinconf.length>1?'s':''} sin confirmar</span><span class="faint" style="font-size:12px">Reenviar recordatorio por WhatsApp</span></span></button>`);
-  if(sinEv.length)todos.push(`<button class="todo" data-a="pnf" data-v="atendidos"><span class="ic" style="color:var(--ink-2)">${ico('pen')}</span><span><span style="display:block;font-size:14px">${sinEv.length} evolución${sinEv.length>1?'es':''} sin escribir</span><span class="faint" style="font-size:12px">De turnos atendidos hoy</span></span></button>`);
+  reprog.forEach(t=>todos.push(`<button class="todo" data-a="tacc" data-t="${t.id}"><span class="ic">${ico('agenda')}</span><span><span style="display:block;font-size:14px">${esc(pat(t.pid).nombre+' '+pat(t.pid).apellido)} pide reprogramar</span><span class="faint" style="font-size:12px">Turno de las ${t.hora} · respondió por WhatsApp (vista previa)</span></span></button>`));
+  if(sinconf.length)todos.push(`<button class="todo" data-a="wa"><span class="ic">${ico('bell')}</span><span><span style="display:block;font-size:14px">${sinconf.length} turno${sinconf.length>1?'s':''} sin confirmar</span><span class="faint" style="font-size:12px">Ver cómo funcionará el recordatorio por WhatsApp</span></span></button>`);
+  if(sinEv.length)todos.push(`<button class="todo" data-a="pnf" data-v="atendidos"><span class="ic" style="color:var(--ink-2)">${ico('pen')}</span><span><span style="display:block;font-size:14px">${sinEv.length} ${sinEv.length>1?'evoluciones':'evolución'} sin escribir</span><span class="faint" style="font-size:12px">De turnos atendidos hoy</span></span></button>`);
   return `<div class="head" style="align-items:flex-end"><div><h1>Panel del día</h1><p>${fdl(TODAY)} · Sede central · ${all.length} turnos</p></div>
     <div class="row"><div class="row" style="gap:4px"><button class="btn icon" data-a="soon" data-m="En la demo se muestra solo el día de hoy." aria-label="Día anterior">${ico('cl',17)}</button><button class="btn">Hoy</button><button class="btn icon" data-a="soon" data-m="En la demo se muestra solo el día de hoy." aria-label="Día siguiente">${ico('cr',17)}</button></div>
-    <button class="btn" data-a="soon" data-m="Bloqueá un horario de un profesional o consultorio: los turnos de esa franja quedan fuera de la agenda.">${ico('lock',17)}Bloquear horario</button>${proxBtn('whatsapp','Reenviar recordatorios')}<button class="btn pri" data-a="go" data-v="agenda">${ico('plus',17,2)}Nuevo turno</button></div></div>
+    <button class="btn" data-a="soon" data-m="Bloqueá un horario de un profesional o consultorio: los turnos de esa franja quedan fuera de la agenda.">${ico('lock',17)}Bloquear horario</button>${vpBtn('whatsapp','Recordatorios por WhatsApp','wa')}<button class="btn pri" data-a="go" data-v="agenda">${ico('plus',17,2)}Nuevo turno</button></div></div>
   <div class="counters">${cnt('espera',esp.length,'en sala de espera',false)}${cnt('espera15',esp15.length,'espera más de 15 minutos',true)}${cnt('sinconf',sinconf.length,'turnos sin confirmar',true)}<button class="counter ${venc.length?'warn':''}" data-a="go" data-v="autorizaciones"><b>${venc.length}</b><span>autorizaciones por vencer</span></button></div>
   <div class="panelgrid"><section class="panel" style="overflow:hidden">
     <div class="lhead">${chip('todos','Todos',all.length)}${chip('espera','Esperando',G.espera.length)}${chip('porllegar','Por llegar',G.porllegar.length)}${chip('consulta','En consulta',G.consulta.length)}${chip('atendidos','Atendidos',G.atendidos.length)}
@@ -1775,7 +1805,31 @@ const A={
   llegada:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='espera';t.estado='presente';t.arr=Date.now();audit('Registró llegada',pname(pat(t.pid)));render();toast(pname(pat(t.pid))+' está en sala de espera')},
   pasar:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='consulta';t.ini=Date.now();audit('Hizo pasar a consultorio',pname(pat(t.pid))+' — '+pro(t.pro).nombre);render();toast('En consulta con '+pro(t.pro).nombre)},
   finalizar:d=>{const t=S.turnos.find(x=>x.id===d.t);t.flujo='atendido';t.fin=Date.now();audit('Finalizó consulta',pname(pat(t.pid)));close();render();toast(S.evols.some(e=>e.turnoId===t.id)?'Consulta finalizada':'Consulta finalizada. Queda pendiente la evolución.')},
-  recordar:()=>{const n=S.turnos.filter(t=>t.fecha===TODAY&&t.flujo==='porllegar'&&!t.conf);audit('Reenvió recordatorios por WhatsApp',n.length+' pacientes');toast('Recordatorio enviado por WhatsApp a '+n.length+' paciente'+(n.length>1?'s':''))},
+  // Vista previa de recordatorios por WhatsApp (etapa 8.1): el mensaje que recibe el paciente y su respuesta
+  wa:()=>{
+    const ts=todayT().filter(t=>(t.flujo==='porllegar'&&!t.conf&&!t.resp)||t.wa);
+    if(!ts.length){toast('No hay turnos de hoy sin confirmar');return}
+    const sel=ts.find(t=>t.id===S.waSel)||ts[0];S.waSel=sel.id;const p=pat(sel.pid);
+    const RESP={'1':['Confirmo','¡Gracias! Tu turno quedó confirmado. Te esperamos.'],'2':['Quiero reprogramar','Recibimos tu pedido. Recepción te va a escribir para coordinar otro horario.'],'3':['Cancelo','Tu turno quedó cancelado. Si querés otro turno, escribinos por acá.']};
+    const r=sel.wa?RESP[sel.wa]:null;
+    modal('Recordatorios por WhatsApp',`<div class="preview">${vpHead('whatsapp')}<div class="preview-b">
+      <div><p class="small muted">Turnos de hoy sin confirmar. Elegí uno para ver el mensaje que recibe el paciente y probá sus respuestas.</p>
+        <div class="walist">${ts.map(t=>`<button data-a="wasel" data-t="${t.id}" aria-pressed="${t.id===sel.id}"><span><b>${t.hora}</b> · ${esc(pat(t.pid).nombre+' '+pat(t.pid).apellido)}<br><span class="small faint">${esc(pro(t.pro).nombre)}</span></span>${t.wa?`<span class="tag ${t.wa==='1'?'ok':t.wa==='2'?'warn':''}">${RESP[t.wa][0]}</span>`:'<span class="tag warn">Sin respuesta</span>'}</button>`).join('')}</div>
+        <p class="small faint" style="margin-top:12px">La respuesta cambia el turno en el Panel: confirma, lo deja para reprogramar o lo cancela y libera el horario.</p></div>
+      <div class="phone"><div class="phone-top">Centro Demo de Salud Mental<small>WhatsApp de ${esc(p.nombre)}</small></div>
+        <div class="chat"><div class="bub">Hola ${esc(p.nombre)}, te recordamos tu turno de hoy, ${esc(fd(sel.fecha))}, a las ${sel.hora} con ${esc(pro(sel.pro).nombre)} en Sede central.\n\nRespondé:\n1 · Confirmo\n2 · Quiero reprogramar\n3 · Cancelo</div>
+        ${r?`<div class="bub out">${r[0]}</div><div class="bub">${r[1]}</div>`:''}</div>
+        ${r?'':`<div class="phone-act"><span class="small faint">Respondé como si fueras ${esc(p.nombre)}:</span>${Object.entries(RESP).map(([k,v])=>`<button class="btn sm" data-a="waresp" data-t="${sel.id}" data-v="${k}">${k} · ${v[0]}</button>`).join('')}</div>`}</div></div>
+      <div class="preview-n">Cuando exista, el recordatorio sale solo, 24 horas antes de cada turno. Cada mensaje tiene un costo que se cobra según el uso.</div></div>`,
+      `<button class="btn pri" data-a="close">Cerrar</button>`);
+    $('#modal').classList.add('wide')},
+  wasel:d=>{S.waSel=d.t;A.wa()},
+  waresp:d=>{const t=S.turnos.find(x=>x.id===d.t);const p=pat(t.pid);t.wa=d.v;t.vp=true;
+    if(d.v==='1'){t.conf=true;t.confVia='whatsapp'}
+    if(d.v==='2')t.resp='reprogramar';
+    if(d.v==='3'){t.flujo='cancelado';t.estado='cancelado'}
+    auditVP({'1':'Confirmó el turno por WhatsApp','2':'Pidió reprogramar por WhatsApp','3':'Canceló el turno por WhatsApp'}[d.v],pname(p)+' — '+t.hora+' con '+pro(t.pro).nombre);
+    render();A.wa()},
   tacc:d=>{const t=S.turnos.find(x=>x.id===d.t);const p=pat(t.pid);
     modal(esc(pname(p)),`<p class="muted">${t.hora} hs · ${esc(t.tipo)} · ${esc(pro(t.pro).nombre)}</p><div>${estTagF(t)} ${cobLabel(t).tag}</div>`,
     `${t.flujo==='porllegar'?`<button class="btn" data-a="ausenteT" data-t="${t.id}">Marcar ausente</button>${t.conf?'':`<button class="btn" data-a="confT" data-t="${t.id}">Marcar confirmado</button>`}`:''}
@@ -1807,7 +1861,7 @@ const A={
       <div class="row" style="margin-bottom:10px">${proxTag('video')}${proxTag('whatsapp')}</div>
       <label class="f">Paciente<select id="mP">${opts.map(p=>`<option value="${p.id}">${esc(pname(p))}</option>`).join('')}</select></label>
       <label class="f">Tipo<select id="mT"><option>Sesión individual</option><option>Control psiquiátrico</option><option>Entrevista familiar</option></select></label>
-      <p class="small faint">Se enviará un recordatorio al paciente 24 hs antes.</p>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveturno" data-d="${d.d}" data-h="${d.h}">Agendar turno</button>`);
+      <p class="small faint">Cuando lleguen los recordatorios por WhatsApp (etapa 8.1), el paciente va a recibir uno 24 hs antes.</p>`,`<button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveturno" data-d="${d.d}" data-h="${d.h}">Agendar turno</button>`);
   },
   saveturno:d=>{const pid=$('#mP').value;S.turnos.push({id:uid('t'),pid,pro:S.agPro,fecha:d.d,hora:d.h,tipo:$('#mT').value,estado:'programado'});audit('Agendó turno',pname(pat(pid))+' — '+fd(d.d)+' '+d.h);close();render();toast('Turno agendado')},
   turno:d=>{const t=S.turnos.find(x=>x.id===d.t);const p=pat(t.pid);const ev=S.evols.find(e=>e.turnoId===t.id);

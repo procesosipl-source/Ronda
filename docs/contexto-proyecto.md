@@ -106,6 +106,8 @@ Medicación va en 2ª etapa por riesgo clínico: se diseña con cuidado, no ráp
 - Configuración (reglas de cobertura, tarifario, permisos) y auditoría en vivo.
 - Las funciones que todavía no existen se muestran con etiqueta **"Próximamente"** y la etapa en que llegan. **No se presenta como disponible nada que no esté construido.**
 
+**Vistas previas.** Algunas funciones de "En camino" se pueden recorrer en el prototipo para mostrar cómo van a funcionar: recordatorios por WhatsApp, borrador de evolución con IA, consentimiento firmado desde el celular y link de pago. Van siempre **rotuladas como "Vista previa"**, con la etapa en que llegan, y lo que se crea con ellas queda marcado. Al mostrarlas a un cliente, decir que **no están disponibles**: sirven para validar la idea antes de construirla.
+
 **Lista única de "En camino".** Es la misma en el prototipo (Configuración → Institución), en la web pública y en este documento. Si cambia, se actualizan las tres:
 
 | Funcionalidad | Etapa | Módulo (ver `docs/modulos.md`) |

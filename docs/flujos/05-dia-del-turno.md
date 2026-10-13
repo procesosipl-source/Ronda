@@ -93,5 +93,10 @@ Se registra cada cambio de estado con fecha, hora, usuario y rol. También la ca
 
 ## En camino
 
-- Confirmación por WhatsApp que actualiza el turno sola — etapa 8.1.
+- Confirmación por WhatsApp que actualiza el turno sola — etapa 8.1. Se puede recorrer como **vista previa** en el prototipo (Panel de turnos → Recordatorios por WhatsApp):
+  - El recordatorio sale 24 horas antes, con fecha, hora, profesional y sede, y tres respuestas: 1 Confirmo, 2 Quiero reprogramar, 3 Cancelo.
+  - **1** pasa el turno a Confirmado con `confirmed_via = whatsapp` ("Confirmó por WhatsApp").
+  - **2** no cambia el estado: marca el turno con "Pide reprogramar" y lo agrega a "Para resolver hoy" de Recepción, que coordina el horario nuevo (flujo 06).
+  - **3** pasa el turno a Cancelado con aviso y libera el horario (flujo 06).
+  - Cada respuesta queda en la auditoría como hecha por el paciente, por WhatsApp.
 - Turno virtual con enlace de videollamada — etapa 8.3.
