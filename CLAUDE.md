@@ -110,6 +110,7 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
   /tests        tests pgTAP de base y RLS
   seed.sql      datos ficticios
 /docs
+  /competencia  análisis de productos competidores
   /decisiones   una nota por decisión de arquitectura (ADR)
   /flujos       un diagrama por proceso de la clínica (Mermaid)
   /marca        archivos del logo

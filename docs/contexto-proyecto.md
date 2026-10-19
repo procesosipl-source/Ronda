@@ -280,8 +280,9 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - [x] VS Code + extensión de Claude Code.
 - [x] Proyecto `ronda-dev` en Supabase (región São Paulo, solo datos ficticios).
 - [x] Cuenta de Vercel vinculada a GitHub (el proyecto todavía no se importó).
-- [x] Repositorio clonado, con remoto `procesosipl-source/Ronda`, `CLAUDE.md` en la raíz y la demo en `docs/prototipo/`. Está en `C:\Users\LUCAS\Desktop\Ronda`, no en `C:\Proyectos\IPL\ronda` como estaba previsto.
-- [ ] Decidir si se mueve a `C:\Proyectos\IPL\ronda`. Hoy está en el Escritorio, junto a FLEXColor (ver el aviso de abajo).
+- [x] Repositorio clonado, con remoto `procesosipl-source/Ronda`, `CLAUDE.md` en la raíz y la demo en `docs/prototipo/`. Desde el 19 de octubre de 2026 está en `C:\Proyectos\IPL\Ronda`.
+- [ ] Borrar la copia vieja del Escritorio (`C:\Users\LUCAS\Desktop\Ronda`) una vez abierta la nueva en VS Code.
+- [ ] Instalar Docker Desktop, que usa la Supabase CLI para levantar la base local y correr los tests pgTAP (antes de la sesión 2).
 - [ ] Reactivar `ronda-dev`: Supabase lo pausó por inactividad (visto el 9 de octubre de 2026). En la misma organización hay otro proyecto pausado, "procesosipl-source's Project" (`us-east-2`), que no es de Ronda: conviene borrarlo si no se usa.
 - [ ] Esqueleto del proyecto (sesión 1).
 
