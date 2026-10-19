@@ -1,0 +1,3 @@
+-- Datos de prueba para la base local y ronda-dev.
+-- Regla 8 de CLAUDE.md: todo lo que va acá es ficticio. Nunca datos de pacientes reales.
+-- Se completa en la sesión 2, con dos instituciones de ejemplo para probar el aislamiento.

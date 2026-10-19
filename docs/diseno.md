@@ -127,7 +127,7 @@ Ronda se usa **únicamente en modo claro**, aunque el sistema operativo o el nav
 
 ## Logo
 
-Archivos en `public/brand/` (o `docs/marca/` hasta que exista el frontend).
+Archivos en `public/brand/`.
 
 **Concepto "Recorrido":** un anillo abierto con un punto naranja en el hueco. Representa la ronda en marcha, el cuidado que rodea a la persona, y al mismo tiempo es la "o" de la palabra. El hueco está girado 40° hacia la derecha para transmitir movimiento y evitar que se confunda con el símbolo de encendido/apagado.
 

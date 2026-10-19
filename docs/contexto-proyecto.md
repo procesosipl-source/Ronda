@@ -145,7 +145,7 @@ Se tomó como referencia de organización la pantalla de un competidor (Menta), 
 
 ### Identidad visual
 
-Estética limpia estilo SimplePractice con los colores de IPL (blanco, naranja y gris), **solo modo claro**. Logo "Recorrido": anillo abierto con punto naranja, que además es la "o" de la palabra. Todo definido en `docs/diseno.md`; archivos del logo en `docs/marca/`.
+Estética limpia estilo SimplePractice con los colores de IPL (blanco, naranja y gris), **solo modo claro**. Logo "Recorrido": anillo abierto con punto naranja, que además es la "o" de la palabra. Todo definido en `docs/diseno.md`; archivos del logo en `public/brand/`.
 
 ## 6. Arquitectura
 
@@ -284,7 +284,10 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - [ ] Borrar la copia vieja del Escritorio (`C:\Users\LUCAS\Desktop\Ronda`) una vez abierta la nueva en VS Code.
 - [ ] Instalar Docker Desktop, que usa la Supabase CLI para levantar la base local y correr los tests pgTAP (antes de la sesión 2).
 - [ ] Reactivar `ronda-dev`: Supabase lo pausó por inactividad (visto el 9 de octubre de 2026). En la misma organización hay otro proyecto pausado, "procesosipl-source's Project" (`us-east-2`), que no es de Ronda: conviene borrarlo si no se usa.
-- [ ] Esqueleto del proyecto (sesión 1).
+- [x] Esqueleto del proyecto (sesión 1, 19 de octubre de 2026): React 19 + Vite 8 + TypeScript 7 estricto, Tailwind 4 con los tokens de `docs/diseno.md`, React Router, TanStack Query, react-hook-form, zod, Vitest, oxlint y la Supabase CLI como dependencia del proyecto. Logos movidos a `public/brand/`.
+- [ ] Vincular la Supabase CLI a `ronda-dev` (`npx supabase link`), una vez reactivado.
+- [ ] Importar el repo en Vercel y cargar `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- [ ] Instalar `@hookform/resolvers` con el primer formulario: la versión 6 choca con dependencias opcionales que no usamos; probar la 5 o una más nueva.
 
 **Cuidado:** en la misma computadora existe otro proyecto de cliente (FLEXColor, en el Escritorio). Antes de cada sesión, verificar que VS Code tenga abierta la carpeta de Ronda. Los proyectos de clientes nunca se anidan uno dentro de otro.
 

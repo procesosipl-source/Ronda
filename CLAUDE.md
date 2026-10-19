@@ -104,6 +104,8 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
   /features     un directorio por módulo (patients, appointments, clinical-notes…)
   /components   componentes de interfaz reutilizables
   /lib          cliente de Supabase, utilidades, tipos generados
+/public
+  /brand        archivos del logo y los íconos
 /supabase
   /migrations   migraciones SQL versionadas
   /functions    Edge Functions
@@ -113,7 +115,6 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
   /competencia  análisis de productos competidores
   /decisiones   una nota por decisión de arquitectura (ADR)
   /flujos       un diagrama por proceso de la clínica (Mermaid)
-  /marca        archivos del logo
   /pantallas    pantallas diseñadas en detalle: captura, maqueta y especificación
   /prototipo    demo navegable de referencia
   /web          borrador de la web pública del producto

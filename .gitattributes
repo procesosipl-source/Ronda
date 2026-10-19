@@ -1,0 +1,6 @@
+# Fin de línea LF en todo el repositorio, aunque se edite desde Windows.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
