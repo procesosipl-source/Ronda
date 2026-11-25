@@ -1,8 +1,8 @@
 import { createBrowserRouter } from 'react-router'
+import { LoginPage } from '../features/auth/LoginPage'
 import { NotFoundPage } from './NotFoundPage'
-import { StartPage } from './StartPage'
 
 export const router = createBrowserRouter([
-  { path: '/', element: <StartPage /> },
+  { path: '/', element: <LoginPage /> },
   { path: '*', element: <NotFoundPage /> },
 ])
