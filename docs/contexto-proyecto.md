@@ -293,6 +293,8 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 ## 14. Próximos pasos
 
+> Desde el 25 de noviembre de 2026, los próximos pasos se siguen semana a semana en [`docs/plan.md`](plan.md). Lo de abajo queda como referencia.
+
 0. **Arreglos al prototipo** (hechos el 9 de octubre de 2026): registro de medicación con hora real y corrección, carga y visor de documentos, documentos en la HC y en su PDF, selector de mes en Autorizaciones y Prefacturación, y una sola lista de "En camino". **Queda pendiente:** revisar el catálogo de módulos ([`docs/modulos.md`](modulos.md)) y, al aprobarlo, aceptar el ADR 0003, armar la pantalla de módulos del prototipo y actualizar §3, §4 y §11.
 1. **Sesión 1 — Esqueleto:** verificar el entorno y crear la app React + Vite + TypeScript con Tailwind, la Supabase CLI vinculada a `ronda-dev`, `.gitignore`, `.env.example` y el README. Primer commit y push. Importar el repo en Vercel.
 2. **Sesión 2 — Modelo de fundaciones:** diseñar juntos, antes de escribir SQL, las tablas `institution`, `site`, `membership`, `role`, `audit_log` y el perfil de usuario. Después migraciones, políticas RLS, tests de aislamiento entre instituciones y seed ficticio con dos instituciones.
@@ -306,5 +308,6 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - [ ] Mover el repositorio y las cuentas a una organización/cuenta de IPL, en lugar de la cuenta personal de GitHub.
 - [ ] Consulta legal: alojamiento de datos, firma de evoluciones, obligaciones ante la AAIP.
 - [ ] Perfil de las instituciones objetivo (ambulatorias o con internación, tamaño, especialidad): define qué entra al core.
-- [ ] Equipo disponible y horas por semana: necesario para estimar tiempos.
+- [x] Equipo disponible y horas por semana: una persona, unas 10 horas por semana (25/11/2026). Tiempos estimados en [`docs/plan.md`](plan.md).
+- [ ] Orden de los módulos para Clínica Di Ferro, probable primer cliente (ver [`docs/plan.md`](plan.md), Fase C).
 - [ ] Qué indicadores de Looker Studio mira realmente Dirección.

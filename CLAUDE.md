@@ -25,6 +25,8 @@ Etapa 0 — Fundaciones. Todavía no hay módulos de negocio. El orden previsto 
 
 El contexto completo del proyecto (origen, decisiones, alcance del MVP, riesgos, aspectos legales y pendientes) está en `docs/contexto-proyecto.md`. Leelo cuando una tarea toque alcance, arquitectura o prioridades.
 
+El plan semana a semana, con lo que se muestra cada viernes, está en `docs/plan.md`. Al empezar una sesión, mirá en qué semana estamos; al terminarla, actualizá el registro semanal.
+
 El prototipo visual de referencia está en `docs/prototipo/ronda-demo.html`. Las pantallas diseñadas en detalle (captura, maqueta y especificación) están en `docs/pantallas/` y tienen prioridad sobre el prototipo. Usalo como guía de pantallas, textos y flujos; su código **no** se reutiliza.
 
 ## Stack
@@ -119,6 +121,7 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
   /prototipo    demo navegable de referencia
   /web          borrador de la web pública del producto
   modulos.md    catálogo de módulos para vender (propuesta en revisión)
+  plan.md       plan de trabajo semanal y registro de avance
 ```
 
 Los procesos de la clínica están diagramados en `docs/flujos/` (índice en su `README.md`). Antes de modelar una tabla con ciclo de vida o de escribir un trigger, mirá el flujo correspondiente: de ahí salen los estados, las transiciones válidas y los bloqueos.
