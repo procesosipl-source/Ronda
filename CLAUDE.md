@@ -6,7 +6,7 @@
 
 Ronda (nombre provisorio) es una plataforma web SaaS **multi-institución** para gestionar centros de salud, con foco inicial en salud mental: pacientes, agenda, historia clínica, grupos, internación, medicación, autorizaciones de obras sociales y prefacturación.
 
-La desarrolla IPL – Ingeniería de Procesos Luján (Mendoza, Argentina). Nace de dos apps AppSheet hechas a medida para una clínica, pero **no es una copia de ellas**: es un producto genérico y configurable. Ninguna regla particular de una clínica va en el código; va en la configuración de esa institución.
+La desarrolla IPL (Mendoza, Argentina). En todo texto visible, la empresa se nombra solo como "IPL", sin nombre completo. Nace de dos apps AppSheet hechas a medida para una clínica, pero **no es una copia de ellas**: es un producto genérico y configurable. Ninguna regla particular de una clínica va en el código; va en la configuración de esa institución.
 
 Usuarios: dirección, administración, profesionales (psicología, psiquiatría, trabajo social, nutrición), enfermería y recepción. Se usa desde PC, tablet y celular.
 

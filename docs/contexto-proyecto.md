@@ -8,7 +8,7 @@
 
 ## 1. Origen
 
-IPL – Ingeniería de Procesos Luján desarrolló durante 2026 dos aplicaciones AppSheet + Google Sheets + Apps Script + Looker Studio para dos instituciones de salud mental de Mendoza:
+IPL desarrolló durante 2026 dos aplicaciones AppSheet + Google Sheets + Apps Script + Looker Studio para dos instituciones de salud mental de Mendoza:
 
 - **App principal** (Clínica Di Ferro, probable primer cliente de Ronda): pacientes, profesionales, internaciones, agenda por slots, evoluciones individuales y grupales, enfermería, esquema de medicación, historia clínica consolidada por script y generada en PDF, documentos, control de evoluciones faltantes, reporte semanal a Dirección y un comienzo de liquidaciones y facturación.
 - **App de Conexión** (otra institución): en la práctica, un módulo de coberturas y autorizaciones. Seguimiento Solicitado → Autorizado → Facturado → Cobrado por paciente, período y obra social. Incluye módulos con precios por obra social y su historial, consumo de órdenes, presentación mensual, cobros particulares y copagos, y reglas por obra social para determinar qué prestación presentar, con "NO DEFINIDO" como valor por defecto.

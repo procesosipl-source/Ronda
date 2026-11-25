@@ -16,7 +16,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         {description !== undefined && <p className="mt-1 text-ink-2">{description}</p>}
         <div className="mt-6">{children}</div>
       </section>
-      <p className="mt-6 text-[0.76rem] text-ink-3">Ronda · IPL – Ingeniería de Procesos Luján</p>
+      <p className="mt-6 text-[0.76rem] text-ink-3">Ronda · IPL</p>
     </main>
   )
 }

@@ -1,6 +1,6 @@
 # Ronda
 
-Plataforma web para gestionar centros de salud mental: pacientes, agenda, historia clínica, grupos, internación, medicación, autorizaciones de obras sociales y prefacturación. La desarrolla IPL – Ingeniería de Procesos Luján.
+Plataforma web para gestionar centros de salud mental: pacientes, agenda, historia clínica, grupos, internación, medicación, autorizaciones de obras sociales y prefacturación. La desarrolla IPL.
 
 - **Reglas del proyecto y glosario:** [`CLAUDE.md`](CLAUDE.md). Leelo antes de tocar código.
 - **Contexto y alcance:** [`docs/contexto-proyecto.md`](docs/contexto-proyecto.md).
