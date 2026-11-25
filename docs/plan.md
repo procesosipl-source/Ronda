@@ -126,4 +126,6 @@ Medicación se construye con cuidado, no rápido (riesgo clínico).
 
 | Sem. | Fecha | Hecho | Pendiente / notas |
 |---|---|---|---|
-| 0 | 25/11/2026 | Plan creado. Se detectó que el esqueleto ya estaba hecho en `C:\Proyectos\IPL\Ronda`. Orden de módulos decidido (ADR 0004) | Reactivar `ronda-dev` |
+| 0 | 25/11/2026 | Plan creado. Se detectó que el esqueleto ya estaba hecho en `C:\Proyectos\IPL\Ronda`. Orden de módulos decidido (ADR 0004) | — |
+| 1 | 25/11/2026 | `ronda-dev` reactivado, `.env.local`, publicado en Vercel (https://ronda-liart.vercel.app), pantalla de ingreso | Vincular la Supabase CLI (falta permiso de la cuenta personal en la organización). Docker: reinstalar como "All-users" |
+| 2 | 25/11/2026 | Ingreso real, inicio protegido con Salir, recuperar contraseña, contraseña nueva de 10 caracteres o más | En el panel de Supabase: apagar el registro libre, largo mínimo 10, direcciones permitidas, usuario de prueba. Probar en el celular. Vercel Hobby no es para uso comercial: pasar a Pro antes de la Fase D |
