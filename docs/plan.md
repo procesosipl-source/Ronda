@@ -1,7 +1,8 @@
 # Ronda — Plan de trabajo semanal
 
 > Creado el 25 de noviembre de 2026. Se revisa cada viernes.
-> Primer cliente previsto: **Clínica Di Ferro**.
+> Primer cliente previsto: **Clínica Di Ferro**, la institución que usa la app AppSheet principal. Interna pacientes.
+> Orden de los módulos: **Agenda → Historia clínica → Coberturas → Internación** ([ADR 0004](decisiones/0004-orden-de-construccion-para-di-ferro.md)).
 
 ## Supuestos
 
@@ -22,13 +23,11 @@ Regla práctica: **ninguna sesión termina sin push.** El código que queda solo
 ## Semana 0 — Ordenar (esta semana)
 
 - [x] Subir a GitHub todo lo pendiente. La carpeta de trabajo es `C:\Proyectos\IPL\Ronda`; la del Escritorio quedó vieja y se puede borrar.
+- [x] Decidir el orden de los módulos (ADR 0004).
+- [x] Confirmar si Di Ferro interna pacientes: sí.
 - [ ] Reactivar `ronda-dev` en Supabase.
-- [ ] Decidir el orden de los módulos (Fase C, más abajo) y registrarlo como ADR.
-- [ ] Confirmar si Di Ferro interna pacientes: define si Internación entra en el MVP.
 
 ## Fase A — Fundaciones (semanas 1 a 5)
-
-Es igual sea cual sea el orden de módulos. Sin esto no hay nada seguro sobre lo que construir.
 
 | Sem. | Qué se construye | Demo del viernes |
 |---|---|---|
@@ -40,8 +39,6 @@ Es igual sea cual sea el orden de módulos. Sin esto no hay nada seguro sobre lo
 
 ## Fase B — Datos maestros (semanas 6 a 9)
 
-También es común a cualquier orden.
-
 | Sem. | Qué se construye | Demo del viernes |
 |---|---|---|
 | 6 | Pacientes: alta, listado y búsqueda. DNI único por institución | Dar de alta pacientes ficticios y encontrarlos |
@@ -51,43 +48,41 @@ También es común a cualquier orden.
 
 **Hito 1 (fines de febrero de 2027):** Ronda real con usuarios, roles, pacientes y profesionales. Ya se puede mostrar a Di Ferro funcionando, aunque todavía no reemplace nada.
 
-## Fase C — Módulos (semanas 10 a 28, orden a decidir)
+## Fase C — Módulos (semanas 10 a 28)
 
-Son tres bloques. Cambia el orden, no la cantidad de semanas.
-
-**Coberturas y prefacturación (7 semanas)**
+### Agenda y turnos (semanas 10 a 15)
 
 | Sem. | Qué se construye | Demo del viernes |
 |---|---|---|
-| C1 | Prestaciones y tarifario con vigencias | Cambiar un precio desde una fecha y ver el historial |
-| C2 | Reglas de cobertura ordenadas, con "No definido" | Ver qué prestación le toca a cada paciente |
-| C3 | Autorizaciones: pedido, estados y vencimientos | Llevar una autorización de Solicitada a Autorizada |
-| C4 | Tablero de autorizaciones mes por mes y alertas | El tablero con meses pasados y "A pedir" |
-| C5 | Prefacturación del mes y exportación | La prefacturación de un mes, bajada a Excel |
-| C6 | Cierre de período (bloquea con "No definido", queda la foto) | Cerrar un mes e intentar modificarlo |
-| C7 | Importador de pacientes y autorizaciones, con reporte de conflictos | Importar un archivo de ejemplo ficticio y ver los errores |
+| 10 | Disponibilidad calculada desde los horarios del profesional | La agenda semanal armada sola |
+| 11 | Nuevo turno y turnos recurrentes | Dar un turno semanal por tres meses |
+| 12 | Bloqueos, feriados, cancelar y reprogramar | Bloquear un día y ver qué turnos quedan afectados |
+| 13 | Panel del día de recepción (pantalla de `docs/pantallas/`) | Marcar llegada → Hacer pasar → Finalizar |
+| 14 | Mi día y Sala de espera en el celular | Lo mismo desde el teléfono |
+| 15 | Asistencia y ausentes, ajustes con usuarios | Registrar un ausente y verlo en la ficha |
 
-**Agenda y turnos (6 semanas)**
-
-| Sem. | Qué se construye | Demo del viernes |
-|---|---|---|
-| A1 | Disponibilidad calculada desde los horarios del profesional | La agenda semanal armada sola |
-| A2 | Nuevo turno y turnos recurrentes | Dar un turno semanal por tres meses |
-| A3 | Bloqueos, feriados, cancelar y reprogramar | Bloquear un día y ver qué turnos quedan afectados |
-| A4 | Panel del día de recepción (pantalla de `docs/pantallas/`) | Marcar llegada → Hacer pasar → Finalizar |
-| A5 | Mi día y Sala de espera en el celular | Lo mismo desde el teléfono |
-| A6 | Asistencia y ausentes, ajustes con usuarios | Registrar un ausente y verlo en la ficha |
-
-**Registro clínico e historia clínica (6 semanas)**
+### Registro clínico e historia clínica (semanas 16 a 21)
 
 | Sem. | Qué se construye | Demo del viernes |
 |---|---|---|
-| H1 | Evolución en borrador y firma (función en la base, trigger que impide modificarla) | Firmar una evolución e intentar editarla |
-| H2 | Adendas y quién ve la HC según el equipo tratante | Un profesional fuera del equipo no puede abrir la HC |
-| H3 | Historia clínica cronológica y auditoría de lectura | Abrir una HC y verlo en Auditoría |
-| H4 | Documentos: subir, ver y anular (almacenamiento privado) | Subir una foto desde el celular a la ficha |
-| H5 | Actividades grupales y encuentros con asistencia | Cargar un encuentro grupal y ver las evoluciones |
-| H6 | Exportar la HC a PDF con fecha y huella | Bajar el PDF de una HC |
+| 16 | Evolución en borrador y firma (función en la base, trigger que impide modificarla) | Firmar una evolución e intentar editarla |
+| 17 | Adendas y quién ve la HC según el equipo tratante | Un profesional fuera del equipo no puede abrir la HC |
+| 18 | Historia clínica cronológica y auditoría de lectura | Abrir una HC y verlo en Auditoría |
+| 19 | Documentos: subir, ver y anular (almacenamiento privado) | Subir una foto desde el celular a la ficha |
+| 20 | Actividades grupales y encuentros con asistencia | Cargar un encuentro grupal y ver las evoluciones |
+| 21 | Exportar la HC a PDF con fecha y huella | Bajar el PDF de una HC |
+
+### Coberturas y prefacturación (semanas 22 a 28)
+
+| Sem. | Qué se construye | Demo del viernes |
+|---|---|---|
+| 22 | Prestaciones y tarifario con vigencias | Cambiar un precio desde una fecha y ver el historial |
+| 23 | Reglas de cobertura ordenadas, con "No definido" | Ver qué prestación le toca a cada paciente |
+| 24 | Autorizaciones: pedido, estados y vencimientos | Llevar una autorización de Solicitada a Autorizada |
+| 25 | Tablero de autorizaciones mes por mes y alertas | El tablero con meses pasados y "A pedir" |
+| 26 | Prefacturación del mes y exportación | La prefacturación de un mes, bajada a Excel |
+| 27 | Cierre de período (bloquea con "No definido", queda la foto) | Cerrar un mes e intentar modificarlo |
+| 28 | Importador de pacientes y autorizaciones, con reporte de conflictos | Importar un archivo de ejemplo ficticio y ver los errores |
 
 ## Fase D — Salida a producción (semanas 29 a 32)
 
@@ -96,17 +91,30 @@ Son tres bloques. Cambia el orden, no la cantidad de semanas.
 | 29 | Entorno de producción, backups y prueba de restauración | Restaurar un backup en una copia |
 | 30 | 2FA para Dirección y Administración, vencimiento de sesiones | Entrar con doble factor |
 | 31 | Alta de Di Ferro: configuración, catálogos, importación en producción | Di Ferro configurada con sus datos |
-| 32 | Capacitación y uso en paralelo con lo que usan hoy | Primer día de uso real |
+| 32 | Capacitación y uso en paralelo con AppSheet | Primer día de uso real |
 
-**Hito 2 (septiembre de 2027 aprox.):** MVP ambulatorio en uso en Di Ferro.
+**Hito 2 (septiembre de 2027 aprox.):** agenda, historia clínica y coberturas en uso en Di Ferro. Internación, enfermería y medicación siguen en AppSheet.
 
-El primer módulo de la Fase C se puede poner en uso real en paralelo antes, alrededor de **abril o mayo de 2027**, si se adelanta lo mínimo de la Fase D (producción y backups) para ese módulo.
+Se puede poner la agenda en uso real antes, hacia **mayo de 2027**, adelantando lo mínimo de esta fase (producción y backups).
 
-## Fase E — Internación, enfermería y medicación (unas 10 semanas)
+## Fase E — Internación, enfermería y medicación (semanas 33 a 42)
 
-Solo si Di Ferro interna. Camas, ingresos y egresos, días autorizados y prórrogas, esquemas de medicación versionados, ronda de administración en el celular. Medicación se construye con cuidado, no rápido (riesgo clínico).
+| Sem. | Qué se construye | Demo del viernes |
+|---|---|---|
+| 33 | Habitaciones y camas | El mapa de camas con ocupación |
+| 34 | Ingreso a internación (asignar cama, días autorizados) | Internar a un paciente ficticio |
+| 35 | Prórrogas y egreso | Pedir una prórroga y dar el alta |
+| 36 | Esquema de medicación versionado (lo indica psiquiatría) | Cambiar una dosis y ver la versión anterior |
+| 37 | Horarios de toma como filas, tomas a demanda | Un esquema con horarios fuera de los habituales |
+| 38 | Ronda de administración en el celular (función en la base) | Registrar una toma desde el teléfono |
+| 39 | Hora real de la toma y corrección con registro anterior visible | Corregir una hora y ver el historial |
+| 40 | Controles de enfermería | Cargar signos vitales en el celular |
+| 41 | Pruebas con enfermería de Di Ferro (datos ficticios) | Ajustes según lo que digan |
+| 42 | Puesta en producción y uso en paralelo | Primera guardia usando Ronda |
 
-**Hito 3 (fin de 2027 aprox.):** Di Ferro operando completa en Ronda.
+Medicación se construye con cuidado, no rápido (riesgo clínico).
+
+**Hito 3 (diciembre de 2027 aprox.):** Di Ferro operando completa en Ronda y AppSheet retirado, con los históricos en solo lectura.
 
 ## En paralelo, sin horas de desarrollo
 
@@ -118,4 +126,4 @@ Solo si Di Ferro interna. Camas, ingresos y egresos, días autorizados y prórro
 
 | Sem. | Fecha | Hecho | Pendiente / notas |
 |---|---|---|---|
-| 0 | 25/11/2026 | Plan creado. Se detectó que el esqueleto ya estaba hecho en `C:\Proyectos\IPL\Ronda` | Decidir orden de módulos |
+| 0 | 25/11/2026 | Plan creado. Se detectó que el esqueleto ya estaba hecho en `C:\Proyectos\IPL\Ronda`. Orden de módulos decidido (ADR 0004) | Reactivar `ronda-dev` |

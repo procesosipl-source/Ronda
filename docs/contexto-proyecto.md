@@ -2,16 +2,16 @@
 
 > Documento de traspaso. Resume todo lo analizado y decidido antes de empezar a programar: de dónde viene el producto, qué es y qué no, cómo se va a construir y qué falta definir.
 > `CLAUDE.md` tiene las reglas operativas de cada sesión. Este archivo explica el **porqué** detrás de esas reglas.
-> Última actualización: 9 de octubre de 2026.
+> Última actualización: 25 de noviembre de 2026.
 
 ---
 
 ## 1. Origen
 
-IPL – Ingeniería de Procesos Luján desarrolló durante 2026 dos aplicaciones AppSheet + Google Sheets + Apps Script + Looker Studio para una clínica de salud mental de Mendoza:
+IPL – Ingeniería de Procesos Luján desarrolló durante 2026 dos aplicaciones AppSheet + Google Sheets + Apps Script + Looker Studio para dos instituciones de salud mental de Mendoza:
 
-- **App principal:** pacientes, profesionales, internaciones, agenda por slots, evoluciones individuales y grupales, enfermería, esquema de medicación, historia clínica consolidada por script y generada en PDF, documentos, control de evoluciones faltantes, reporte semanal a Dirección y un comienzo de liquidaciones y facturación.
-- **App de Conexión:** en la práctica, un módulo de coberturas y autorizaciones. Seguimiento Solicitado → Autorizado → Facturado → Cobrado por paciente, período y obra social. Incluye módulos con precios por obra social y su historial, consumo de órdenes, presentación mensual, cobros particulares y copagos, y reglas por obra social para determinar qué prestación presentar, con "NO DEFINIDO" como valor por defecto.
+- **App principal** (Clínica Di Ferro, probable primer cliente de Ronda): pacientes, profesionales, internaciones, agenda por slots, evoluciones individuales y grupales, enfermería, esquema de medicación, historia clínica consolidada por script y generada en PDF, documentos, control de evoluciones faltantes, reporte semanal a Dirección y un comienzo de liquidaciones y facturación.
+- **App de Conexión** (otra institución): en la práctica, un módulo de coberturas y autorizaciones. Seguimiento Solicitado → Autorizado → Facturado → Cobrado por paciente, período y obra social. Incluye módulos con precios por obra social y su historial, consumo de órdenes, presentación mensual, cobros particulares y copagos, y reglas por obra social para determinar qué prestación presentar, con "NO DEFINIDO" como valor por defecto.
 
 Ambas se usaron en un entorno real, con administración, profesionales y enfermería. Eso las convierte en un **MVP validado**: sabemos qué flujos se usan de verdad.
 
@@ -193,6 +193,8 @@ Se puede desarrollar todo el MVP con datos ficticios mientras se hace esta valid
 
 ## 9. Migración desde AppSheet (cuando corresponda)
 
+> **Actualización (25/11/2026, [ADR 0004](decisiones/0004-orden-de-construccion-para-di-ferro.md)):** el primer cliente es Di Ferro, que usa la app principal, así que la migración empieza por la **agenda**, no por Conexión. Lo de abajo sigue valiendo para cuando se sume la institución de Conexión. La secuencia y los riesgos aplican igual a Di Ferro, con agenda → HC → internación en lugar del piloto de coberturas.
+
 **Piloto: coberturas y prefacturación**, que reemplaza a la App de Conexión. Los motivos:
 - Tiene pocos usuarios.
 - Su valor es inmediato.
@@ -210,15 +212,17 @@ Secuencia:
 
 Riesgos: fatiga por doble carga, reglas implícitas en fórmulas sin documentar, evoluciones históricas sin firma ni origen, rechazo si la app nueva es más lenta en el celular.
 
-## 10. Roadmap por etapas (sin tiempos todavía)
+## 10. Roadmap por etapas
+
+Las filas están en **orden de construcción** ([ADR 0004](decisiones/0004-orden-de-construccion-para-di-ferro.md)). El número es el nombre de la etapa y no cambia, porque otros documentos lo usan. Semanas y fechas en [`docs/plan.md`](plan.md).
 
 | # | Etapa | Entregable | Depende de |
 |---|---|---|---|
 | 0 | Fundaciones | Instituciones, usuarios, membresías, roles y auditoría funcionando, sin módulos de negocio | — |
 | 1 | Datos maestros | Pacientes, profesionales, obras sociales, prestaciones, tarifario, reglas de cobertura | 0 |
-| 2 | Coberturas y prefacturación (piloto) | Un cierre mensual real hecho en Ronda | 1 |
 | 3 | Agenda y turnos | Plantillas, turnos, asistencia, recordatorios | 1 |
 | 4 | Registro clínico e HC | Evoluciones, grupales, adendas, PDF | 1, 3 |
+| 2 | Coberturas y prefacturación | Un cierre mensual real hecho en Ronda | 1 |
 | 5 | Internación, enfermería, medicación | Operación de internación, pensada para el celular | 4 |
 | 6 | Indicadores y reportes | Tableros y reporte semanal nativos | 2–5 |
 | 7 | Productización | Una segunda institución operando sin tocar código | todas |
@@ -309,5 +313,5 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - [ ] Consulta legal: alojamiento de datos, firma de evoluciones, obligaciones ante la AAIP.
 - [ ] Perfil de las instituciones objetivo (ambulatorias o con internación, tamaño, especialidad): define qué entra al core.
 - [x] Equipo disponible y horas por semana: una persona, unas 10 horas por semana (25/11/2026). Tiempos estimados en [`docs/plan.md`](plan.md).
-- [ ] Orden de los módulos para Clínica Di Ferro, probable primer cliente (ver [`docs/plan.md`](plan.md), Fase C).
+- [x] Orden de los módulos para Clínica Di Ferro: agenda → HC → coberturas → internación ([ADR 0004](decisiones/0004-orden-de-construccion-para-di-ferro.md)).
 - [ ] Qué indicadores de Looker Studio mira realmente Dirección.

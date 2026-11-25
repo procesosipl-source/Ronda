@@ -16,12 +16,14 @@ Etapa 0 — Fundaciones. Todavía no hay módulos de negocio. El orden previsto 
 
 1. Fundaciones: estructura del proyecto, instituciones, usuarios, roles, auditoría.
 2. Datos maestros: pacientes, profesionales, obras sociales, prestaciones, tarifario.
-3. Autorizaciones y prefacturación (primer módulo piloto).
-4. Agenda y turnos.
-5. Registro clínico e historia clínica.
+3. Agenda y turnos.
+4. Registro clínico e historia clínica.
+5. Autorizaciones y prefacturación.
 6. Internación, enfermería y medicación.
 7. Indicadores y reportes.
 8. Productización (alta de nuevas instituciones, importador, configuración).
+
+El orden de los pasos 3 a 6 se decidió en `docs/decisiones/0004-orden-de-construccion-para-di-ferro.md`, pensando en Clínica Di Ferro, el primer cliente previsto.
 
 El contexto completo del proyecto (origen, decisiones, alcance del MVP, riesgos, aspectos legales y pendientes) está en `docs/contexto-proyecto.md`. Leelo cuando una tarea toque alcance, arquitectura o prioridades.
 
