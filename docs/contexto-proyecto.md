@@ -2,7 +2,7 @@
 
 > Documento de traspaso. Resume todo lo analizado y decidido antes de empezar a programar: de dónde viene el producto, qué es y qué no, cómo se va a construir y qué falta definir.
 > `CLAUDE.md` tiene las reglas operativas de cada sesión. Este archivo explica el **porqué** detrás de esas reglas.
-> Última actualización: 25 de noviembre de 2026.
+> Última actualización: 26 de noviembre de 2026.
 
 ---
 
@@ -281,29 +281,60 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 ## 13. Estado del entorno
 
-- [x] VS Code + extensión de Claude Code.
-- [x] Proyecto `ronda-dev` en Supabase (región São Paulo, solo datos ficticios).
-- [x] Cuenta de Vercel vinculada a GitHub (el proyecto todavía no se importó).
-- [x] Repositorio clonado, con remoto `procesosipl-source/Ronda`, `CLAUDE.md` en la raíz y la demo en `docs/prototipo/`. Desde el 19 de octubre de 2026 está en `C:\Proyectos\IPL\Ronda`.
-- [ ] Borrar la copia vieja del Escritorio (`C:\Users\LUCAS\Desktop\Ronda`) una vez abierta la nueva en VS Code.
-- [ ] Instalar Docker Desktop, que usa la Supabase CLI para levantar la base local y correr los tests pgTAP (antes de la sesión 2).
-- [ ] Reactivar `ronda-dev`: Supabase lo pausó por inactividad (visto el 9 de octubre de 2026). En la misma organización hay otro proyecto pausado, "procesosipl-source's Project" (`us-east-2`), que no es de Ronda: conviene borrarlo si no se usa.
-- [x] Esqueleto del proyecto (sesión 1, 19 de octubre de 2026): React 19 + Vite 8 + TypeScript 7 estricto, Tailwind 4 con los tokens de `docs/diseno.md`, React Router, TanStack Query, react-hook-form, zod, Vitest, oxlint y la Supabase CLI como dependencia del proyecto. Logos movidos a `public/brand/`.
-- [ ] Vincular la Supabase CLI a `ronda-dev` (`npx supabase link`), una vez reactivado.
-- [ ] Importar el repo en Vercel y cargar `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`.
-- [ ] Instalar `@hookform/resolvers` con el primer formulario: la versión 6 choca con dependencias opcionales que no usamos; probar la 5 o una más nueva.
+> Actualizado el 26 de noviembre de 2026, al cerrar las semanas 1 y 2 del plan.
 
-**Cuidado:** en la misma computadora existe otro proyecto de cliente (FLEXColor, en el Escritorio). Antes de cada sesión, verificar que VS Code tenga abierta la carpeta de Ronda. Los proyectos de clientes nunca se anidan uno dentro de otro.
+**Listo**
+
+- [x] VS Code + extensión de Claude Code.
+- [x] Repositorio en `C:\Proyectos\IPL\Ronda` (desde el 19 de octubre de 2026), con remoto `procesosipl-source/Ronda`. **Es la única carpeta de trabajo.**
+- [x] Esqueleto del proyecto (19 de octubre de 2026): React 19 + Vite 8 + TypeScript 7 estricto, Tailwind 4 con los tokens de `docs/diseno.md`, React Router, TanStack Query, react-hook-form, zod, Vitest, oxlint y la Supabase CLI como dependencia del proyecto. Logos en `public/brand/`.
+- [x] `ronda-dev` reactivado en Supabase (25 de noviembre de 2026). Región São Paulo, solo datos ficticios. ID del proyecto: `aibignjkmdhtksxejoiu`. La cuenta dueña es la de la empresa.
+- [x] `.env.local` creado con la URL y la clave publicable de `ronda-dev`. No se sube al repo.
+- [x] PowerShell habilitado para correr `npm` y `npx` (`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`).
+- [x] Proyecto importado en Vercel con sus dos variables (`VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`). Publicado en **https://ronda-liart.vercel.app**. Cada push a `main` se publica solo.
+- [x] Supabase Auth: usuario de prueba creado y direcciones permitidas cargadas (Site URL de Vercel y `localhost:5173`). Ingreso, salida y recuperación de contraseña probados y funcionando.
+- [x] `@hookform/resolvers` descartado por ahora: lo reemplaza `src/lib/formValidation.ts`, unas pocas líneas propias que conectan zod con react-hook-form.
+
+**A confirmar** (se pidió hacerlo desde el panel; verificar al empezar la semana 3)
+
+- [ ] Registro libre apagado en Supabase Auth ("Allow new users to sign up" desactivado). Es importante: si está prendido, cualquiera puede crearse una cuenta.
+- [ ] Largo mínimo de contraseña en 10 en Supabase Auth, igual que en la pantalla.
+- [ ] Cuenta personal invitada como Administrator a la organización de Supabase, y la invitación aceptada.
+
+**Pendiente**
+
+- [ ] Vincular la Supabase CLI a `ronda-dev`: `npx supabase link --project-ref aibignjkmdhtksxejoiu`. Falla con "Your account does not have the necessary privileges" hasta que la cuenta personal tenga permiso en la organización (punto anterior).
+- [ ] Instalar Docker Desktop. La instalación por usuario falló porque falta la función de Windows "Plataforma de máquina virtual". Solución: volver a correr el instalador eligiendo **"All-users installation"** (pide permiso de administrador y reiniciar).
+- [ ] Borrar la copia vieja del Escritorio (`C:\Users\LUCAS\Desktop\Ronda`). No tiene nada que no esté en GitHub.
+- [ ] Borrar el otro proyecto pausado de la organización de Supabase, "procesosipl-source's Project" (`us-east-2`), si no se usa. No es de Ronda.
+- [ ] Antes de que un cliente use Ronda de verdad: pasar Vercel al plan Pro (el plan Hobby es solo para uso no comercial) y Supabase a un plan pago con backups (ver §7).
+
+**Cuidado:** en la misma computadora existe otro proyecto de cliente (FLEXColor, en el Escritorio). Antes de cada sesión, verificar que VS Code tenga abierta la carpeta `C:\Proyectos\IPL\Ronda`. Los proyectos de clientes nunca se anidan uno dentro de otro.
 
 ## 14. Próximos pasos
 
-> Desde el 25 de noviembre de 2026, los próximos pasos se siguen semana a semana en [`docs/plan.md`](plan.md). Lo de abajo queda como referencia.
+> El avance se sigue semana a semana en [`docs/plan.md`](plan.md), con su registro. Esta sección resume dónde estamos.
 
-0. **Arreglos al prototipo** (hechos el 9 de octubre de 2026): registro de medicación con hora real y corrección, carga y visor de documentos, documentos en la HC y en su PDF, selector de mes en Autorizaciones y Prefacturación, y una sola lista de "En camino". **Queda pendiente:** revisar el catálogo de módulos ([`docs/modulos.md`](modulos.md)) y, al aprobarlo, aceptar el ADR 0003, armar la pantalla de módulos del prototipo y actualizar §3, §4 y §11.
-1. **Sesión 1 — Esqueleto:** verificar el entorno y crear la app React + Vite + TypeScript con Tailwind, la Supabase CLI vinculada a `ronda-dev`, `.gitignore`, `.env.example` y el README. Primer commit y push. Importar el repo en Vercel.
-2. **Sesión 2 — Modelo de fundaciones:** diseñar juntos, antes de escribir SQL, las tablas `institution`, `site`, `membership`, `role`, `audit_log` y el perfil de usuario. Después migraciones, políticas RLS, tests de aislamiento entre instituciones y seed ficticio con dos instituciones.
-3. **Sesión 3 — Login y roles en la interfaz:** inicio de sesión, selección de institución cuando el usuario pertenece a varias, menú según rol y una pantalla "Hoy" vacía.
-4. Recién después, **datos maestros** (etapa 1).
+**Hecho**
+
+- **Semana 0 (25/11/2026):** plan semanal armado, orden de módulos decidido para Di Ferro ([ADR 0004](decisiones/0004-orden-de-construccion-para-di-ferro.md)), todo subido a GitHub.
+- **Semana 1 (25/11/2026):** entorno conectado (Supabase, Vercel) y pantalla de ingreso con el diseño de `docs/diseno.md`.
+- **Semana 2 (25/11/2026):** ingreso real con Supabase, página de inicio protegida con *Salir*, recuperar la contraseña por mail y contraseña nueva de 10 caracteres o más. Mensajes de error en español. 20 tests en verde.
+
+**Para arrancar la semana 3** (instituciones, sedes, membresías y roles con RLS)
+
+1. Confirmar los tres puntos "A confirmar" de §13.
+2. Vincular la Supabase CLI (`npx supabase link`).
+3. Instalar Docker Desktop y verificar que levante la base local con `npx supabase start`. Sin Docker no se pueden correr los tests pgTAP de aislamiento entre instituciones.
+4. Diseñar juntos, **antes de escribir SQL**, las tablas `institution`, `site`, `membership`, `role` y el perfil de usuario. Revisar antes el flujo 21 (usuarios y permisos) y el ADR 0003 (módulos activables), que se construye en la semana 5.
+5. Después: migraciones, políticas RLS, tests pgTAP que prueben que un usuario de la institución A no ve ni escribe nada de la B, y seed con dos instituciones ficticias.
+
+**Quedó para más adelante**
+
+- Registrar ingresos y salidas en Auditoría: llega con `audit_log` en la semana 4.
+- Mails de Supabase en español y con diseño propio: hoy salen en inglés y con un límite de pocos mails por hora. Alcanza para desarrollar.
+- Revisar el catálogo de módulos ([`docs/modulos.md`](modulos.md)) y aceptar el ADR 0003 antes de la semana 5.
+- Doble factor para Dirección y Administración: semana 30.
 
 ## 15. Decisiones pendientes
 
