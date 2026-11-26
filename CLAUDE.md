@@ -71,9 +71,9 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 |---|---|---|
 | Institución | `institution` | Clínica o centro cliente. Es el tenant. |
 | Sede | `site` | Lugar físico de una institución. |
-| Usuario | `user` (Supabase Auth) | Persona que inicia sesión. |
-| Membresía | `membership` | Relación usuario ↔ institución con su rol. Un usuario puede pertenecer a varias instituciones. |
-| Rol | `role` | Dirección, Coordinación, Administración, Recepción, Profesional, Enfermería. |
+| Usuario | `user` (Supabase Auth) | Persona que inicia sesión. Su nombre está en `user_profile`. |
+| Membresía | `membership` | Relación usuario ↔ institución ↔ rol. Una fila por rol: una persona puede tener varios roles en una institución y estar en varias instituciones (ADR 0005). |
+| Rol | `role` | Catálogo fijo: Dirección (`director`), Coordinación (`coordinator`), Administración (`administration`), Recepción (`reception`), Profesional (`professional`), Enfermería (`nursing`). |
 | Profesional | `professional` | Persona que atiende. Tiene disciplina, matrícula y firma. |
 | Disciplina | `discipline` | Psicología, Psiquiatría, Trabajo social, Nutrición, Enfermería, etc. |
 | Paciente | `patient` | Persona atendida. Único por DNI dentro de cada institución. |

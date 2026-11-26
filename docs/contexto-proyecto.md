@@ -293,18 +293,17 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - [x] PowerShell habilitado para correr `npm` y `npx` (`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`).
 - [x] Proyecto importado en Vercel con sus dos variables (`VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`). Publicado en **https://ronda-liart.vercel.app**. Cada push a `main` se publica solo.
 - [x] Supabase Auth: usuario de prueba creado y direcciones permitidas cargadas (Site URL de Vercel y `localhost:5173`). Ingreso, salida y recuperación de contraseña probados y funcionando.
+- [x] Supabase CLI vinculada a `ronda-dev` y Docker Desktop instalado (26 de noviembre de 2026). La base local levanta con `npx supabase start`.
 - [x] `@hookform/resolvers` descartado por ahora: lo reemplaza `src/lib/formValidation.ts`, unas pocas líneas propias que conectan zod con react-hook-form.
 
 **A confirmar** (se pidió hacerlo desde el panel; verificar al empezar la semana 3)
 
-- [ ] Registro libre apagado en Supabase Auth ("Allow new users to sign up" desactivado). Es importante: si está prendido, cualquiera puede crearse una cuenta.
-- [ ] Largo mínimo de contraseña en 10 en Supabase Auth, igual que en la pantalla.
-- [ ] Cuenta personal invitada como Administrator a la organización de Supabase, y la invitación aceptada.
+- [x] Registro libre apagado en Supabase Auth ("Allow new users to sign up" desactivado). Confirmado el 26/11/2026.
+- [x] Largo mínimo de contraseña en 10 en Supabase Auth, igual que en la pantalla. Confirmado el 26/11/2026.
+- [x] Cuenta personal con permiso en la organización de Supabase (la CLI quedó vinculada).
 
 **Pendiente**
 
-- [ ] Vincular la Supabase CLI a `ronda-dev`: `npx supabase link --project-ref aibignjkmdhtksxejoiu`. Falla con "Your account does not have the necessary privileges" hasta que la cuenta personal tenga permiso en la organización (punto anterior).
-- [ ] Instalar Docker Desktop. La instalación por usuario falló porque falta la función de Windows "Plataforma de máquina virtual". Solución: volver a correr el instalador eligiendo **"All-users installation"** (pide permiso de administrador y reiniciar).
 - [ ] Borrar la copia vieja del Escritorio (`C:\Users\LUCAS\Desktop\Ronda`). No tiene nada que no esté en GitHub.
 - [ ] Borrar el otro proyecto pausado de la organización de Supabase, "procesosipl-source's Project" (`us-east-2`), si no se usa. No es de Ronda.
 - [ ] Antes de que un cliente use Ronda de verdad: pasar Vercel al plan Pro (el plan Hobby es solo para uso no comercial) y Supabase a un plan pago con backups (ver §7).
@@ -321,13 +320,12 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 - **Semana 1 (25/11/2026):** entorno conectado (Supabase, Vercel) y pantalla de ingreso con el diseño de `docs/diseno.md`.
 - **Semana 2 (25/11/2026):** ingreso real con Supabase, página de inicio protegida con *Salir*, recuperar la contraseña por mail y contraseña nueva de 10 caracteres o más. Mensajes de error en español. 20 tests en verde.
 
-**Para arrancar la semana 3** (instituciones, sedes, membresías y roles con RLS)
+- **Semana 3 (26/11/2026):** instituciones, sedes, roles, perfiles y membresías en la base, con RLS en todas las tablas ([ADR 0005](decisiones/0005-instituciones-membresias-y-roles.md)): varios roles por persona y catálogo de roles fijo. 30 tests pgTAP de aislamiento en verde y seed con dos instituciones ficticias. Migración aplicada en `ronda-dev`.
 
-1. Confirmar los tres puntos "A confirmar" de §13.
-2. Vincular la Supabase CLI (`npx supabase link`).
-3. Instalar Docker Desktop y verificar que levante la base local con `npx supabase start`. Sin Docker no se pueden correr los tests pgTAP de aislamiento entre instituciones.
-4. Diseñar juntos, **antes de escribir SQL**, las tablas `institution`, `site`, `membership`, `role` y el perfil de usuario. Revisar antes el flujo 21 (usuarios y permisos) y el ADR 0003 (módulos activables), que se construye en la semana 5.
-5. Después: migraciones, políticas RLS, tests pgTAP que prueben que un usuario de la institución A no ve ni escribe nada de la B, y seed con dos instituciones ficticias.
+**Para arrancar la semana 4** (auditoría, elegir institución al entrar, menú según el rol)
+
+1. Revisar el flujo 22 (acceso y auditoría) antes de diseñar `audit_log`.
+2. Para probar en la base local: `npx supabase start` y `npx supabase db reset`. Los usuarios del seed entran con la contraseña `prueba-ronda-2026`.
 
 **Quedó para más adelante**
 
