@@ -61,7 +61,7 @@ La edad **no se guarda**: se calcula de la fecha de nacimiento.
 | Crear un paciente | Sí | Sí | No | No |
 | Editar datos personales y cobertura | Sí | Sí | Sí, si es de su equipo | No |
 | Cargar diagnóstico | Sí | No | Sí, si es de su equipo | No |
-| Cambiar de estado | Sí | Sí | No | No |
+| Cambiar de estado | Sí | Administración sí; Recepción no (ver flujo 02, decidido el 30/11/2026) | No | No |
 
 ## Auditoría
 

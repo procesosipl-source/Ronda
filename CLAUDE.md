@@ -80,9 +80,9 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 | Profesional | `professional` | Persona que atiende. Tiene disciplina, matrícula y firma. |
 | Disciplina | `discipline` | Psicología, Psiquiatría, Trabajo social, Nutrición, Enfermería, etc. |
 | Paciente | `patient` | Persona atendida. Única por tipo y número de documento (DNI, Pasaporte u Otro) dentro de cada institución. Puede tener nombre elegido (Ley 26.743), que es el que muestran las pantallas. |
-| Estado del paciente | `patient_status` | Preadmisión, Admisión, En tratamiento, Alta, Baja: vienen por defecto y cada institución los puede ajustar. El historial va en `patient_status_history`. |
+| Estado del paciente | `patient_status` | Preadmisión, Admisión, En tratamiento, Alta, Baja: vienen por defecto y cada institución los puede ajustar. Los saltos permitidos están en `patient_status_transition` y el historial en `patient_status_history`. |
 | Equipo tratante | `care_team_member` | Profesionales asignados a un paciente, con vigencia. Define quién ve su historia clínica. |
-| Referente | `patient_contact` | Familiar o contacto responsable del paciente. |
+| Referente | `patient_contact` | Familiar o contacto responsable del paciente. Uno puede ser el principal. Ojo: no es el profesional que conduce el tratamiento; ese es el **Profesional a cargo** del equipo tratante. |
 | Plantilla horaria | `schedule_template` | Días y franjas en que atiende un profesional en una sede. |
 | Turno | `appointment` | Cita de un paciente con un profesional. |
 | Asistencia | `attendance` | Presente / ausente de un turno o encuentro grupal. |

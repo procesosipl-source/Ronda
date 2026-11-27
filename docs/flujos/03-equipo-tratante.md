@@ -4,13 +4,15 @@ Quiénes son los profesionales asignados a un paciente. **Es lo que define quié
 
 Reemplaza a "profesionales como columnas del paciente" de la app AppSheet.
 
+**Ojo con los nombres:** "Referente" es el familiar o contacto del paciente (`patient_contact`). Quien conduce el tratamiento es el **Profesional a cargo** (decidido el 30/11/2026).
+
 ## Flujo
 
 ```mermaid
 flowchart TD
     A["Paciente pasa a Admisión"] --> AS["Se asigna el equipo:<br/>profesional, rol y fecha de inicio"]
     AS --> ROL{"Rol en el equipo"}
-    ROL --> REF["Referente: conduce el tratamiento"]
+    ROL --> REF["Profesional a cargo: conduce el tratamiento"]
     ROL --> TRA["Tratante: atiende regularmente"]
     ROL --> INT["Interconsulta: interviene puntualmente"]
 

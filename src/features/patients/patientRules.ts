@@ -62,3 +62,21 @@ export function displayName(patient: NamedPatient): string {
 export function listName(patient: NamedPatient): string {
   return `${patient.last_name}, ${patient.chosen_name ?? patient.first_name}`
 }
+
+/** Parentescos de los referentes (lista cerrada; coincide con el check de la base). */
+export const relationships = ['mother', 'father', 'partner', 'sibling', 'child', 'guardian', 'other'] as const
+export type Relationship = (typeof relationships)[number]
+
+export const relationshipLabels: Record<Relationship, string> = {
+  mother: 'Madre',
+  father: 'Padre',
+  partner: 'Pareja',
+  sibling: 'Hermano/a',
+  child: 'Hijo/a',
+  guardian: 'Tutor/a',
+  other: 'Otro',
+}
+
+export function relationshipLabel(value: string): string {
+  return (relationships as readonly string[]).includes(value) ? relationshipLabels[value as Relationship] : value
+}

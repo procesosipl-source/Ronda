@@ -165,14 +165,14 @@ isOneToOne: false
                   ]
                 },"patient": {
                   Row: {
-                    "birth_date": string,"chosen_name": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"document_number": string,"document_number_normalized": string | null,"document_type": string,"email": string | null,"first_name": string,"id": string,"institution_id": string,"last_name": string,"phone": string | null,"registered_sex": string | null,"search_text": string | null,"status_id": string,"updated_at": string | null,"updated_by": string | null
+                    "address": string | null,"birth_date": string,"chosen_name": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"document_number": string,"document_number_normalized": string | null,"document_type": string,"email": string | null,"first_name": string,"id": string,"institution_id": string,"last_name": string,"phone": string | null,"registered_sex": string | null,"search_text": string | null,"status_id": string,"updated_at": string | null,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "birth_date": string,"chosen_name"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"document_number": string,"document_number_normalized"?: never,"document_type": string,"email"?: string | null,"first_name": string,"id"?: string,"institution_id": string,"last_name": string,"phone"?: string | null,"registered_sex"?: string | null,"search_text"?: never,"status_id": string,"updated_at"?: string | null,"updated_by"?: string | null
+                    "address"?: string | null,"birth_date": string,"chosen_name"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"document_number": string,"document_number_normalized"?: never,"document_type": string,"email"?: string | null,"first_name": string,"id"?: string,"institution_id": string,"last_name": string,"phone"?: string | null,"registered_sex"?: string | null,"search_text"?: never,"status_id": string,"updated_at"?: string | null,"updated_by"?: string | null
                   }
                   Update: {
-                    "birth_date"?: string,"chosen_name"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"document_number"?: string,"document_number_normalized"?: never,"document_type"?: string,"email"?: string | null,"first_name"?: string,"id"?: string,"institution_id"?: string,"last_name"?: string,"phone"?: string | null,"registered_sex"?: string | null,"search_text"?: never,"status_id"?: string,"updated_at"?: string | null,"updated_by"?: string | null
+                    "address"?: string | null,"birth_date"?: string,"chosen_name"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"document_number"?: string,"document_number_normalized"?: never,"document_type"?: string,"email"?: string | null,"first_name"?: string,"id"?: string,"institution_id"?: string,"last_name"?: string,"phone"?: string | null,"registered_sex"?: string | null,"search_text"?: never,"status_id"?: string,"updated_at"?: string | null,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -186,6 +186,26 @@ isOneToOne: false
       columns: ["institution_id","status_id"]
 isOneToOne: false
       referencedRelation: "patient_status"
+      referencedColumns: ["institution_id","id"]
+    }
+                  ]
+                },"patient_contact": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"full_name": string,"id": string,"institution_id": string,"is_primary": boolean,"patient_id": string,"phone": string,"relationship": string,"updated_at": string | null,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"full_name": string,"id"?: string,"institution_id": string,"is_primary"?: boolean,"patient_id": string,"phone": string,"relationship": string,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"full_name"?: string,"id"?: string,"institution_id"?: string,"is_primary"?: boolean,"patient_id"?: string,"phone"?: string,"relationship"?: string,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patient_contact_institution_id_patient_id_fkey"
+      columns: ["institution_id","patient_id"]
+isOneToOne: false
+      referencedRelation: "patient"
       referencedColumns: ["institution_id","id"]
     }
                   ]
@@ -222,6 +242,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "patient_status_history_changed_by_profile_fkey"
+      columns: ["changed_by"]
+isOneToOne: false
+      referencedRelation: "user_profile"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "patient_status_history_institution_id_from_status_id_fkey"
       columns: ["institution_id","from_status_id"]
 isOneToOne: false
@@ -235,6 +261,38 @@ isOneToOne: false
       referencedColumns: ["institution_id","id"]
     },{
       foreignKeyName: "patient_status_history_institution_id_to_status_id_fkey"
+      columns: ["institution_id","to_status_id"]
+isOneToOne: false
+      referencedRelation: "patient_status"
+      referencedColumns: ["institution_id","id"]
+    }
+                  ]
+                },"patient_status_transition": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"from_status_id": string,"id": string,"institution_id": string,"to_status_id": string,"updated_at": string | null,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"from_status_id": string,"id"?: string,"institution_id": string,"to_status_id": string,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"from_status_id"?: string,"id"?: string,"institution_id"?: string,"to_status_id"?: string,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patient_status_transition_institution_id_fkey"
+      columns: ["institution_id"]
+isOneToOne: false
+      referencedRelation: "institution"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patient_status_transition_institution_id_from_status_id_fkey"
+      columns: ["institution_id","from_status_id"]
+isOneToOne: false
+      referencedRelation: "patient_status"
+      referencedColumns: ["institution_id","id"]
+    },{
+      foreignKeyName: "patient_status_transition_institution_id_to_status_id_fkey"
       columns: ["institution_id","to_status_id"]
 isOneToOne: false
       referencedRelation: "patient_status"
@@ -295,7 +353,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "create_patient":
+            "change_patient_status":
+{ Args: { "p_institution_id": string,"p_patient_id": string,"p_reason": string,"p_to_status_id": string }; Returns: boolean
+                           },
+"create_patient":
 { Args: { "p_birth_date": string,"p_chosen_name"?: string,"p_document_number": string,"p_document_type": string,"p_email"?: string,"p_first_name": string,"p_institution_id": string,"p_last_name": string,"p_phone"?: string,"p_registered_sex"?: string }; Returns: string
                            },
 "deactivate_member":
@@ -325,6 +386,9 @@ isOneToOne: false
                            },
 "set_member_roles":
 { Args: { "p_institution_id": string,"p_reason": string,"p_role_codes": (string)[],"p_user_id": string }; Returns: boolean
+                           },
+"update_patient":
+{ Args: { "p_address": string,"p_birth_date": string,"p_chosen_name": string,"p_document_number": string,"p_document_type": string,"p_email": string,"p_first_name": string,"p_institution_id": string,"p_last_name": string,"p_patient_id": string,"p_phone": string,"p_registered_sex": string }; Returns: boolean
                            }
           }
           Enums: {

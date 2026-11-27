@@ -46,3 +46,29 @@ describe('newPatientSchema', () => {
     expect(validate(schema, { ...valid, email: 'martina@' }).ok).toBe(false)
   })
 })
+
+describe('formularios de la ficha', () => {
+  it('datos personales: mismas reglas que el alta', async () => {
+    const { personalDataSchema } = await import('./patientForms')
+    const s = personalDataSchema('2026-12-07')
+    const base = { firstName: 'M', lastName: 'P', chosenName: '', documentType: 'dni', documentNumber: '40111201', birthDate: '1998-03-14', registeredSex: '' }
+    expect(validate(s, base).ok).toBe(true)
+    expect(validate(s, { ...base, documentNumber: '12' })).toEqual({ ok: false, errors: { documentNumber: 'El DNI tiene que tener 7 u 8 números.' } })
+  })
+
+  it('referente: pide nombre, parentesco de la lista y teléfono', async () => {
+    const { patientContactSchema } = await import('./patientForms')
+    expect(validate(patientContactSchema, { fullName: '', relationship: 'vecino', phone: '', isPrimary: false })).toEqual({
+      ok: false,
+      errors: { fullName: 'Escribí el nombre y apellido.', relationship: 'Elegí el parentesco.', phone: 'Escribí un teléfono.' },
+    })
+  })
+
+  it('cambio de estado: pide estado y motivo', async () => {
+    const { statusChangeSchema } = await import('./patientForms')
+    expect(validate(statusChangeSchema, { toStatusId: '', reason: ' ' })).toEqual({
+      ok: false,
+      errors: { toStatusId: 'Elegí el estado nuevo.', reason: 'Escribí el motivo del cambio.' },
+    })
+  })
+})

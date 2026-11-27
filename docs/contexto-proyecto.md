@@ -328,11 +328,13 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 - **Semana 6 (30/11/2026):** pacientes: alta en Preadmisión, documento único por institución, búsqueda sin acentos, estados configurables con historial.
 
-**Para arrancar la semana 7** (ficha del paciente: datos, estados con historial y motivo, referentes)
+- **Semana 7 (30/11/2026):** ficha del paciente con estados (transiciones configurables, motivo e historial), edición auditada campo por campo y referentes.
 
-1. Definir qué transiciones de estado se permiten (flujo 02) y si también son configurables por institución.
-2. Editar datos personales: quién puede (flujo 01) y qué queda en la auditoría.
-3. Probar en local: `npx supabase start`, `npx supabase db reset`, `npx supabase functions serve` y `npm run dev:local`.
+**Para arrancar la semana 8** (obras sociales y cobertura del paciente)
+
+1. Revisar el flujo 17 (qué prestación se presenta) y el 18 (autorizaciones) para no modelar de menos.
+2. Decidir si el catálogo de obras sociales es común a todas las instituciones o propio de cada una.
+3. Sumar la obra social y el número de afiliado al alta (decidido en la semana 6).
 
 **Quedó para más adelante**
 
