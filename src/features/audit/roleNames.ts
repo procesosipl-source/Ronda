@@ -1,6 +1,6 @@
 import { isRoleCode, type RoleCode } from '../navigation/menu'
 
-const names: Record<RoleCode, string> = {
+export const roleLabels: Record<RoleCode, string> = {
   director: 'Dirección',
   coordinator: 'Coordinación',
   administration: 'Administración',
@@ -14,5 +14,5 @@ const names: Record<RoleCode, string> = {
  * estaban en ese momento, así que se traducen acá en lugar de buscarlos en la base.
  */
 export function roleNames(codes: readonly string[]): string {
-  return codes.map((code) => (isRoleCode(code) ? names[code] : code)).join(' · ')
+  return codes.map((code) => (isRoleCode(code) ? roleLabels[code] : code)).join(' · ')
 }

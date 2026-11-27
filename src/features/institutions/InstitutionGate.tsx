@@ -37,7 +37,13 @@ export function InstitutionGate({ children }: { children: ReactNode }) {
         .eq('user_id', userId ?? '')
         .is('deleted_at', null)
       if (error !== null) throw error
-      return groupMemberships(data)
+      // Módulos activos de esas instituciones, para armar el menú. RLS solo deja ver los de las propias.
+      const modules = await supabase
+        .from('institution_module')
+        .select('institution_id, module(code)')
+        .is('deactivated_at', null)
+      if (modules.error !== null) throw modules.error
+      return groupMemberships(data, modules.data)
     },
   })
 

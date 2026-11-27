@@ -5,6 +5,7 @@ import { LoginPage } from '../features/auth/LoginPage'
 import { NewPasswordPage } from '../features/auth/NewPasswordPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
 import { InstitutionGate } from '../features/institutions/InstitutionGate'
+import { SettingsPage } from '../features/settings/SettingsPage'
 import { AppLayout } from './AppLayout'
 import { HomePage } from './HomePage'
 import { NotFoundPage } from './NotFoundPage'
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'auditoria', element: <AuditPage /> },
+      { path: 'configuracion', element: <SettingsPage /> },
     ],
   },
   { path: '/ingresar', element: <LoginPage /> },

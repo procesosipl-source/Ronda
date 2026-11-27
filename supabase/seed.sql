@@ -76,3 +76,13 @@ from (values
   ('b0000000-0000-0000-0000-00000000000b'::uuid, '30000000-0000-0000-0000-000000000001'::uuid, 'professional')
 ) as m(institution_id, user_id, role_code)
 join public.role r on r.code = m.role_code;
+
+-- ---------------------------------------------------------------------------
+-- Módulos (ADR 0003): Los Álamos interna pacientes; Aconcagua es ambulatorio.
+-- Se activan con la misma función que usa IPL, así queda en la auditoría.
+-- ---------------------------------------------------------------------------
+select private.activate_module('a0000000-0000-0000-0000-00000000000a', code)
+from unnest(array['coverage', 'groups', 'inpatient', 'medication']) as code;
+
+select private.activate_module('b0000000-0000-0000-0000-00000000000b', code)
+from unnest(array['coverage', 'groups']) as code;

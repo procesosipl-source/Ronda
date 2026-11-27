@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { AuthLayout } from '../../components/AuthLayout'
 import { FormField } from '../../components/FormField'
 import { Notice, primaryButtonClass, tertiaryButtonClass } from '../../components/Notice'
@@ -18,6 +18,9 @@ import { LoadingScreen } from './RequireAuth'
 export function NewPasswordPage() {
   const auth = useAuth()
   const navigate = useNavigate()
+  // Se llega con ?invitacion=1 desde el mail de invitación (Edge Function invite-user).
+  const [searchParams] = useSearchParams()
+  const isInvitation = searchParams.get('invitacion') === '1'
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const {
     register,
@@ -52,18 +55,18 @@ export function NewPasswordPage() {
       setErrorMessage(authErrorMessage(error))
       return
     }
-    await navigate('/', { replace: true, state: { notice: 'Listo, ya cambiaste tu contraseña.' } })
+    await navigate('/', { replace: true, state: { notice: isInvitation ? 'Listo, ya tenés tu contraseña. Te damos la bienvenida a Ronda.' : 'Listo, ya cambiaste tu contraseña.' } })
   }
 
   return (
     <AuthLayout
-      title="Elegí una contraseña nueva"
-      description={`Tiene que tener al menos ${MIN_PASSWORD_LENGTH} caracteres. Una frase corta es fácil de recordar y difícil de adivinar.`}
+      title={isInvitation ? 'Te damos la bienvenida a Ronda' : 'Elegí una contraseña nueva'}
+      description={`${isInvitation ? 'Elegí tu contraseña para entrar. ' : ''}Tiene que tener al menos ${MIN_PASSWORD_LENGTH} caracteres. Una frase corta es fácil de recordar y difícil de adivinar.`}
     >
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <FormField
           id="password"
-          label="Contraseña nueva"
+          label={isInvitation ? 'Contraseña' : 'Contraseña nueva'}
           revealable
           error={errors.password?.message}
           inputProps={{ autoComplete: 'new-password', ...register('password') }}

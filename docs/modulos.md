@@ -66,4 +66,4 @@ Los planes de `contexto-proyecto.md` §11 pasan a ser **paquetes de módulos**:
 
 ## En el prototipo (después de aprobar)
 
-En Configuración → Institución, una sección **Módulos** con una tarjeta por módulo: activo, inactivo o "Próximamente". Dirección puede encender o apagar un módulo; el menú cambia en el momento y queda registrado en la auditoría. Apagar uno del que dependen otros muestra cuáles hay que apagar antes.
+En Configuración → Institución, una sección **Módulos** con una tarjeta por módulo: activo, inactivo o "Próximamente". Dirección ve qué módulos tiene; **los enciende y apaga solo IPL** (decisión del 27/11/2026, ver ADR 0003). El menú cambia en el momento y queda registrado en la auditoría. Apagar uno del que dependen otros muestra cuáles hay que apagar antes.

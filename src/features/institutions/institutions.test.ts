@@ -19,7 +19,7 @@ describe('groupMemberships', () => {
       { institution: alamos, role: director },
     ]
     expect(groupMemberships(rows)).toEqual([
-      { id: 'a', name: 'Clínica Los Álamos', roles: [{ code: 'director', name: 'Dirección' }, { code: 'professional', name: 'Profesional' }] },
+      { id: 'a', name: 'Clínica Los Álamos', roles: [{ code: 'director', name: 'Dirección' }, { code: 'professional', name: 'Profesional' }], modules: [] },
     ])
   })
 
@@ -29,6 +29,22 @@ describe('groupMemberships', () => {
       { institution: aconcagua, role: professional },
     ]
     expect(groupMemberships(rows).map((i) => i.name)).toEqual(['Centro Aconcagua', 'Clínica Los Álamos'])
+  })
+
+  it('suma a cada institución solo sus módulos activos', () => {
+    const rows: MembershipRow[] = [
+      { institution: alamos, role: professional },
+      { institution: aconcagua, role: professional },
+    ]
+    const modules = [
+      { institution_id: 'a', module: { code: 'inpatient' } },
+      { institution_id: 'a', module: { code: 'coverage' } },
+      { institution_id: 'b', module: { code: 'coverage' } },
+    ]
+    expect(groupMemberships(rows, modules).map((i) => [i.name, i.modules])).toEqual([
+      ['Centro Aconcagua', ['coverage']],
+      ['Clínica Los Álamos', ['coverage', 'inpatient']],
+    ])
   })
 
   it('descarta las filas sin institución visible', () => {

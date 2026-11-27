@@ -324,16 +324,17 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 - **Semana 4 (27/11/2026):** auditoría de solo inserción escrita por el servidor ([ADR 0006](decisiones/0006-auditoria.md)), elegir institución al entrar, menú según el rol, barra superior y pantalla de Auditoría.
 
-**Para arrancar la semana 5** (menú en tres bloques, celular, invitar usuarios, módulos activables)
+- **Semana 5 (27/11/2026):** módulos activables por institución (solo IPL los cambia), invitar usuarios, cambiar roles y dar de baja con motivo, menú en tres bloques y versión para celular.
 
-1. Revisar el flujo 21 (alta de usuario) y aceptar el ADR 0003 (módulos activables) junto con `docs/modulos.md`.
-2. Invitar usuarios necesita mandar mails desde el servidor: decidir si se usa la invitación de Supabase Auth desde una Edge Function.
-3. Para probar en la base local: `npx supabase start`, `npx supabase db reset` y `npm run dev:local` (necesita `.env.localdb.local`, ver `.env.example`). Los usuarios del seed entran con la contraseña `prueba-ronda-2026`.
+**Para arrancar la semana 6** (pacientes: alta, listado y búsqueda)
+
+1. Revisar los flujos 01 (alta de paciente) y 02 (ciclo de vida) antes de diseñar `patient`.
+2. Probar en local: `npx supabase start`, `npx supabase db reset`, `npx supabase functions serve` (para las invitaciones) y `npm run dev:local`. Los mails de la base local llegan a Mailpit (dirección en `npx supabase status`).
 
 **Quedó para más adelante**
 
 - Registrar ingresos y salidas en Auditoría: llega con `audit_log` en la semana 4.
-- Mails de Supabase en español y con diseño propio: hoy salen en inglés y con un límite de pocos mails por hora. Alcanza para desarrollar.
+- Mails de Supabase en español y con diseño propio: hoy salen en inglés y con un límite de pocos mails por hora. Alcanza para desarrollar (decidido el 27/11/2026). Antes de la Fase D: contratar un servicio de envío y usar el dominio propio de IPL, que ya existe.
 - Revisar el catálogo de módulos ([`docs/modulos.md`](modulos.md)) y aceptar el ADR 0003 antes de la semana 5.
 - Doble factor para Dirección y Administración: semana 30.
 

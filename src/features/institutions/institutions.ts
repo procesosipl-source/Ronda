@@ -11,6 +11,8 @@ export interface MyInstitution {
   id: string
   name: string
   roles: MyRole[]
+  /** Códigos de los módulos activos (ADR 0003). La Base no figura: está siempre activa. */
+  modules: string[]
 }
 
 /** Una fila de `membership` con su institución y su rol, como la devuelve Supabase. */
@@ -19,11 +21,17 @@ export interface MembershipRow {
   role: { code: string; name: string; sort_order: number } | null
 }
 
+/** Una fila de `institution_module` activa, con el código del módulo. */
+export interface ModuleRow {
+  institution_id: string
+  module: { code: string } | null
+}
+
 /**
- * Junta las membresías por institución (una persona tiene una fila por rol).
+ * Junta las membresías por institución (una persona tiene una fila por rol) y les suma sus módulos.
  * Si RLS no deja ver la institución (por ejemplo, porque fue dada de baja), la fila se descarta.
  */
-export function groupMemberships(rows: readonly MembershipRow[]): MyInstitution[] {
+export function groupMemberships(rows: readonly MembershipRow[], moduleRows: readonly ModuleRow[] = []): MyInstitution[] {
   const byId = new Map<string, { id: string; name: string; roles: MembershipRow['role'][] }>()
   for (const row of rows) {
     if (row.institution === null || row.role === null) continue
@@ -39,6 +47,10 @@ export function groupMemberships(rows: readonly MembershipRow[]): MyInstitution[
         .filter((role) => role !== null)
         .sort((a, b) => a.sort_order - b.sort_order)
         .map(({ code, name }) => ({ code, name })),
+      modules: moduleRows
+        .filter((row) => row.institution_id === entry.id && row.module !== null)
+        .map((row) => row.module!.code)
+        .sort(),
     }))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }

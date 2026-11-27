@@ -1,7 +1,7 @@
 # 0003 — Los módulos se activan por institución y se controlan en la base
 
 - **Fecha:** 9 de octubre de 2026
-- **Estado:** Propuesta (se acepta junto con el catálogo de `docs/modulos.md`)
+- **Estado:** Aceptada el 30 de noviembre de 2026. Las preguntas comerciales de `docs/modulos.md` (precios, planes, período de prueba) siguen abiertas y no afectan esta decisión.
 - **Afecta a:** Todas las etapas. Se construye en la etapa 0, junto con instituciones y roles.
 
 ## Contexto
@@ -21,6 +21,12 @@ La forma más rápida es esconder las secciones del menú. Pero la regla 3 de `C
 5. **Las dependencias se controlan en la base.** Activar un módulo sin los que requiere, o apagar uno del que dependen otros activos, lo rechaza un trigger sobre `institution_module`.
 6. **El frontend solo lo refleja.** Lee los módulos activos para armar el menú y las pantallas, sin decidir nada por su cuenta.
 7. **Auditoría.** Activar y desactivar un módulo va a `audit_log`, con usuario y fecha.
+
+## Quién cambia los módulos
+
+Decidido el 27 de noviembre de 2026: **solo IPL**. Activar un módulo cambia lo que la institución paga, así que es parte del contrato. Dirección ve qué módulos tiene (Configuración → Módulos) pero no los cambia. IPL los cambia con `private.activate_module` y `private.deactivate_module` desde el editor SQL, hasta que exista una pantalla interna de IPL (etapa 8). Las dos funciones registran el cambio en la auditoría de la institución.
+
+**Base** (`core`) está siempre activa y no se registra por institución. Los requisitos entre módulos admiten alternativas: Factura electrónica necesita Obras sociales **o** Cobros particulares (`module_requirement`, por grupos).
 
 ## Alternativas descartadas
 

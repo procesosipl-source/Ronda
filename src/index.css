@@ -52,6 +52,9 @@
   --radius-card: 12px; /* tarjetas y paneles */
   --radius-modal: 14px;
 
+  /* Por debajo de 900 px el menú lateral pasa a barra horizontal (docs/diseno.md). Uso: desk:flex */
+  --breakpoint-desk: 900px;
+
   /* Sombra única de tarjeta */
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
 }

@@ -65,6 +65,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"institution_module": {
+                  Row: {
+                    "activated_at": string,"activated_by": string | null,"deactivated_at": string | null,"deactivated_by": string | null,"id": string,"institution_id": string,"module_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "activated_at"?: string,"activated_by"?: string | null,"deactivated_at"?: string | null,"deactivated_by"?: string | null,"id"?: string,"institution_id": string,"module_id": string
+                  }
+                  Update: {
+                    "activated_at"?: string,"activated_by"?: string | null,"deactivated_at"?: string | null,"deactivated_by"?: string | null,"id"?: string,"institution_id"?: string,"module_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "institution_module_institution_id_fkey"
+      columns: ["institution_id"]
+isOneToOne: false
+      referencedRelation: "institution"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "institution_module_module_id_fkey"
+      columns: ["module_id"]
+isOneToOne: false
+      referencedRelation: "module"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"membership": {
                   Row: {
                     "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"institution_id": string,"role_id": string,"updated_at": string | null,"updated_by": string | null,"user_id": string
@@ -94,6 +120,46 @@ isOneToOne: false
       columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "user_profile"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"module": {
+                  Row: {
+                    "code": string,"description": string,"id": string,"name": string,"sort_order": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"description": string,"id"?: string,"name": string,"sort_order": number
+                  }
+                  Update: {
+                    "code"?: string,"description"?: string,"id"?: string,"name"?: string,"sort_order"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"module_requirement": {
+                  Row: {
+                    "module_id": string,"required_module_id": string,"requirement_group": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "module_id": string,"required_module_id": string,"requirement_group": number
+                  }
+                  Update: {
+                    "module_id"?: string,"required_module_id"?: string,"requirement_group"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "module_requirement_module_id_fkey"
+      columns: ["module_id"]
+isOneToOne: false
+      referencedRelation: "module"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "module_requirement_required_module_id_fkey"
+      columns: ["required_module_id"]
+isOneToOne: false
+      referencedRelation: "module"
       referencedColumns: ["id"]
     }
                   ]
@@ -151,11 +217,28 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "enter_institution":
+            "deactivate_member":
+{ Args: { "p_institution_id": string,"p_reason": string,"p_user_id": string }; Returns: boolean
+                           },
+"enter_institution":
 { Args: { "p_institution_id": string }; Returns: boolean
+                           },
+"invite_member":
+{ Args: { "p_email": string,"p_full_name": string,"p_institution_id": string,"p_role_codes": (string)[] }; Returns: string
                            },
 "leave_institution":
 { Args: { "p_institution_id": string }; Returns: undefined
+                           },
+"list_members":
+{ Args: { "p_institution_id": string }; Returns: {
+              "email": string,"full_name": string,"invitation_pending": boolean,"role_codes": (string)[],"user_id": string
+            }[]
+                           },
+"module_enabled":
+{ Args: { "p_institution_id": string,"p_module_code": string }; Returns: boolean
+                           },
+"set_member_roles":
+{ Args: { "p_institution_id": string,"p_reason": string,"p_role_codes": (string)[],"p_user_id": string }; Returns: boolean
                            }
           }
           Enums: {
