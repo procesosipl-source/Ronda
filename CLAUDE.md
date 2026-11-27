@@ -94,7 +94,8 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 | Cama | `bed` | Cama dentro de una habitación (`room`). |
 | Esquema de medicación | `medication_order` | Indicación médica: medicamento, dosis, vía, horarios, vigencia. |
 | Administración | `medication_administration` | Registro de cada toma: administrada o no, con motivo. |
-| Obra social | `payer` | Obra social, prepaga o particular. |
+| Obra social | `payer` | Obra social, prepaga o Particular. Catálogo propio de cada institución, con código RNOS opcional. |
+| Cobertura | `patient_coverage` | Obra social y número de afiliado del paciente, con vigencia. Una sola vigente; cambiarla cierra la anterior. |
 | Prestación | `service` | Lo que se factura (consulta, módulo, día de internación). |
 | Tarifario | `price_list_item` | Precio de una prestación para una obra social, con vigencia desde/hasta. |
 | Regla de cobertura | `coverage_rule` | Regla ordenada que define qué prestación se presenta según obra social, estado y modalidad. Sin coincidencia → "No definido". |

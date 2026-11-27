@@ -52,6 +52,7 @@ export const menuSections: readonly MenuSection[] = [
   { key: 'medication', label: 'Medicación', icon: 'pill', group: 'admin', roles: ['director', 'coordinator', 'professional', 'nursing'], module: 'medication', arrives: 'Llega en la semana 36.' },
   { key: 'authorizations', label: 'Autorizaciones', icon: 'fileCheck', group: 'admin', roles: ['director', 'administration'], module: 'coverage', arrives: 'Llega en la semana 24.' },
   { key: 'billing', label: 'Prefacturación', icon: 'receipt', group: 'admin', roles: ['director', 'administration'], module: 'coverage', arrives: 'Llega en la semana 26.' },
+  { key: 'payers', label: 'Obras sociales', icon: 'idCard', group: 'admin', roles: ['director', 'administration'], path: '/obras-sociales' },
   { key: 'metrics', label: 'Métricas', icon: 'chart', group: 'admin', roles: ['director', 'coordinator', 'administration'], arrives: 'Llega con los indicadores, más adelante.' },
   { key: 'audit', label: 'Auditoría', icon: 'shield', group: 'admin', roles: ['director'], path: '/auditoria' },
   { key: 'settings', label: 'Configuración', icon: 'settings', group: 'footer', roles: ['director'], path: '/configuracion' },

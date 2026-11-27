@@ -330,11 +330,13 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 - **Semana 7 (30/11/2026):** ficha del paciente con estados (transiciones configurables, motivo e historial), edición auditada campo por campo y referentes.
 
-**Para arrancar la semana 8** (obras sociales y cobertura del paciente)
+- **Semana 8 (30/11/2026):** obras sociales por institución y cobertura del paciente con historial; el alta pide la obra social y, si corresponde, el número de afiliado.
 
-1. Revisar el flujo 17 (qué prestación se presenta) y el 18 (autorizaciones) para no modelar de menos.
-2. Decidir si el catálogo de obras sociales es común a todas las instituciones o propio de cada una.
-3. Sumar la obra social y el número de afiliado al alta (decidido en la semana 6).
+**Para arrancar la semana 9** (profesionales y equipo tratante)
+
+1. Revisar el flujo 03 (equipo tratante) y la diferencia entre usuario y profesional del flujo 21.
+2. Decidir las disciplinas (catálogo) y qué datos de matrícula hacen falta.
+3. Con el equipo tratante, abrir a Profesional la vista de sus pacientes (decidido en la semana 6).
 
 **Quedó para más adelante**
 

@@ -5,6 +5,7 @@ import { FormField } from '../../components/FormField'
 import { Notice, primaryButtonClass, tertiaryButtonClass } from '../../components/Notice'
 import { schemaResolver } from '../../lib/formValidation'
 import { useInstitution } from '../institutions/institutionContext'
+import { listPayers, payerKindLabel } from '../payers/payers'
 import { emptyNewPatient, newPatientSchema, type NewPatientValues } from './patientForms'
 import { createPatient, findByDocument, patientCreatorRoles } from './patientsApi'
 import { displayName, documentTypeLabels, documentTypes, normalizeDocument, todayInMendoza } from './patientRules'
@@ -31,10 +32,14 @@ function NewPatientForm() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const today = todayInMendoza()
+  const payers = useQuery({ queryKey: ['payers', current.id], queryFn: () => listPayers(current.id) })
+  const requiring = (payers.data ?? []).filter((p) => p.requires_member_number).map((p) => p.id)
   const { register, handleSubmit, control, formState } = useForm<NewPatientValues>({
-    resolver: schemaResolver(newPatientSchema(today)),
+    resolver: schemaResolver(newPatientSchema(today, requiring)),
     defaultValues: emptyNewPatient,
   })
+  const payerId = useWatch({ control, name: 'payerId' })
+  const selectedPayer = payers.data?.find((p) => p.id === payerId)
   const { errors } = formState
 
   // Flujo 01: antes de cargar, se busca por documento. Si ya existe, se abre la ficha y no se duplica.
@@ -60,7 +65,7 @@ function NewPatientForm() {
         ← Pacientes
       </Link>
       <h1 className="mt-2 text-[1.6rem] font-semibold">Nuevo paciente</h1>
-      <p className="mt-1 text-ink-2">Lo demás (domicilio, referentes, obra social) se completa en la admisión.</p>
+      <p className="mt-1 text-ink-2">Lo demás (domicilio, referentes) se completa en la admisión.</p>
 
       <form className="mt-5 flex flex-col gap-5" onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate>
         <fieldset className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card">
@@ -119,6 +124,35 @@ function NewPatientForm() {
               </select>
             </div>
           </div>
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card">
+          <legend className="sr-only">Cobertura</legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="payerId" className="text-[0.84rem] font-semibold">
+                Obra social
+              </label>
+              <select
+                id="payerId"
+                {...register('payerId')}
+                aria-invalid={errors.payerId !== undefined}
+                className={`${selectClass} ${errors.payerId ? 'border-danger' : ''}`}
+              >
+                <option value="">{payers.isPending ? 'Cargando…' : 'Elegí una'}</option>
+                {payers.data?.map((payer) => (
+                  <option key={payer.id} value={payer.id}>
+                    {payer.name} ({payerKindLabel(payer.kind)})
+                  </option>
+                ))}
+              </select>
+              {errors.payerId && <p className="text-[0.84rem] text-danger">{errors.payerId.message}</p>}
+            </div>
+            {selectedPayer?.requires_member_number === true && (
+              <FormField id="memberNumber" label="Número de afiliado" error={errors.memberNumber?.message} inputProps={{ autoComplete: 'off', ...register('memberNumber') }} />
+            )}
+          </div>
+          {payers.isError && <Notice tone="danger">{payers.error.message}</Notice>}
         </fieldset>
 
         <fieldset className="flex flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card">

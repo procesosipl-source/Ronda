@@ -209,6 +209,32 @@ isOneToOne: false
       referencedColumns: ["institution_id","id"]
     }
                   ]
+                },"patient_coverage": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"institution_id": string,"member_number": string | null,"patient_id": string,"payer_id": string,"valid_from": string,"valid_to": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"institution_id": string,"member_number"?: string | null,"patient_id": string,"payer_id": string,"valid_from": string,"valid_to"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"institution_id"?: string,"member_number"?: string | null,"patient_id"?: string,"payer_id"?: string,"valid_from"?: string,"valid_to"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patient_coverage_institution_id_patient_id_fkey"
+      columns: ["institution_id","patient_id"]
+isOneToOne: false
+      referencedRelation: "patient"
+      referencedColumns: ["institution_id","id"]
+    },{
+      foreignKeyName: "patient_coverage_institution_id_payer_id_fkey"
+      columns: ["institution_id","payer_id"]
+isOneToOne: false
+      referencedRelation: "payer"
+      referencedColumns: ["institution_id","id"]
+    }
+                  ]
                 },"patient_status": {
                   Row: {
                     "code": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"institution_id": string,"is_initial": boolean,"name": string,"sort_order": number,"updated_at": string | null,"updated_by": string | null
@@ -299,6 +325,26 @@ isOneToOne: false
       referencedColumns: ["institution_id","id"]
     }
                   ]
+                },"payer": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"institution_id": string,"kind": string,"name": string,"national_code": string | null,"requires_member_number": boolean,"updated_at": string | null,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"institution_id": string,"kind": string,"name": string,"national_code"?: string | null,"requires_member_number"?: boolean,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"institution_id"?: string,"kind"?: string,"name"?: string,"national_code"?: string | null,"requires_member_number"?: boolean,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payer_institution_id_fkey"
+      columns: ["institution_id"]
+isOneToOne: false
+      referencedRelation: "institution"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"role": {
                   Row: {
                     "code": string,"id": string,"name": string,"sort_order": number
@@ -357,7 +403,7 @@ isOneToOne: false
 { Args: { "p_institution_id": string,"p_patient_id": string,"p_reason": string,"p_to_status_id": string }; Returns: boolean
                            },
 "create_patient":
-{ Args: { "p_birth_date": string,"p_chosen_name"?: string,"p_document_number": string,"p_document_type": string,"p_email"?: string,"p_first_name": string,"p_institution_id": string,"p_last_name": string,"p_phone"?: string,"p_registered_sex"?: string }; Returns: string
+{ Args: { "p_birth_date": string,"p_chosen_name"?: string,"p_document_number": string,"p_document_type": string,"p_email"?: string,"p_first_name": string,"p_institution_id": string,"p_last_name": string,"p_member_number"?: string,"p_payer_id"?: string,"p_phone"?: string,"p_registered_sex"?: string }; Returns: string
                            },
 "deactivate_member":
 { Args: { "p_institution_id": string,"p_reason": string,"p_user_id": string }; Returns: boolean
@@ -386,6 +432,9 @@ isOneToOne: false
                            },
 "set_member_roles":
 { Args: { "p_institution_id": string,"p_reason": string,"p_role_codes": (string)[],"p_user_id": string }; Returns: boolean
+                           },
+"set_patient_coverage":
+{ Args: { "p_institution_id": string,"p_member_number": string,"p_patient_id": string,"p_payer_id": string,"p_valid_from": string }; Returns: boolean
                            },
 "update_patient":
 { Args: { "p_address": string,"p_birth_date": string,"p_chosen_name": string,"p_document_number": string,"p_document_type": string,"p_email": string,"p_first_name": string,"p_institution_id": string,"p_last_name": string,"p_patient_id": string,"p_phone": string,"p_registered_sex": string }; Returns: boolean

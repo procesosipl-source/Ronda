@@ -33,11 +33,32 @@ const dniRule = {
   params: { message: 'El DNI tiene que tener 7 u 8 números.', path: ['documentNumber'] },
 }
 
-/** Alta de paciente. */
-export function newPatientSchema(today: string) {
+/**
+ * La obra social es obligatoria; el número de afiliado, solo si esa obra social lo pide.
+ * `requiringMemberNumber` son los ids de las obras sociales que lo piden (salen del catálogo).
+ */
+function coverageFields() {
+  return {
+    payerId: z.string().min(1, { message: 'Elegí la obra social.' }),
+    memberNumber: z.string().trim(),
+  }
+}
+
+function memberNumberRule(requiringMemberNumber: readonly string[]) {
+  return {
+    check: (values: { payerId: string; memberNumber: string }) =>
+      !requiringMemberNumber.includes(values.payerId) || values.memberNumber.length > 0,
+    params: { message: 'Escribí el número de afiliado: esta obra social lo pide.', path: ['memberNumber'] },
+  }
+}
+
+/** Alta de paciente, con su cobertura (decidido en la semana 6, se suma en la 8). */
+export function newPatientSchema(today: string, requiringMemberNumber: readonly string[] = []) {
+  const memberRule = memberNumberRule(requiringMemberNumber)
   return z
-    .object({ ...personalFields(today), phone: z.string().trim(), email: optionalEmail })
+    .object({ ...personalFields(today), phone: z.string().trim(), email: optionalEmail, ...coverageFields() })
     .refine(dniRule.check, dniRule.params)
+    .refine(memberRule.check, memberRule.params)
 }
 export type NewPatientValues = z.infer<ReturnType<typeof newPatientSchema>>
 
@@ -51,6 +72,8 @@ export const emptyNewPatient: NewPatientValues = {
   registeredSex: '',
   phone: '',
   email: '',
+  payerId: '',
+  memberNumber: '',
 }
 
 /** Panel "Datos personales" de la ficha. */
@@ -82,3 +105,18 @@ export const statusChangeSchema = z.object({
   reason: z.string().trim().min(1, { message: 'Escribí el motivo del cambio.' }),
 })
 export type StatusChangeValues = z.infer<typeof statusChangeSchema>
+
+/** Cambio de cobertura en la ficha. */
+export function coverageSchema(today: string, requiringMemberNumber: readonly string[]) {
+  const memberRule = memberNumberRule(requiringMemberNumber)
+  return z
+    .object({
+      ...coverageFields(),
+      validFrom: z
+        .string()
+        .min(1, { message: 'Escribí desde cuándo rige.' })
+        .refine((value) => value <= today, { message: 'La cobertura no puede empezar en el futuro.' }),
+    })
+    .refine(memberRule.check, memberRule.params)
+}
+export type CoverageValues = z.infer<ReturnType<typeof coverageSchema>>

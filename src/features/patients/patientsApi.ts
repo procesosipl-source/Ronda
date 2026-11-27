@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase'
-import type { ContactDataValues, NewPatientValues, PatientContactValues, PersonalDataValues, StatusChangeValues } from './patientForms'
+import type { ContactDataValues, CoverageValues, NewPatientValues, PatientContactValues, PersonalDataValues, StatusChangeValues } from './patientForms'
 import { normalizeDocument } from './patientRules'
 
 /** Roles que ven pacientes hoy. Coincide con private.can_read_patients en la base. */
@@ -47,6 +47,8 @@ export async function createPatient(institutionId: string, values: NewPatientVal
     p_chosen_name: values.chosenName === '' ? undefined : values.chosenName,
     p_phone: values.phone === '' ? undefined : values.phone,
     p_email: values.email === '' ? undefined : values.email,
+    p_payer_id: values.payerId,
+    p_member_number: values.memberNumber === '' ? undefined : values.memberNumber,
   })
   if (error !== null) {
     throw new PatientError(error.code === 'P0001' ? error.message : 'No pudimos guardar el paciente. Revisá tu conexión y volvé a intentar.')
@@ -177,4 +179,29 @@ export async function removeContact(institutionId: string, contactId: string) {
     .eq('institution_id', institutionId)
     .eq('id', contactId)
   if (error !== null) throw new PatientError(error.code === '42501' ? noPermission : connectionError)
+}
+
+/** Coberturas del paciente, de la más nueva a la más vieja. La vigente es la que no tiene valid_to. */
+export async function listCoverages(institutionId: string, patientId: string) {
+  const { data, error } = await supabase
+    .from('patient_coverage')
+    .select('id, member_number, valid_from, valid_to, created_at, payer:payer(name, kind)')
+    .eq('institution_id', institutionId)
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: false })
+  if (error !== null) throw new PatientError('No pudimos cargar la cobertura. Revisá tu conexión y volvé a intentar.')
+  return data
+}
+export type PatientCoverage = Awaited<ReturnType<typeof listCoverages>>[number]
+
+export async function setCoverage(institutionId: string, patientId: string, values: CoverageValues) {
+  const { data, error } = await supabase.rpc('set_patient_coverage', {
+    p_institution_id: institutionId,
+    p_patient_id: patientId,
+    p_payer_id: values.payerId,
+    p_member_number: values.memberNumber,
+    p_valid_from: values.validFrom,
+  })
+  if (error !== null) throw new PatientError(error.code === 'P0001' ? error.message : connectionError)
+  if (!data) throw new PatientError(noPermission)
 }

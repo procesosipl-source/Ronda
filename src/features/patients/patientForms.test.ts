@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { validate } from '../../lib/formValidation'
 import { emptyNewPatient, newPatientSchema } from './patientForms'
 
-const schema = newPatientSchema('2026-12-07')
-const valid = { ...emptyNewPatient, firstName: 'Martina', lastName: 'Pérez', documentNumber: '40.111.201', birthDate: '1998-03-14' }
+const schema = newPatientSchema('2026-12-07', ['osep'])
+const valid = { ...emptyNewPatient, firstName: 'Martina', lastName: 'Pérez', documentNumber: '40.111.201', birthDate: '1998-03-14', payerId: 'particular' }
 
 describe('newPatientSchema', () => {
   it('acepta un alta con los datos obligatorios', () => {
@@ -18,6 +18,7 @@ describe('newPatientSchema', () => {
         lastName: 'Escribí el apellido.',
         documentNumber: 'Escribí el número de documento.',
         birthDate: 'Escribí la fecha de nacimiento.',
+        payerId: 'Elegí la obra social.',
       },
     })
   })
@@ -69,6 +70,26 @@ describe('formularios de la ficha', () => {
     expect(validate(statusChangeSchema, { toStatusId: '', reason: ' ' })).toEqual({
       ok: false,
       errors: { toStatusId: 'Elegí el estado nuevo.', reason: 'Escribí el motivo del cambio.' },
+    })
+  })
+})
+
+describe('cobertura', () => {
+  it('en el alta, el número de afiliado es obligatorio solo si la obra social lo pide', () => {
+    expect(validate(schema, { ...valid, payerId: 'osep', memberNumber: '' })).toEqual({
+      ok: false,
+      errors: { memberNumber: 'Escribí el número de afiliado: esta obra social lo pide.' },
+    })
+    expect(validate(schema, { ...valid, payerId: 'osep', memberNumber: '123/01' }).ok).toBe(true)
+    expect(validate(schema, { ...valid, payerId: 'particular', memberNumber: '' }).ok).toBe(true)
+  })
+
+  it('al cambiarla, no puede empezar en el futuro', async () => {
+    const { coverageSchema } = await import('./patientForms')
+    const s = coverageSchema('2026-12-07', [])
+    expect(validate(s, { payerId: 'particular', memberNumber: '', validFrom: '2026-12-08' })).toEqual({
+      ok: false,
+      errors: { validFrom: 'La cobertura no puede empezar en el futuro.' },
     })
   })
 })

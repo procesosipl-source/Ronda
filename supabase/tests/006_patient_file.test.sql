@@ -32,6 +32,11 @@ create function pg_temp.login(p_user uuid) returns void language sql as $$
   set local role authenticated;
 $$;
 
+-- Desde la semana 8 el alta pide la cobertura: estos tests usan "Particular".
+create function pg_temp.particular(p_institution_id uuid) returns uuid language sql as $$
+  select id from public.payer where institution_id = p_institution_id and kind = 'private';
+$$;
+
 create function pg_temp.status(p_code text) returns uuid language sql as $$
   select id from public.patient_status where institution_id = '11111111-1111-1111-1111-111111111111' and code = p_code;
 $$;
@@ -47,7 +52,7 @@ select is(
 );
 
 select pg_temp.login('a0000000-0000-0000-0000-000000000002');
-select public.create_patient('11111111-1111-1111-1111-111111111111', 'Martina', 'Pérez', 'dni', '40111201', '1998-03-14');
+select public.create_patient('11111111-1111-1111-1111-111111111111', 'Martina', 'Pérez', 'dni', '40111201', '1998-03-14', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111'));
 create temp table pid as select id from public.patient where last_name = 'Pérez';
 grant select on pid to authenticated;
 
@@ -166,7 +171,7 @@ select is(
 );
 select pg_temp.login('a0000000-0000-0000-0000-000000000002');
 
-select public.create_patient('11111111-1111-1111-1111-111111111111', 'Otra', 'Persona', 'dni', '30123456', '1980-01-01');
+select public.create_patient('11111111-1111-1111-1111-111111111111', 'Otra', 'Persona', 'dni', '30123456', '1980-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111'));
 
 select throws_ok(
   format($$ select public.update_patient('11111111-1111-1111-1111-111111111111', %L,

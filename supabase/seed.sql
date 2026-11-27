@@ -112,3 +112,30 @@ creados as (
 )
 insert into public.patient_status_history (institution_id, patient_id, from_status_id, to_status_id, reason)
 select institution_id, id, null, status_id, 'Alta del paciente' from creados;
+
+-- ---------------------------------------------------------------------------
+-- Obras sociales de cada institución ("Particular" la crea la base sola) y coberturas.
+-- Los números de afiliado son inventados.
+-- ---------------------------------------------------------------------------
+insert into public.payer (institution_id, name, kind, requires_member_number) values
+  ('a0000000-0000-0000-0000-00000000000a', 'OSEP',          'social_security', true),
+  ('a0000000-0000-0000-0000-00000000000a', 'PAMI',          'social_security', true),
+  ('a0000000-0000-0000-0000-00000000000a', 'OSDE',          'prepaid',         true),
+  ('a0000000-0000-0000-0000-00000000000a', 'Swiss Medical', 'prepaid',         true),
+  ('b0000000-0000-0000-0000-00000000000b', 'OSEP',          'social_security', true),
+  ('b0000000-0000-0000-0000-00000000000b', 'OSDE',          'prepaid',         true);
+
+insert into public.patient_coverage (institution_id, patient_id, payer_id, member_number, valid_from)
+select p.institution_id, p.id, py.id, c.member_number, date '2026-11-01'
+from (values
+  ('40.111.201', 'OSEP',          '0401112/00'),
+  ('38.222.302', 'OSDE',          '61 223344 5 01'),
+  ('45.333.403', 'OSEP',          '0453334/02'),
+  ('12.444.504', 'PAMI',          '15-12444504-0'),
+  ('AB123456',   'Particular',    null),
+  ('50.555.605', 'Swiss Medical', '80012345'),
+  ('41.666.706', 'OSDE',          '61 998877 1 01'),
+  ('40111201',   'OSEP',          '0401112/00')
+) as c(document_number, payer_name, member_number)
+join public.patient p on p.document_number = c.document_number
+join public.payer py on py.institution_id = p.institution_id and py.name = c.payer_name;

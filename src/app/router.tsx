@@ -8,6 +8,7 @@ import { InstitutionGate } from '../features/institutions/InstitutionGate'
 import { NewPatientPage } from '../features/patients/NewPatientPage'
 import { PatientPage } from '../features/patients/PatientPage'
 import { PatientsPage } from '../features/patients/PatientsPage'
+import { PayersPage } from '../features/payers/PayersPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { AppLayout } from './AppLayout'
 import { HomePage } from './HomePage'
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
       { path: 'pacientes', element: <PatientsPage /> },
       { path: 'pacientes/nuevo', element: <NewPatientPage /> },
       { path: 'pacientes/:patientId', element: <PatientPage /> },
+      { path: 'obras-sociales', element: <PayersPage /> },
       { path: 'auditoria', element: <AuditPage /> },
       { path: 'configuracion', element: <SettingsPage /> },
     ],

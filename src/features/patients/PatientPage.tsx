@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Link, useLocation, useParams } from 'react-router'
 import { FormField } from '../../components/FormField'
 import { Modal } from '../../components/Modal'
@@ -8,12 +8,15 @@ import { Notice, primaryButtonClass, tertiaryButtonClass } from '../../component
 import { formatDateTime } from '../../lib/dates'
 import { schemaResolver } from '../../lib/formValidation'
 import { useInstitution } from '../institutions/institutionContext'
+import { listPayers, payerKindLabel } from '../payers/payers'
 import {
   contactDataSchema,
+  coverageSchema,
   patientContactSchema,
   personalDataSchema,
   statusChangeSchema,
   type ContactDataValues,
+  type CoverageValues,
   type PatientContactValues,
   type PersonalDataValues,
   type StatusChangeValues,
@@ -24,10 +27,12 @@ import {
   getPatient,
   getStatusHistory,
   listContacts,
+  listCoverages,
   patientCreatorRoles,
   patientStatusRoles,
   removeContact,
   saveContact,
+  setCoverage,
   updatePatient,
   type Patient,
   type PatientContact,
@@ -49,6 +54,7 @@ type Dialog =
   | { kind: 'status' }
   | { kind: 'personal' }
   | { kind: 'contactData' }
+  | { kind: 'coverage' }
   | { kind: 'contact'; contact?: PatientContact }
   | { kind: 'removeContact'; contact: PatientContact }
   | null
@@ -80,6 +86,7 @@ export function PatientPage() {
     void queryClient.invalidateQueries({ queryKey: ['patient', current.id, patientId] })
     void queryClient.invalidateQueries({ queryKey: ['patient-history', current.id, patientId] })
     void queryClient.invalidateQueries({ queryKey: ['patient-contacts', current.id, patientId] })
+    void queryClient.invalidateQueries({ queryKey: ['patient-coverages', current.id, patientId] })
     void queryClient.invalidateQueries({ queryKey: ['patients', current.id] })
   }
 
@@ -131,6 +138,8 @@ export function PatientPage() {
           </dl>
         </Panel>
 
+        <CoveragePanel patientId={p.id} onChange={canEdit ? () => setDialog({ kind: 'coverage' }) : undefined} />
+
         <ContactsPanel
           patientId={p.id}
           canEdit={canEdit}
@@ -147,6 +156,9 @@ export function PatientPage() {
       </Modal>
       <Modal title="Datos personales" open={dialog?.kind === 'personal'} onClose={() => setDialog(null)}>
         {dialog?.kind === 'personal' && <PersonalDataForm patient={p} onDone={done} />}
+      </Modal>
+      <Modal title="Cambiar cobertura" open={dialog?.kind === 'coverage'} onClose={() => setDialog(null)}>
+        {dialog?.kind === 'coverage' && <CoverageForm patientId={p.id} onDone={done} />}
       </Modal>
       <Modal title="Contacto y domicilio" open={dialog?.kind === 'contactData'} onClose={() => setDialog(null)}>
         {dialog?.kind === 'contactData' && <ContactDataForm patient={p} onDone={done} />}
@@ -195,6 +207,124 @@ function Item({ label, children }: { label: string; children: ReactNode }) {
       <dt className="text-[0.8rem] text-ink-3">{label}</dt>
       <dd className="mt-0.5 break-words">{children}</dd>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Cobertura
+// ---------------------------------------------------------------------------
+
+/** "Desde 01/11/2026" o "Del 01/11/2026 al 06/12/2026". valid_to es el primer día de la siguiente, sin incluir. */
+function coveragePeriod(validFrom: string, validTo: string | null): string {
+  if (validTo === null) return `Desde ${formatDate(validFrom)}`
+  if (validTo === validFrom) return `Reemplazada el mismo día que empezó (${formatDate(validFrom)})`
+  const last = new Date(`${validTo}T12:00:00Z`)
+  last.setUTCDate(last.getUTCDate() - 1)
+  return `Del ${formatDate(validFrom)} al ${formatDate(last.toISOString().slice(0, 10))}`
+}
+
+function CoveragePanel({ patientId, onChange }: { patientId: string; onChange?: (() => void) | undefined }) {
+  const { current } = useInstitution()
+  const coverages = useQuery({
+    queryKey: ['patient-coverages', current.id, patientId],
+    queryFn: () => listCoverages(current.id, patientId),
+  })
+  const active = coverages.data?.find((c) => c.valid_to === null)
+  const past = coverages.data?.filter((c) => c.valid_to !== null) ?? []
+
+  return (
+    <Panel
+      title="Cobertura"
+      action={
+        onChange !== undefined ? (
+          <button type="button" onClick={onChange} className={secondaryButtonClass}>
+            {active === undefined ? 'Cargar cobertura' : 'Cambiar cobertura'}
+          </button>
+        ) : undefined
+      }
+    >
+      {coverages.isError ? (
+        <Notice tone="danger">{coverages.error.message}</Notice>
+      ) : coverages.isPending ? (
+        <p role="status" className="text-ink-3">
+          Cargando…
+        </p>
+      ) : active === undefined ? (
+        <Notice tone="warn">Sin cobertura cargada. Cargala para poder facturar la atención.</Notice>
+      ) : (
+        <>
+          <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+            <Item label="Obra social">
+              {active.payer?.name} <span className="text-ink-3">({payerKindLabel(active.payer?.kind ?? '')})</span>
+            </Item>
+            <Item label="Número de afiliado">{active.member_number ?? 'No corresponde'}</Item>
+            <Item label="Vigencia">{coveragePeriod(active.valid_from, null)}</Item>
+          </dl>
+          {past.length > 0 && (
+            <details className="mt-4">
+              <summary className="cursor-pointer text-[0.88rem] font-semibold text-primary">Coberturas anteriores ({past.length})</summary>
+              <ul className="mt-2 flex flex-col gap-2">
+                {past.map((c) => (
+                  <li key={c.id} className="border-l-[3px] border-line pl-3 text-[0.88rem]">
+                    <p className="font-semibold">
+                      {c.payer?.name}
+                      {c.member_number !== null && <span className="font-normal text-ink-2"> · {c.member_number}</span>}
+                    </p>
+                    <p className="text-ink-3">{coveragePeriod(c.valid_from, c.valid_to)}</p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </>
+      )}
+    </Panel>
+  )
+}
+
+function CoverageForm({ patientId, onDone }: { patientId: string; onDone: (message: string) => void }) {
+  const { current } = useInstitution()
+  const today = todayInMendoza()
+  const payers = useQuery({ queryKey: ['payers', current.id], queryFn: () => listPayers(current.id) })
+  const requiring = (payers.data ?? []).filter((p) => p.requires_member_number).map((p) => p.id)
+  const { register, handleSubmit, control, formState } = useForm<CoverageValues>({
+    resolver: schemaResolver(coverageSchema(today, requiring)),
+    defaultValues: { payerId: '', memberNumber: '', validFrom: today },
+  })
+  const payerId = useWatch({ control, name: 'payerId' })
+  const selected = payers.data?.find((p) => p.id === payerId)
+  const mutation = useMutation({
+    mutationFn: (values: CoverageValues) => setCoverage(current.id, patientId, values),
+    onSuccess: () => onDone(`Listo, la cobertura ahora es ${selected?.name ?? 'la nueva'}.`),
+  })
+  const { errors } = formState
+
+  return (
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="payerId" className="text-[0.84rem] font-semibold">
+          Obra social
+        </label>
+        <select id="payerId" {...register('payerId')} aria-invalid={errors.payerId !== undefined} className={selectClass}>
+          <option value="">{payers.isPending ? 'Cargando…' : 'Elegí una'}</option>
+          {payers.data?.map((payer) => (
+            <option key={payer.id} value={payer.id}>
+              {payer.name} ({payerKindLabel(payer.kind)})
+            </option>
+          ))}
+        </select>
+        {errors.payerId && <p className="text-[0.84rem] text-danger">{errors.payerId.message}</p>}
+      </div>
+      {selected?.requires_member_number === true && (
+        <FormField id="memberNumber" label="Número de afiliado" error={errors.memberNumber?.message} inputProps={{ autoComplete: 'off', ...register('memberNumber') }} />
+      )}
+      <FormField id="validFrom" label="Rige desde" error={errors.validFrom?.message} inputProps={{ type: 'date', max: today, ...register('validFrom') }} />
+      <p className="text-[0.8rem] text-ink-3">La cobertura anterior queda en el historial, hasta el día antes de esta fecha. El cambio queda en la auditoría.</p>
+      {mutation.isError && <Notice tone="danger">{mutation.error.message}</Notice>}
+      <button type="submit" disabled={mutation.isPending} className={primaryButtonClass}>
+        {mutation.isPending ? 'Guardando…' : 'Guardar cobertura'}
+      </button>
+    </form>
   )
 }
 

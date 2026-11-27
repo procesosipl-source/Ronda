@@ -33,6 +33,11 @@ create function pg_temp.login(p_user uuid) returns void language sql as $$
   set local role authenticated;
 $$;
 
+-- Desde la semana 8 el alta pide la cobertura: estos tests usan "Particular".
+create function pg_temp.particular(p_institution_id uuid) returns uuid language sql as $$
+  select id from public.payer where institution_id = p_institution_id and kind = 'private';
+$$;
+
 select is(
   (select array_agg(name order by sort_order) from public.patient_status where institution_id = '11111111-1111-1111-1111-111111111111'),
   array['Preadmisión', 'Admisión', 'En tratamiento', 'Alta', 'Baja'],
@@ -45,7 +50,7 @@ select is(
 select pg_temp.login('a0000000-0000-0000-0000-000000000001');
 
 select isnt(
-  public.create_patient('11111111-1111-1111-1111-111111111111', 'Martina', 'Pérez', 'dni', '40.111.201', '1998-03-14', 'F', null, '261 555-0101', null),
+  public.create_patient('11111111-1111-1111-1111-111111111111', 'Martina', 'Pérez', 'dni', '40.111.201', '1998-03-14', 'F', null, '261 555-0101', null, p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')),
   null,
   'Recepción puede dar de alta un paciente'
 );
@@ -70,37 +75,37 @@ select is(
 );
 
 select throws_ok(
-  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', 'Otra', 'Persona', 'dni', '40111201', '2000-01-01') $$,
+  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', 'Otra', 'Persona', 'dni', '40111201', '2000-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')) $$,
   'P0001', 'Ya hay un paciente con ese documento en la institución.',
   'No se puede cargar dos veces el mismo DNI, aunque se escriba sin puntos'
 );
 
 select isnt(
-  public.create_patient('11111111-1111-1111-1111-111111111111', 'Otra', 'Persona', 'passport', '40111201', '2000-01-01'),
+  public.create_patient('11111111-1111-1111-1111-111111111111', 'Otra', 'Persona', 'passport', '40111201', '2000-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')),
   null,
   'El mismo número con otro tipo de documento es otro paciente'
 );
 
 select throws_ok(
-  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', 'X', 'Y', 'dni', '123', '2000-01-01') $$,
+  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', 'X', 'Y', 'dni', '123', '2000-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')) $$,
   'P0001', 'El DNI tiene que tener 7 u 8 números.',
   'Un DNI con pocos números se rechaza'
 );
 
 select throws_ok(
-  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', 'X', 'Y', 'dni', '30123456', current_date + 5) $$,
+  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', 'X', 'Y', 'dni', '30123456', current_date + 5, p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')) $$,
   'P0001', 'La fecha de nacimiento no puede ser futura.',
   'Una fecha de nacimiento futura se rechaza'
 );
 
 select throws_ok(
-  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', '  ', 'Y', 'dni', '30123456', '2000-01-01') $$,
+  $$ select public.create_patient('11111111-1111-1111-1111-111111111111', '  ', 'Y', 'dni', '30123456', '2000-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')) $$,
   'P0001', 'Escribí el nombre.',
   'El nombre es obligatorio'
 );
 
 select isnt(
-  public.create_patient('11111111-1111-1111-1111-111111111111', 'Valentín', 'Núñez', 'dni', '45333403', '2005-11-23', 'X', 'Vale'),
+  public.create_patient('11111111-1111-1111-1111-111111111111', 'Valentín', 'Núñez', 'dni', '45333403', '2005-11-23', 'X', 'Vale', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')),
   null,
   'Se puede cargar el nombre elegido y el sexo registral X'
 );
@@ -167,13 +172,13 @@ select is_empty(
 );
 
 select isnt(
-  public.create_patient('22222222-2222-2222-2222-222222222222', 'Martina', 'Pérez', 'dni', '40111201', '1998-03-14'),
+  public.create_patient('22222222-2222-2222-2222-222222222222', 'Martina', 'Pérez', 'dni', '40111201', '1998-03-14', p_payer_id => pg_temp.particular('22222222-2222-2222-2222-222222222222')),
   null,
   'El mismo DNI se puede cargar en otra institución: los padrones están aislados'
 );
 
 select is(
-  public.create_patient('11111111-1111-1111-1111-111111111111', 'Intrusa', 'B', 'dni', '30999999', '2000-01-01'),
+  public.create_patient('11111111-1111-1111-1111-111111111111', 'Intrusa', 'B', 'dni', '30999999', '2000-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')),
   null,
   'Recepción de B no puede dar de alta pacientes en A'
 );
@@ -189,7 +194,7 @@ select is_empty(
 );
 
 select is(
-  public.create_patient('11111111-1111-1111-1111-111111111111', 'X', 'Y', 'dni', '30888888', '2000-01-01'),
+  public.create_patient('11111111-1111-1111-1111-111111111111', 'X', 'Y', 'dni', '30888888', '2000-01-01', p_payer_id => pg_temp.particular('11111111-1111-1111-1111-111111111111')),
   null,
   'Profesional no da de alta pacientes'
 );
