@@ -322,10 +322,13 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 - **Semana 3 (26/11/2026):** instituciones, sedes, roles, perfiles y membresías en la base, con RLS en todas las tablas ([ADR 0005](decisiones/0005-instituciones-membresias-y-roles.md)): varios roles por persona y catálogo de roles fijo. 30 tests pgTAP de aislamiento en verde y seed con dos instituciones ficticias. Migración aplicada en `ronda-dev`.
 
-**Para arrancar la semana 4** (auditoría, elegir institución al entrar, menú según el rol)
+- **Semana 4 (27/11/2026):** auditoría de solo inserción escrita por el servidor ([ADR 0006](decisiones/0006-auditoria.md)), elegir institución al entrar, menú según el rol, barra superior y pantalla de Auditoría.
 
-1. Revisar el flujo 22 (acceso y auditoría) antes de diseñar `audit_log`.
-2. Para probar en la base local: `npx supabase start` y `npx supabase db reset`. Los usuarios del seed entran con la contraseña `prueba-ronda-2026`.
+**Para arrancar la semana 5** (menú en tres bloques, celular, invitar usuarios, módulos activables)
+
+1. Revisar el flujo 21 (alta de usuario) y aceptar el ADR 0003 (módulos activables) junto con `docs/modulos.md`.
+2. Invitar usuarios necesita mandar mails desde el servidor: decidir si se usa la invitación de Supabase Auth desde una Edge Function.
+3. Para probar en la base local: `npx supabase start`, `npx supabase db reset` y `npm run dev:local` (necesita `.env.localdb.local`, ver `.env.example`). Los usuarios del seed entran con la contraseña `prueba-ronda-2026`.
 
 **Quedó para más adelante**
 

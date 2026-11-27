@@ -1,8 +1,11 @@
 import { createBrowserRouter } from 'react-router'
+import { AuditPage } from '../features/audit/AuditPage'
 import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { NewPasswordPage } from '../features/auth/NewPasswordPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
+import { InstitutionGate } from '../features/institutions/InstitutionGate'
+import { AppLayout } from './AppLayout'
 import { HomePage } from './HomePage'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -12,9 +15,15 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireAuth>
-        <HomePage />
+        <InstitutionGate>
+          <AppLayout />
+        </InstitutionGate>
       </RequireAuth>
     ),
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'auditoria', element: <AuditPage /> },
+    ],
   },
   { path: '/ingresar', element: <LoginPage /> },
   { path: '/recuperar-contrasena', element: <ForgotPasswordPage /> },

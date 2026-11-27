@@ -74,6 +74,7 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 | Usuario | `user` (Supabase Auth) | Persona que inicia sesión. Su nombre está en `user_profile`. |
 | Membresía | `membership` | Relación usuario ↔ institución ↔ rol. Una fila por rol: una persona puede tener varios roles en una institución y estar en varias instituciones (ADR 0005). |
 | Rol | `role` | Catálogo fijo: Dirección (`director`), Coordinación (`coordinator`), Administración (`administration`), Recepción (`reception`), Profesional (`professional`), Enfermería (`nursing`). |
+| Auditoría | `audit_log` | Registro de solo inserción de acciones sensibles. Las acciones salen del catálogo `audit_action` y se escriben solo desde funciones del servidor (ADR 0006). |
 | Profesional | `professional` | Persona que atiende. Tiene disciplina, matrícula y firma. |
 | Disciplina | `discipline` | Psicología, Psiquiatría, Trabajo social, Nutrición, Enfermería, etc. |
 | Paciente | `patient` | Persona atendida. Único por DNI dentro de cada institución. |

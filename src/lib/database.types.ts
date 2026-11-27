@@ -5,7 +5,53 @@ export type Database = {
   
   "public": {
           Tables: {
-            "institution": {
+            "audit_action": {
+                  Row: {
+                    "code": string,"id": string,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"id"?: string,"name": string
+                  }
+                  Update: {
+                    "code"?: string,"id"?: string,"name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"audit_log": {
+                  Row: {
+                    "action_id": string,"details": NonNullable<Json>,"entity": string | null,"id": string,"institution_id": string,"occurred_at": string,"record_id": string | null,"role_codes": (string)[],"user_id": string | null,"user_name": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action_id": string,"details"?: NonNullable<Json>,"entity"?: string | null,"id"?: string,"institution_id": string,"occurred_at"?: string,"record_id"?: string | null,"role_codes"?: (string)[],"user_id"?: string | null,"user_name"?: string | null
+                  }
+                  Update: {
+                    "action_id"?: string,"details"?: NonNullable<Json>,"entity"?: string | null,"id"?: string,"institution_id"?: string,"occurred_at"?: string,"record_id"?: string | null,"role_codes"?: (string)[],"user_id"?: string | null,"user_name"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "audit_log_action_id_fkey"
+      columns: ["action_id"]
+isOneToOne: false
+      referencedRelation: "audit_action"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "audit_log_institution_id_fkey"
+      columns: ["institution_id"]
+isOneToOne: false
+      referencedRelation: "institution"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "audit_log_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "user_profile"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"institution": {
                   Row: {
                     "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"legal_name": string | null,"name": string,"tax_id": string | null,"timezone": string,"updated_at": string | null,"updated_by": string | null
                   }
@@ -105,7 +151,12 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "enter_institution":
+{ Args: { "p_institution_id": string }; Returns: boolean
+                           },
+"leave_institution":
+{ Args: { "p_institution_id": string }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never
