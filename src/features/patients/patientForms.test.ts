@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest'
+import { validate } from '../../lib/formValidation'
+import { emptyNewPatient, newPatientSchema } from './patientForms'
+
+const schema = newPatientSchema('2026-12-07')
+const valid = { ...emptyNewPatient, firstName: 'Martina', lastName: 'Pérez', documentNumber: '40.111.201', birthDate: '1998-03-14' }
+
+describe('newPatientSchema', () => {
+  it('acepta un alta con los datos obligatorios', () => {
+    expect(validate(schema, valid).ok).toBe(true)
+  })
+
+  it('pide nombre, apellido, documento y fecha de nacimiento', () => {
+    expect(validate(schema, emptyNewPatient)).toEqual({
+      ok: false,
+      errors: {
+        firstName: 'Escribí el nombre.',
+        lastName: 'Escribí el apellido.',
+        documentNumber: 'Escribí el número de documento.',
+        birthDate: 'Escribí la fecha de nacimiento.',
+      },
+    })
+  })
+
+  it('un DNI tiene que tener 7 u 8 números, con o sin puntos', () => {
+    expect(validate(schema, { ...valid, documentNumber: '123' })).toEqual({
+      ok: false,
+      errors: { documentNumber: 'El DNI tiene que tener 7 u 8 números.' },
+    })
+    expect(validate(schema, { ...valid, documentNumber: '7.123.456' }).ok).toBe(true)
+  })
+
+  it('un pasaporte puede tener letras', () => {
+    expect(validate(schema, { ...valid, documentType: 'passport', documentNumber: 'AB123456' }).ok).toBe(true)
+  })
+
+  it('rechaza una fecha de nacimiento futura', () => {
+    expect(validate(schema, { ...valid, birthDate: '2026-12-08' })).toEqual({
+      ok: false,
+      errors: { birthDate: 'La fecha de nacimiento no puede ser futura.' },
+    })
+  })
+
+  it('el email es opcional, pero si está tiene que ser válido', () => {
+    expect(validate(schema, { ...valid, email: '' }).ok).toBe(true)
+    expect(validate(schema, { ...valid, email: 'martina@' }).ok).toBe(false)
+  })
+})

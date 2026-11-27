@@ -326,10 +326,13 @@ Diferenciales comerciales: pacientes ilimitados desde el plan más barato, preci
 
 - **Semana 5 (27/11/2026):** módulos activables por institución (solo IPL los cambia), invitar usuarios, cambiar roles y dar de baja con motivo, menú en tres bloques y versión para celular.
 
-**Para arrancar la semana 6** (pacientes: alta, listado y búsqueda)
+- **Semana 6 (30/11/2026):** pacientes: alta en Preadmisión, documento único por institución, búsqueda sin acentos, estados configurables con historial.
 
-1. Revisar los flujos 01 (alta de paciente) y 02 (ciclo de vida) antes de diseñar `patient`.
-2. Probar en local: `npx supabase start`, `npx supabase db reset`, `npx supabase functions serve` (para las invitaciones) y `npm run dev:local`. Los mails de la base local llegan a Mailpit (dirección en `npx supabase status`).
+**Para arrancar la semana 7** (ficha del paciente: datos, estados con historial y motivo, referentes)
+
+1. Definir qué transiciones de estado se permiten (flujo 02) y si también son configurables por institución.
+2. Editar datos personales: quién puede (flujo 01) y qué queda en la auditoría.
+3. Probar en local: `npx supabase start`, `npx supabase db reset`, `npx supabase functions serve` y `npm run dev:local`.
 
 **Quedó para más adelante**
 

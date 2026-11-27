@@ -86,3 +86,29 @@ from unnest(array['coverage', 'groups', 'inpatient', 'medication']) as code;
 
 select private.activate_module('b0000000-0000-0000-0000-00000000000b', code)
 from unnest(array['coverage', 'groups']) as code;
+
+-- ---------------------------------------------------------------------------
+-- Pacientes ficticios. Los nombres y documentos son inventados (regla 8).
+-- Se cargan en Preadmisión, con su primer registro en el historial de estados.
+-- ---------------------------------------------------------------------------
+with nuevos (institution_id, first_name, last_name, chosen_name, document_type, document_number, birth_date, registered_sex, phone) as (
+  values
+    ('a0000000-0000-0000-0000-00000000000a'::uuid, 'Martina',  'Pérez',    null,    'dni',      '40.111.201', date '1998-03-14', 'F', '261 555-0101'),
+    ('a0000000-0000-0000-0000-00000000000a'::uuid, 'Joaquín',  'Gómez',    null,    'dni',      '38.222.302', date '1994-07-02', 'M', '261 555-0102'),
+    ('a0000000-0000-0000-0000-00000000000a'::uuid, 'Valentín', 'Núñez',    'Vale',  'dni',      '45.333.403', date '2005-11-23', 'X', null),
+    ('a0000000-0000-0000-0000-00000000000a'::uuid, 'Rosa',     'Álvarez',  null,    'dni',      '12.444.504', date '1956-01-30', 'F', '261 555-0104'),
+    ('a0000000-0000-0000-0000-00000000000a'::uuid, 'Lucía',    'Peña',     null,    'passport', 'AB123456',   date '1989-05-17', 'F', null),
+    ('a0000000-0000-0000-0000-00000000000a'::uuid, 'Tomás',    'Ibáñez',   null,    'dni',      '50.555.605', date '2010-09-09', 'M', '261 555-0106'),
+    ('b0000000-0000-0000-0000-00000000000b'::uuid, 'Camila',   'Pérez',    null,    'dni',      '41.666.706', date '1999-02-11', 'F', '261 555-0201'),
+    -- Mismo DNI que Martina Pérez, pero en otra institución: los padrones están aislados (flujo 01).
+    ('b0000000-0000-0000-0000-00000000000b'::uuid, 'Martina',  'Pérez',    null,    'dni',      '40111201',   date '1998-03-14', 'F', null)
+),
+creados as (
+  insert into public.patient (institution_id, first_name, last_name, chosen_name, document_type, document_number, birth_date, registered_sex, phone, status_id)
+  select n.institution_id, n.first_name, n.last_name, n.chosen_name, n.document_type, n.document_number, n.birth_date, n.registered_sex, n.phone, s.id
+  from nuevos n
+  join public.patient_status s on s.institution_id = n.institution_id and s.is_initial
+  returning id, institution_id, status_id
+)
+insert into public.patient_status_history (institution_id, patient_id, from_status_id, to_status_id, reason)
+select institution_id, id, null, status_id, 'Alta del paciente' from creados;

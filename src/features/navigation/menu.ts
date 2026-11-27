@@ -45,7 +45,7 @@ export const menuSections: readonly MenuSection[] = [
   { key: 'home', label: 'Inicio', icon: 'home', group: 'daily', roles: 'all', path: '/' },
   { key: 'day-panel', label: 'Panel de turnos', icon: 'clipboard', group: 'daily', roles: everyone, arrives: 'Llega en la semana 13.' },
   { key: 'schedule', label: 'Agenda', icon: 'calendar', group: 'daily', roles: ['director', 'coordinator', 'administration', 'reception', 'professional'], arrives: 'Llega en la semana 10.' },
-  { key: 'patients', label: 'Pacientes', icon: 'user', group: 'daily', roles: everyone, arrives: 'Llega en la semana 6.' },
+  { key: 'patients', label: 'Pacientes', icon: 'user', group: 'daily', roles: everyone, path: '/pacientes' },
   { key: 'professionals', label: 'Profesionales', icon: 'stethoscope', group: 'daily', roles: ['director', 'coordinator', 'administration', 'reception'], arrives: 'Llega en la semana 9.' },
   { key: 'groups', label: 'Grupos y talleres', icon: 'users', group: 'admin', roles: ['director', 'coordinator', 'professional'], module: 'groups', arrives: 'Llega en la semana 20.' },
   { key: 'admissions', label: 'Internación', icon: 'bed', group: 'admin', roles: ['director', 'coordinator', 'professional', 'nursing'], module: 'inpatient', arrives: 'Llega en la semana 34.' },

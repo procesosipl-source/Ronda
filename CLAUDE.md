@@ -79,8 +79,8 @@ No agregues dependencias nuevas sin explicarme para qué y qué alternativa desc
 | Módulos de la institución | `institution_module` | Qué módulos tiene activos cada institución, con vigencia. Los cambia solo IPL (ADR 0003). Se consulta con `module_enabled()`. |
 | Profesional | `professional` | Persona que atiende. Tiene disciplina, matrícula y firma. |
 | Disciplina | `discipline` | Psicología, Psiquiatría, Trabajo social, Nutrición, Enfermería, etc. |
-| Paciente | `patient` | Persona atendida. Único por DNI dentro de cada institución. |
-| Estado del paciente | `patient_status` | Preadmisión, Admisión, En tratamiento, Alta, Baja (configurable). |
+| Paciente | `patient` | Persona atendida. Única por tipo y número de documento (DNI, Pasaporte u Otro) dentro de cada institución. Puede tener nombre elegido (Ley 26.743), que es el que muestran las pantallas. |
+| Estado del paciente | `patient_status` | Preadmisión, Admisión, En tratamiento, Alta, Baja: vienen por defecto y cada institución los puede ajustar. El historial va en `patient_status_history`. |
 | Equipo tratante | `care_team_member` | Profesionales asignados a un paciente, con vigencia. Define quién ve su historia clínica. |
 | Referente | `patient_contact` | Familiar o contacto responsable del paciente. |
 | Plantilla horaria | `schedule_template` | Días y franjas en que atiende un profesional en una sede. |

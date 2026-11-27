@@ -5,6 +5,9 @@ import { LoginPage } from '../features/auth/LoginPage'
 import { NewPasswordPage } from '../features/auth/NewPasswordPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
 import { InstitutionGate } from '../features/institutions/InstitutionGate'
+import { NewPatientPage } from '../features/patients/NewPatientPage'
+import { PatientPage } from '../features/patients/PatientPage'
+import { PatientsPage } from '../features/patients/PatientsPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { AppLayout } from './AppLayout'
 import { HomePage } from './HomePage'
@@ -23,6 +26,9 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <HomePage /> },
+      { path: 'pacientes', element: <PatientsPage /> },
+      { path: 'pacientes/nuevo', element: <NewPatientPage /> },
+      { path: 'pacientes/:patientId', element: <PatientPage /> },
       { path: 'auditoria', element: <AuditPage /> },
       { path: 'configuracion', element: <SettingsPage /> },
     ],
